@@ -73,22 +73,76 @@ def free_percent() -> int | None:
     return int(match.group(1)) if match else None
 
 
-class MemoryMonitor:
-    """Safety monitor for the 27B attempt.
+def vm_stat_counters() -> dict[str, int]:
+    """Read lightweight macOS paging counters.
 
-    The process is aborted from generation callbacks after three consecutive samples show an
-    extra 768 MiB of swap over the process-start baseline.  This is a stop condition, not a
-    tuning parameter; normal measurements only record the samples.
+    Swap allocation is intentionally not a stop condition: macOS can move cold, unrelated
+    pages out of RAM while the active MLX working set remains healthy.  Page-outs and swap-outs
+    are useful corroborating evidence when combined with low free memory.
+    """
+    try:
+        text = subprocess.check_output(
+            ["vm_stat"], text=True, stderr=subprocess.DEVNULL, timeout=10
+        )
+    except Exception:
+        return {}
+    page_size = 4096
+    match = re.search(r"page size of (\d+) bytes", text)
+    if match:
+        page_size = int(match.group(1))
+    names = {
+        "Pageins": "pageins",
+        "Pageouts": "pageouts",
+        "Swapins": "swapins",
+        "Swapouts": "swapouts",
+        "Pages stored in compressor": "compressor_pages",
+    }
+    counters: dict[str, int] = {"page_size": page_size}
+    for line in text.splitlines():
+        for source, destination in names.items():
+            match = re.match(rf"\s*{re.escape(source)}:\s+(\d+)\.?\s*$", line)
+            if match:
+                counters[destination] = int(match.group(1))
+                break
+    return counters
+
+
+def system_memory_snapshot() -> dict[str, float | int | None]:
+    counters = vm_stat_counters()
+    return {
+        "swap_used_mb": swap_used_mb(),
+        "free_percent": free_percent(),
+        "pageins": counters.get("pageins"),
+        "pageouts": counters.get("pageouts"),
+        "swapins": counters.get("swapins"),
+        "swapouts": counters.get("swapouts"),
+        "compressor_pages": counters.get("compressor_pages"),
+        "page_size": counters.get("page_size"),
+    }
+
+
+class MemoryMonitor:
+    """Observe memory pressure and abort only on evidence of genuine thrashing.
+
+    Swap growth by itself is deliberately harmless.  The safety stop requires three consecutive
+    samples of either very low free memory plus active page-outs/swap-outs, or an extreme page-out
+    rate.  All samples are retained in the final JSON emitted by the harness.
     """
 
-    def __init__(self, abort_growth_mb: float = 768.0) -> None:
-        self.baseline = swap_used_mb()
-        self.max_used = self.baseline
-        self.abort_growth_mb = abort_growth_mb
+    def __init__(self) -> None:
+        self.before = system_memory_snapshot()
+        self.last = self.before
+        self.last_sample_at = time.monotonic()
+        self.samples: list[dict[str, float | int | None | bool]] = []
+        self.min_free_percent: int | None = self.before.get("free_percent")
+        self.max_pageout_rate = 0.0
+        self.max_swapout_rate = 0.0
+        self.paging_observed = False
+        self.sustained_paging_observed = False
         self.heavy_count = 0
+        self.abort_reason: str | None = None
         self.abort = threading.Event()
         self.stop = threading.Event()
-        self.samples: list[float] = []
         self.thread = threading.Thread(target=self._run, name="swap-monitor", daemon=True)
 
     def start(self) -> None:
@@ -98,41 +152,137 @@ class MemoryMonitor:
         self.stop.set()
         self.thread.join(timeout=2)
 
+    def reset_baseline(self) -> None:
+        """Start a fresh memory window immediately before the quoted generation."""
+        baseline = system_memory_snapshot()
+        self.before = baseline
+        self.last = baseline
+        self.last_sample_at = time.monotonic()
+        self.samples.clear()
+        self.min_free_percent = baseline.get("free_percent")
+        self.max_pageout_rate = 0.0
+        self.max_swapout_rate = 0.0
+        self.paging_observed = False
+        self.sustained_paging_observed = False
+        self.heavy_count = 0
+        self.abort_reason = None
+        self.abort.clear()
+
     def _run(self) -> None:
-        while not self.stop.wait(1.0):
-            used = swap_used_mb()
-            if used is None:
-                continue
-            self.samples.append(used)
-            self.max_used = max(self.max_used or used, used)
-            if self.baseline is not None and used - self.baseline >= self.abort_growth_mb:
+        while not self.stop.wait(2.0):
+            current = system_memory_snapshot()
+            now = time.monotonic()
+            elapsed = max(now - self.last_sample_at, 1e-6)
+
+            def rate(name: str) -> float | None:
+                previous = self.last.get(name)
+                value = current.get(name)
+                if not isinstance(previous, int) or not isinstance(value, int):
+                    return None
+                return max(value - previous, 0) / elapsed
+
+            pagein_rate = rate("pageins")
+            pageout_rate = rate("pageouts")
+            swapin_rate = rate("swapins")
+            swapout_rate = rate("swapouts")
+            free = current.get("free_percent")
+            if isinstance(free, int):
+                self.min_free_percent = (
+                    free if self.min_free_percent is None else min(self.min_free_percent, free)
+                )
+            if pageout_rate is not None:
+                self.max_pageout_rate = max(self.max_pageout_rate, pageout_rate)
+            if swapout_rate is not None:
+                self.max_swapout_rate = max(self.max_swapout_rate, swapout_rate)
+            if (pageout_rate or 0) > 0 or (swapout_rate or 0) > 0:
+                self.paging_observed = True
+
+            # A normal page-out stream is not enough. Require low free memory as corroboration,
+            # or a genuinely extreme page-out rate, and keep the condition sustained for ~6s.
+            low_memory_with_paging = (
+                isinstance(free, int)
+                and free <= 5
+                and ((pageout_rate or 0) >= 128 or (swapout_rate or 0) > 0)
+            )
+            extreme_pageout_rate = (pageout_rate or 0) >= 2048
+            if low_memory_with_paging or extreme_pageout_rate:
                 self.heavy_count += 1
             else:
                 self.heavy_count = 0
             if self.heavy_count >= 3:
+                self.sustained_paging_observed = True
+                if self.abort_reason is None:
+                    self.abort_reason = (
+                        "sustained paging with low memory pressure headroom: "
+                        f"free={free}%, pageouts/s={pageout_rate}, swapouts/s={swapout_rate}"
+                    )
                 self.abort.set()
+
+            self.samples.append(
+                {
+                    **current,
+                    "elapsed_seconds": round(elapsed, 3),
+                    "pageins_per_second": round(pagein_rate, 1) if pagein_rate is not None else None,
+                    "pageouts_per_second": round(pageout_rate, 1) if pageout_rate is not None else None,
+                    "swapins_per_second": round(swapin_rate, 1) if swapin_rate is not None else None,
+                    "swapouts_per_second": round(swapout_rate, 1) if swapout_rate is not None else None,
+                    "low_memory_with_paging": low_memory_with_paging,
+                    "extreme_pageout_rate": extreme_pageout_rate,
+                }
+            )
+            self.last = current
+            self.last_sample_at = now
 
     def check(self) -> None:
         if self.abort.is_set():
-            raise RuntimeError(
-                "aborted: sustained swap growth exceeded "
-                f"{self.abort_growth_mb:.0f} MiB"
-            )
+            raise RuntimeError(f"aborted: {self.abort_reason or 'sustained paging detected'}")
 
     def snapshot(self) -> dict[str, float | None | int]:
-        final = swap_used_mb()
-        if final is not None:
-            self.max_used = max(self.max_used or final, final)
-        growth = None
-        if self.baseline is not None and self.max_used is not None:
-            growth = round(self.max_used - self.baseline, 1)
+        final = system_memory_snapshot()
+
+        def delta(name: str) -> int | None:
+            before = self.before.get(name)
+            after = final.get(name)
+            if not isinstance(before, int) or not isinstance(after, int):
+                return None
+            return max(after - before, 0)
+
+        swap_before = self.before.get("swap_used_mb")
+        swap_after = final.get("swap_used_mb")
+        swap_values = [
+            value.get("swap_used_mb")
+            for value in self.samples
+            if isinstance(value.get("swap_used_mb"), (float, int))
+        ]
+        if isinstance(swap_before, (float, int)):
+            swap_values.append(swap_before)
+        if isinstance(swap_after, (float, int)):
+            swap_values.append(swap_after)
+        swap_peak = max(swap_values) if swap_values else None
+        swap_growth = (
+            round(float(swap_after) - float(swap_before), 1)
+            if isinstance(swap_before, (float, int)) and isinstance(swap_after, (float, int))
+            else None
+        )
         return {
-            "swap_before_mb": self.baseline,
-            "swap_after_mb": final,
-            "swap_peak_observed_mb": self.max_used,
-            "swap_growth_mb": growth,
+            "swap_before_mb": swap_before,
+            "swap_after_mb": swap_after,
+            "swap_peak_observed_mb": round(float(swap_peak), 1) if swap_peak is not None else None,
+            "swap_growth_mb": swap_growth,
+            "free_percent_before": self.before.get("free_percent"),
+            "free_percent_after": final.get("free_percent"),
+            "free_percent_min_observed": self.min_free_percent,
+            "pageins_delta": delta("pageins"),
+            "pageouts_delta": delta("pageouts"),
+            "swapins_delta": delta("swapins"),
+            "swapouts_delta": delta("swapouts"),
+            "max_pageouts_per_second": round(self.max_pageout_rate, 1),
+            "max_swapouts_per_second": round(self.max_swapout_rate, 1),
+            "paging_observed": self.paging_observed,
+            "sustained_paging_observed": self.sustained_paging_observed,
+            "abort_reason": self.abort_reason,
             "swap_samples": len(self.samples),
-            "free_percent_after": free_percent(),
+            "memory_samples": self.samples,
         }
 
 
@@ -246,15 +396,16 @@ def main() -> int:
     parser.add_argument("--warmup-tokens", type=int, default=8)
     parser.add_argument("--check-only", action="store_true")
     parser.add_argument(
-        "--abort-swap-growth-mb",
-        type=float,
-        default=768.0,
-        help="safety stop after three samples above this swap growth",
+        "--kv-bits",
+        type=int,
+        choices=(0, 4, 8),
+        default=8,
+        help="target KV cache quantization; 8 is the requested long-context setting",
     )
     args = parser.parse_args()
 
     resolved_mode, target_repo, drafter_repo = resolve_mode(args.model, mode=args.mode)
-    monitor = MemoryMonitor(abort_growth_mb=args.abort_swap_growth_mb)
+    monitor = MemoryMonitor()
     monitor.start()
     print(
         json.dumps(
@@ -264,13 +415,18 @@ def main() -> int:
                 "target": target_repo,
                 "drafter": drafter_repo,
                 "requested_context_window": 32768,
+                "kv_bits": args.kv_bits,
             },
             sort_keys=True,
         ),
         flush=True,
     )
     try:
-        target, tokenizer = load_target(target_repo, require_tap=resolved_mode == "dspark")
+        target, tokenizer = load_target(
+            target_repo,
+            require_tap=resolved_mode == "dspark",
+            kv_bits=args.kv_bits or None,
+        )
         drafter = None
         selected_cap = None
         lookup = False
@@ -317,6 +473,7 @@ def main() -> int:
                     "mode": resolved_mode,
                     "selected_max_draft": selected_cap,
                     "lookup_drafts": lookup,
+                    "kv_bits": args.kv_bits,
                     "input_tokens": len(prompt_ids),
                     "context_limit_detected": context_limit,
                     "load_memory": load_memory,
@@ -353,6 +510,7 @@ def main() -> int:
         print(json.dumps({"status": "warmup_done", **warmup}, sort_keys=True), flush=True)
         mx.reset_peak_memory()
         monitor.check()
+        monitor.reset_baseline()
         print(
             json.dumps(
                 {"status": "measured", "mode": resolved_mode, "output_tokens_target": args.max_new_tokens},
@@ -381,6 +539,7 @@ def main() -> int:
                     "mode": resolved_mode,
                     "selected_max_draft": selected_cap,
                     "lookup_drafts": lookup,
+                    "kv_bits": args.kv_bits,
                     "requested_context_window": 32768,
                     "measured": measured,
                     "memory": {**monitor.snapshot(), **mlx_snapshot(), "process_max_rss_mb": rss_snapshot()},

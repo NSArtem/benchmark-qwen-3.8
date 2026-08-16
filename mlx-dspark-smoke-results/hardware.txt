@@ -1,0 +1,17 @@
+Hardware:
+
+    Hardware Overview:
+
+      Model Name: MacBook Pro
+      Model Identifier: Mac15,6
+      Model Number: MRX33KS/A
+      Chip: Apple M3 Pro
+      Total Number of Cores: 11 (5 performance and 6 efficiency)
+      Memory: 18 GB
+      System Firmware Version: mBoot-18000.161.9
+      OS Loader Version: 11881.140.96.701.1
+      Serial Number (system): Q5W947KY4V
+      Hardware UUID: 3FA3F7F2-3247-5E2D-B617-A98D318EA376
+      Provisioning UDID: 00006030-000240483484001C
+      Activation Lock Status: Enabled
+
