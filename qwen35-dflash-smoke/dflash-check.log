@@ -1,0 +1,59 @@
+Fetching 11 files:   0%|          | 0/11 [00:00<?, ?it/s]Fetching 11 files: 100%|██████████| 11/11 [00:00<00:00, 2196.08it/s]
+Fetching 2 files:   0%|          | 0/2 [00:00<?, ?it/s]Fetching 2 files:  50%|█████     | 1/2 [00:00<00:00,  1.95it/s]Fetching 2 files: 100%|██████████| 2/2 [01:00<00:00, 35.37s/it]Fetching 2 files: 100%|██████████| 2/2 [01:00<00:00, 30.14s/it]
+{
+  "check_generation_tokens": 2,
+  "check_output": "READY",
+  "check_prompt": "Return exactly the word READY.",
+  "check_speculative": {
+    "accept_lens": [
+      2
+    ],
+    "acceptance_rate": 0.6666666666666666,
+    "accepted_draft_tokens": 2,
+    "draft_lens": [
+      3
+    ],
+    "drafted_tokens": 3,
+    "formatted": "Speculative decoding: 3.00 accepted tokens/round (2.00 accepted drafts/round, 66.7% of drafted, avg draft 3.00) over 1 rounds",
+    "lifetime_accepted_draft_tokens": 2.0,
+    "lifetime_drafted_tokens": 3,
+    "lifetime_rounds": 1,
+    "mean_accepted_draft_tokens_per_round": 2.0,
+    "mean_accepted_tokens_per_round_including_bonus": 3.0,
+    "rejected_draft_tokens": 1,
+    "rounds": 1,
+    "target_forward_passes": null
+  },
+  "compatibility_validation": "passed",
+  "dflash_dispatch_confirmed": true,
+  "draft_configuration": {
+    "block_size": 16,
+    "draft_window_size": null,
+    "hidden_size": 4096,
+    "loaded_parameter_array_bytes": 2583809024,
+    "loaded_parameter_array_elements": 1291904512,
+    "loaded_parameter_array_mb": 2583.809024,
+    "max_position_embeddings": 262144,
+    "model_type": null,
+    "num_hidden_layers": 6,
+    "num_target_layers": 32,
+    "runtime_block_size": null,
+    "target_layer_ids": [
+      1,
+      5,
+      9,
+      13,
+      17,
+      21,
+      25,
+      29
+    ],
+    "vocab_size": 248320
+  },
+  "draft_model": "z-lab/Qwen3.5-9B-DFlash",
+  "load_seconds": 64.00499412499994,
+  "requested_draft_kind": "dflash",
+  "resolved_draft_kind": "dflash",
+  "status": "ok",
+  "target_model": "mlx-community/Qwen3.5-9B-4bit"
+}
