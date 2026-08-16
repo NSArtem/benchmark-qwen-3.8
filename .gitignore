@@ -1,0 +1,13 @@
+# macOS metadata
+.DS_Store
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Local environment and dependency cache
+.venv/
+.uv-cache/
+
+# Local archive used during experimentation
+archive.zip
