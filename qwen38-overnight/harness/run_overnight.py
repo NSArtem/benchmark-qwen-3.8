@@ -497,7 +497,18 @@ def main() -> int:
     # Stage 5: quality smoke for every candidate that completed a practical run.
     for candidate in ("q38-3bit", "q38-mixed-3.5", "q38-2bit"):
         run = existing_run(candidate, "target-practical")
-        if healthy(run):
+        quality_eligible = healthy(run)
+        if (
+            candidate == "q38-3bit"
+            and run
+            and run.get("result", {}).get("status") == "complete"
+            and not run.get("supervisor", {}).get("watchdog_abort")
+        ):
+            # The 3-bit run completed but failed the practical paging gate;
+            # its small smoke remains useful evidence about the quality vs.
+            # memory tradeoff, while MTP/APC remain gated off above.
+            quality_eligible = True
+        if quality_eligible:
             quality_stage(candidate, MODELS[candidate]["target"])
 
     # Only optimize 2-bit after its quality gate, and only when it is either a
