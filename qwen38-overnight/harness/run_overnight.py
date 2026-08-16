@@ -388,7 +388,7 @@ def quality_stage(candidate: str, model: str) -> dict[str, Any] | None:
 def ensure_stage0() -> bool:
     if not ENVIRONMENT.exists():
         run_command(["uv", "run", "python", "qwen38-overnight/harness/collect_environment.py"], 120, "collect environment")
-    if not (OUT / "watchdog-test.json").exists():
+    if not (OUT / "harness" / "watchdog-test.json").exists():
         run_command(
             [
                 "uv", "run", "python", "qwen38-overnight/harness/watchdog.py",

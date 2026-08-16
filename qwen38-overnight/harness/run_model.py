@@ -23,6 +23,7 @@ from mlx_vlm.prompt_utils import apply_chat_template
 from mlx_vlm.speculative.drafters import load_drafter, validate_drafter_compatibility
 from mlx_vlm.speculative.utils import format_speculative_stats
 from mlx_vlm.utils import load, prepare_inputs, should_add_special_tokens
+from mlx_lm.tokenizer_utils import TokenizerWrapper
 
 
 CHECK_PROMPT = "Reply with exactly: OK"
@@ -30,6 +31,13 @@ TEMPERATURE = 0.0
 SEED = 0
 PREFILL_STEP_SIZE = 2048
 DEFAULT_MAX_TOKENS = 128
+
+
+class CallableTokenizerWrapper(TokenizerWrapper):
+    """Bridge mlx-lm's wrapper to mlx-vlm's text-only input helper."""
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        return self._tokenizer(*args, **kwargs)
 
 
 def write_json(path: Path, value: Any) -> None:
@@ -241,6 +249,12 @@ def load_target_bundle(model_id: str) -> tuple[Any, Any, str]:
     from mlx_vlm.models.text_only import Model as TextOnlyModel
 
     language_model, processor, config = load_lm(model_id, return_config=True)
+    if isinstance(processor, TokenizerWrapper) and not isinstance(
+        processor, CallableTokenizerWrapper
+    ):
+        callable_processor = CallableTokenizerWrapper.__new__(CallableTokenizerWrapper)
+        callable_processor.__dict__.update(processor.__dict__)
+        processor = callable_processor
     model = TextOnlyModel(language_model, config)
     model._text_only_runtime = True
     return model, processor, "mlx-lm-text-only"
