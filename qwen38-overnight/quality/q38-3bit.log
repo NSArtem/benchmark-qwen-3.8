@@ -1,0 +1,85 @@
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Fetching 9 files: 100%|██████████| 9/9 [00:00<00:00, 1754.04it/s]
+{"status": "loaded", "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly", "load_seconds": 4.313555708000422, "target_backend": "mlx-lm-text-only"}
+[WARNING] Generating with a model that requires 11225 MB which is close to the maximum recommended size of 12288 MB. This can be slow. See the documentation for possible work-arounds: https://github.com/ml-explore/mlx-lm/tree/main#large-models
+{"status": "fail", "task": "A-coding", "reason": "case [[5, 7], [1, 2], [2, 4]] returned [[1, 4], [5, 7]], expected [[1, 7]]"}
+[WARNING] Generating with a model that requires 11225 MB which is close to the maximum recommended size of 12288 MB. This can be slow. See the documentation for possible work-arounds: https://github.com/ml-explore/mlx-lm/tree/main#large-models
+{"status": "pass", "task": "B-structured-json", "reason": "exact schema/value match"}
+[WARNING] Generating with a model that requires 11225 MB which is close to the maximum recommended size of 12288 MB. This can be slow. See the documentation for possible work-arounds: https://github.com/ml-explore/mlx-lm/tree/main#large-models
+{"status": "pass", "task": "C-reasoning", "reason": "exact objective answer"}
+[WARNING] Generating with a model that requires 11225 MB which is close to the maximum recommended size of 12288 MB. This can be slow. See the documentation for possible work-arounds: https://github.com/ml-explore/mlx-lm/tree/main#large-models
+{"status": "fail", "task": "D-long-context-retrieval", "reason": "got '-1\\n\\n\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**'"}
+[WARNING] Generating with a model that requires 11225 MB which is close to the maximum recommended size of 12288 MB. This can be slow. See the documentation for possible work-arounds: https://github.com/ml-explore/mlx-lm/tree/main#large-models
+{"status": "pass", "task": "E-instruction-following", "reason": "exact constrained format"}
+{
+  "candidate": "q38-3bit",
+  "load_seconds": 4.313555708000422,
+  "mode": "target-only-quality",
+  "model_id": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+  "passed": 3,
+  "raw_output_file": "qwen38-overnight/quality/q38-3bit-outputs.json",
+  "status": "complete",
+  "target_backend": "mlx-lm-text-only",
+  "tasks": [
+    {
+      "decode_tok_s": 11.301036743614425,
+      "input_tokens": 75,
+      "output_sha256": "b2a52258ff6f17754060d25f8d36cb803486f7a6e6807bbc4aa9855ffbc9f59f",
+      "output_tokens": 105,
+      "prefill_tok_s": 53.68535975693826,
+      "reason": "case [[5, 7], [1, 2], [2, 4]] returned [[1, 4], [5, 7]], expected [[1, 7]]",
+      "status": "fail",
+      "task": "A-coding",
+      "ttft_seconds": 2.425607625000339,
+      "wall_seconds": 11.742920292000235
+    },
+    {
+      "decode_tok_s": 11.381646251441634,
+      "input_tokens": 101,
+      "output_sha256": "c0abc3bf12ab054c71d6a6b6901fe4ef30dedae61c8e866e94d19b5433085349",
+      "output_tokens": 59,
+      "prefill_tok_s": 56.14402033411543,
+      "reason": "exact schema/value match",
+      "status": "pass",
+      "task": "B-structured-json",
+      "ttft_seconds": 1.902345417000106,
+      "wall_seconds": 7.110697624999375
+    },
+    {
+      "decode_tok_s": 12.795816627831119,
+      "input_tokens": 36,
+      "output_sha256": "e9e3971859d2164f934d8e228a3afa171c58300e26629a8011f77e3aa9e2f812",
+      "output_tokens": 8,
+      "prefill_tok_s": 38.07794857100191,
+      "reason": "exact objective answer",
+      "status": "pass",
+      "task": "C-reasoning",
+      "ttft_seconds": 1.047964958999728,
+      "wall_seconds": 1.6970849999997881
+    },
+    {
+      "decode_tok_s": 10.942167827347653,
+      "input_tokens": 3055,
+      "output_sha256": "e25e15c52ef19d1a39b4d045a05803bf5a9bd58b3a2148f946d5bf80c27eaa0a",
+      "output_tokens": 256,
+      "prefill_tok_s": 108.36084638662969,
+      "reason": "got '-1\\n\\n\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**\\n**'",
+      "status": "fail",
+      "task": "D-long-context-retrieval",
+      "ttft_seconds": 28.297609457999897,
+      "wall_seconds": 51.71919033299946
+    },
+    {
+      "decode_tok_s": 12.247997452421394,
+      "input_tokens": 53,
+      "output_sha256": "fa6c81cb4703a7af52d06644b98782d83514eaa7287d83ecf793b52c5dc97406",
+      "output_tokens": 11,
+      "prefill_tok_s": 55.30171500284816,
+      "reason": "exact constrained format",
+      "status": "pass",
+      "task": "E-instruction-following",
+      "ttft_seconds": 1.0654612500002258,
+      "wall_seconds": 1.9892950420007764
+    }
+  ],
+  "total": 5
+}

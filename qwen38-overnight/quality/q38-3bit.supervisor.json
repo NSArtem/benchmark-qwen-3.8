@@ -1,0 +1,84 @@
+{
+  "child_log": "qwen38-overnight/quality/q38-3bit.log",
+  "child_pid": 9606,
+  "child_result": "qwen38-overnight/quality/q38-3bit.json",
+  "child_returncode": 0,
+  "command": [
+    "uv",
+    "run",
+    "python",
+    "qwen38-overnight/harness/quality_runner.py",
+    "--model",
+    "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+    "--candidate",
+    "q38-3bit",
+    "--result-json",
+    "qwen38-overnight/quality/q38-3bit.json",
+    "--raw-output",
+    "qwen38-overnight/quality/q38-3bit-outputs.json",
+    "--progress-file",
+    "qwen38-overnight/quality/q38-3bit.progress"
+  ],
+  "label": "quality:q38-3bit",
+  "memory_log": "qwen38-overnight/quality/memory-q38-3bit.log",
+  "memory_summary": {
+    "after": {
+      "compressor_pages": 207174,
+      "free_percent": 88.0,
+      "page_size": 16384,
+      "pageins": 7152716,
+      "pageouts": 7788,
+      "swap": {
+        "free_mb": 1478.62,
+        "total_mb": 2048.0,
+        "used_mb": 569.38
+      },
+      "swapins": 296092,
+      "swapouts": 347220,
+      "timestamp": 1786921719.1932108
+    },
+    "before": {
+      "compressor_pages": 206984,
+      "free_percent": 87.0,
+      "page_size": 16384,
+      "pageins": 6452120,
+      "pageouts": 7620,
+      "swap": {
+        "free_mb": 1478.62,
+        "total_mb": 2048.0,
+        "used_mb": 569.38
+      },
+      "swapins": 296016,
+      "swapouts": 347220,
+      "timestamp": 1786921639.025959
+    },
+    "max_pageouts_per_second": 104.94655705803457,
+    "max_swapouts_per_second": 0.0,
+    "min_free_percent": 19.0,
+    "pageout_delta": 168,
+    "paging_assessment": "no_meaningful_sustained_paging",
+    "sample_count": 81,
+    "swap_after_mb": 569.38,
+    "swap_before_mb": 569.38,
+    "swap_peak_mb": 569.38,
+    "swapout_delta": 0
+  },
+  "policy": {
+    "critical_paging_consecutive_samples": 2,
+    "critical_swapouts_per_second": 5000.0,
+    "default_wall_timeout_seconds": 1200.0,
+    "emergency_consecutive_samples": 3,
+    "emergency_free_percent": 8.0,
+    "low_free_paging_consecutive_samples": 3,
+    "low_free_percent": 12.0,
+    "meaningful_pageouts_per_second": 25.0,
+    "meaningful_swapouts_per_second": 500.0,
+    "paging_free_percent": 20.0,
+    "paging_stall_seconds": 25.0,
+    "rationale": "Swap growth alone is not an abort condition.  Abort only when free memory is persistently low and page-outs/swap-outs show active pressure, when free memory is emergency-low, when the child reports Metal OOM, or when progress stalls during worsening pressure.",
+    "sample_interval_seconds": 1.0
+  },
+  "wall_seconds": 80.19054904200038,
+  "watchdog_abort": false,
+  "watchdog_reason": null
+}

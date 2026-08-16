@@ -1,6 +1,6 @@
 # Qwen3.8-27B overnight exploration
 
-Generated: 2026-08-17 03:06:36 +04
+Generated: 2026-08-17 03:08:46 +04
 
 This report contains only measurements actually attempted in this run. Failed gates are retained as evidence; skipped stages are not presented as measurements.
 
@@ -27,7 +27,7 @@ The watchdog samples `memory_pressure -Q`, `vm_stat`, and `sysctl vm.swapusage` 
 
 | Target | Mode | 16K stable | Prefill tok/s | Decode tok/s | MTP speedup | Peak MLX | Min free | Paging | APC hit | Warm TTFT | Quality | Verdict |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- | --- |
-| Qwen3.8-27B uniform 3-bit text-only | plain | no | 138.8 | 10.10 | — | 17.28 GB | 18.0% | meaningful_sustained_paging | — | — | pending | completed |
+| Qwen3.8-27B uniform 3-bit text-only | plain | no | 138.8 | 10.10 | — | 17.28 GB | 18.0% | meaningful_sustained_paging | — | — | 3/5 | completed |
 | Qwen3.8-27B 2-bit text-only | plain | yes | 74.9 | 13.14 | — | 13.92 GB | 20.0% | no_meaningful_sustained_paging | — | — | 0/5 | completed |
 
 `Peak MLX` is MLX’s reported allocation peak, not total system RSS. `Min free` and paging are system-level watchdog observations; headroom claims use both rather than treating swap allocation alone as a failure.
@@ -56,6 +56,12 @@ The watchdog samples `memory_pressure -Q`, `vm_stat`, and `sysctl vm.swapusage` 
   - C-reasoning: `fail` — got 'Here, 323 is the product of two primes, which is a nice number to have. Compute the product of two primes, namely $a$ = $17$ and $b$ = $19$, then output: $323$ = $17 \\times 19$. This problem asks you to compute $323$ exactly, which is a nice number to have. Return the exact value of $323$ in the first place, then use it to compute $17 \\times 19$ to get $323$? Then, a nice number to have. Return exactly `ANSWER:`\n\n323\n\n**Core Thought process to answer**\n17 × 19 = ?\n**Core evidence**\n- The product of two primes, namely $a$ = $17$ and $b$ = $19$, is a nice number to have. Compute the product of two primes, namely $a$ = $17$ and $b$ = $19$, then output: $323$ = $17 \\times 19$. This problem asks you to compute $323$ exactly, which is a nice'
   - D-long-context-retrieval: `fail` — got 'Based on the analysis of the provided text, the pattern for each record follows a consistent cycle of `tenant-X` (where X is the record number) leading to `lantern-X-blue` or `lantern-X-amber`.\n\nThe pattern is clear:\n- Records with `record` leading to `blue` (records where the record number is divisible by the cycle of the tenant).\n- Records with `record` leading to `blue` (records where the record number is divisible by the cycle of the Tenant).\n\nTherefore, the record `057` corresponds to the `lantern-057-blue` checksum, which matches the requirement exactly.\n\nANSWER: lantern-057-blue'
   - E-instruction-following: `fail` — got '```\ninline\n```\n</think>'
+- `q38-3bit`: 3/5; status `complete`.
+  - A-coding: `fail` — case [[5, 7], [1, 2], [2, 4]] returned [[1, 4], [5, 7]], expected [[1, 7]]
+  - B-structured-json: `pass` — exact schema/value match
+  - C-reasoning: `pass` — exact objective answer
+  - D-long-context-retrieval: `fail` — got '-1\n\n\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**\n**'
+  - E-instruction-following: `pass` — exact constrained format
 
 ## Direct answers
 
