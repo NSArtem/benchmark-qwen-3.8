@@ -1,6 +1,165 @@
 {
   "created_at": "2026-08-17T00:00:00Z",
-  "quality": [],
+  "quality": [
+    {
+      "candidate": "q38-2bit",
+      "load_seconds": 2.80466508399968,
+      "mode": "target-only-quality",
+      "model_id": "lukaskremla/Qwen3.8-27B-2bit-MLX-TextOnly",
+      "passed": 0,
+      "raw_output_file": "qwen38-overnight/quality/q38-2bit-outputs.json",
+      "recorded_at": "2026-08-16T23:06:36Z",
+      "status": "complete",
+      "supervisor": {
+        "child_log": "qwen38-overnight/quality/q38-2bit.log",
+        "child_pid": 9214,
+        "child_result": "qwen38-overnight/quality/q38-2bit.json",
+        "child_returncode": 0,
+        "command": [
+          "uv",
+          "run",
+          "python",
+          "qwen38-overnight/harness/quality_runner.py",
+          "--model",
+          "lukaskremla/Qwen3.8-27B-2bit-MLX-TextOnly",
+          "--candidate",
+          "q38-2bit",
+          "--result-json",
+          "qwen38-overnight/quality/q38-2bit.json",
+          "--raw-output",
+          "qwen38-overnight/quality/q38-2bit-outputs.json",
+          "--progress-file",
+          "qwen38-overnight/quality/q38-2bit.progress"
+        ],
+        "label": "quality:q38-2bit",
+        "memory_log": "qwen38-overnight/quality/memory-q38-2bit.log",
+        "memory_summary": {
+          "after": {
+            "compressor_pages": 209379,
+            "free_percent": 87.0,
+            "page_size": 16384,
+            "pageins": 6450842,
+            "pageouts": 7620,
+            "swap": {
+              "free_mb": 1478.62,
+              "total_mb": 2048.0,
+              "used_mb": 569.38
+            },
+            "swapins": 295972,
+            "swapouts": 347220,
+            "timestamp": 1786921589.401878
+          },
+          "before": {
+            "compressor_pages": 194103,
+            "free_percent": 88.0,
+            "page_size": 16384,
+            "pageins": 5947845,
+            "pageouts": 7149,
+            "swap": {
+              "free_mb": 1478.62,
+              "total_mb": 2048.0,
+              "used_mb": 569.38
+            },
+            "swapins": 295729,
+            "swapouts": 347220,
+            "timestamp": 1786921491.549191
+          },
+          "max_pageouts_per_second": 193.96577582109856,
+          "max_swapouts_per_second": 0.0,
+          "min_free_percent": 23.0,
+          "pageout_delta": 471,
+          "paging_assessment": "no_meaningful_sustained_paging",
+          "sample_count": 98,
+          "swap_after_mb": 569.38,
+          "swap_before_mb": 569.38,
+          "swap_peak_mb": 569.38,
+          "swapout_delta": 0
+        },
+        "policy": {
+          "critical_paging_consecutive_samples": 2,
+          "critical_swapouts_per_second": 5000.0,
+          "default_wall_timeout_seconds": 1200.0,
+          "emergency_consecutive_samples": 3,
+          "emergency_free_percent": 8.0,
+          "low_free_paging_consecutive_samples": 3,
+          "low_free_percent": 12.0,
+          "meaningful_pageouts_per_second": 25.0,
+          "meaningful_swapouts_per_second": 500.0,
+          "paging_free_percent": 20.0,
+          "paging_stall_seconds": 25.0,
+          "rationale": "Swap growth alone is not an abort condition.  Abort only when free memory is persistently low and page-outs/swap-outs show active pressure, when free memory is emergency-low, when the child reports Metal OOM, or when progress stalls during worsening pressure.",
+          "sample_interval_seconds": 1.0
+        },
+        "wall_seconds": 97.86184150000008,
+        "watchdog_abort": false,
+        "watchdog_reason": null
+      },
+      "target_backend": "mlx-lm-text-only",
+      "tasks": [
+        {
+          "decode_tok_s": 14.924055504329903,
+          "input_tokens": 75,
+          "output_sha256": "4b3151b40e353b663fad6c98c3d7a58097d005c1fae94b9bcab04933bdd08698",
+          "output_tokens": 256,
+          "prefill_tok_s": 54.359096736646876,
+          "reason": "case [] returned None, expected []",
+          "status": "fail",
+          "task": "A-coding",
+          "ttft_seconds": 1.8341814590003196,
+          "wall_seconds": 19.011237959000027
+        },
+        {
+          "decode_tok_s": 15.191467134665963,
+          "input_tokens": 101,
+          "output_sha256": "ff34da58067b897b1c73545a781a0d3a8e0f71c73442b74957742bb65804c663",
+          "output_tokens": 45,
+          "prefill_tok_s": 56.565069361511995,
+          "reason": "invalid JSON: Expecting value: line 1 column 1 (char 0)",
+          "status": "fail",
+          "task": "B-structured-json",
+          "ttft_seconds": 1.895437082999706,
+          "wall_seconds": 4.88141558299958
+        },
+        {
+          "decode_tok_s": 14.872670514423337,
+          "input_tokens": 36,
+          "output_sha256": "dd87a2c1e112eb996005d540650bf15bffdb2ba6854c8a331220eb94f3318488",
+          "output_tokens": 256,
+          "prefill_tok_s": 38.768166618859986,
+          "reason": "got 'Here, 323 is the product of two primes, which is a nice number to have. Compute the product of two primes, namely $a$ = $17$ and $b$ = $19$, then output: $323$ = $17 \\\\times 19$. This problem asks you to compute $323$ exactly, which is a nice number to have. Return the exact value of $323$ in the first place, then use it to compute $17 \\\\times 19$ to get $323$? Then, a nice number to have. Return exactly `ANSWER:`\\n\\n323\\n\\n**Core Thought process to answer**\\n17 × 19 = ?\\n**Core evidence**\\n- The product of two primes, namely $a$ = $17$ and $b$ = $19$, is a nice number to have. Compute the product of two primes, namely $a$ = $17$ and $b$ = $19$, then output: $323$ = $17 \\\\times 19$. This problem asks you to compute $323$ exactly, which is a nice'",
+          "status": "fail",
+          "task": "C-reasoning",
+          "ttft_seconds": 1.033897541999977,
+          "wall_seconds": 18.270668291999755
+        },
+        {
+          "decode_tok_s": 14.438836861448653,
+          "input_tokens": 3055,
+          "output_sha256": "cb4c67c5fccda1c246594bbb3984185b29ab70ee8597a3b819461ba9abe47a51",
+          "output_tokens": 148,
+          "prefill_tok_s": 77.41591553008695,
+          "reason": "got 'Based on the analysis of the provided text, the pattern for each record follows a consistent cycle of `tenant-X` (where X is the record number) leading to `lantern-X-blue` or `lantern-X-amber`.\\n\\nThe pattern is clear:\\n- Records with `record` leading to `blue` (records where the record number is divisible by the cycle of the tenant).\\n- Records with `record` leading to `blue` (records where the record number is divisible by the cycle of the Tenant).\\n\\nTherefore, the record `057` corresponds to the `lantern-057-blue` checksum, which matches the requirement exactly.\\n\\nANSWER: lantern-057-blue'",
+          "status": "fail",
+          "task": "D-long-context-retrieval",
+          "ttft_seconds": 39.58391991700046,
+          "wall_seconds": 49.85948775000088
+        },
+        {
+          "decode_tok_s": 16.885171337017333,
+          "input_tokens": 53,
+          "output_sha256": "2d2a590706c96b41163fa18912acd59aff0df74317d1a04b52b21ddf38411095",
+          "output_tokens": 8,
+          "prefill_tok_s": 56.361708174461725,
+          "reason": "got '```\\ninline\\n```\\n</think>'",
+          "status": "fail",
+          "task": "E-instruction-following",
+          "ttft_seconds": 1.0510965839994242,
+          "wall_seconds": 1.5496091249997335
+        }
+      ],
+      "total": 5
+    }
+  ],
   "runs": [
     {
       "candidate": "q38-2bit",
