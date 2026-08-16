@@ -31,3 +31,11 @@ qwen35-dflash-smoke/*.py[cod]
 # Qwen3.8 native-MTP feasibility-test Python artifacts
 qwen38-mtp-smoke/__pycache__/
 qwen38-mtp-smoke/*.py[cod]
+
+# Qwen3.8 overnight exploration local caches and generated Python artifacts
+qwen38-overnight/**/__pycache__/
+qwen38-overnight/**/*.py[cod]
+qwen38-overnight/**/apc-cache/
+qwen38-overnight/**/*.safetensors
+qwen38-overnight/**/*.bin
+qwen38-overnight/**/*.gguf
