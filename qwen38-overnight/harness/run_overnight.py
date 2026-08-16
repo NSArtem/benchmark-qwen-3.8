@@ -417,31 +417,22 @@ def main() -> int:
     candidate = "q38-3bit"
     models = MODELS[candidate]
     tiny = model_stage(candidate, "target-tiny", models["target"], "target", "tiny", 480, 12)
-    # Preserve the first mlx-vlm dispatch failure, then retry once through the
-    # installed mlx-lm text backend when the advertised TextOnly checkpoint
-    # was rejected solely because mlx-vlm instantiated its vision wrapper.
-    if not healthy(tiny):
-        failed_result = (tiny or {}).get("result", {})
-        error_text = str(failed_result.get("error", ""))
-        if "Missing" in error_text and "vision" in error_text.lower():
-            retry_stage = "target-tiny-text-only"
-            if existing_run(candidate, retry_stage) is not None:
-                retry_stage = "target-tiny-text-only-embedding"
-            tiny = model_stage(candidate, retry_stage, models["target"], "target", "tiny", 480, 12)
-        elif "token embeddings" in error_text.lower():
+    # Preserve each adapter failure, then advance through the installed
+    # mlx-lm text-backend bridges. Re-read the latest failure after every
+    # existing stage so a prior run cannot strand the state machine.
+    retry_specs = (
+        ("target-tiny-text-only", ("missing", "vision")),
+        ("target-tiny-text-only-embedding", ("token embeddings",)),
+        ("target-tiny-text-only-stopping", ("stopping_criteria",)),
+    )
+    for retry_stage, fragments in retry_specs:
+        if healthy(tiny):
+            break
+        error_text = str((tiny or {}).get("result", {}).get("error", "")).lower()
+        if all(fragment in error_text for fragment in fragments):
             tiny = model_stage(
                 candidate,
-                "target-tiny-text-only-embedding",
-                models["target"],
-                "target",
-                "tiny",
-                480,
-                12,
-            )
-        elif "stopping_criteria" in error_text.lower():
-            tiny = model_stage(
-                candidate,
-                "target-tiny-text-only-stopping",
+                retry_stage,
                 models["target"],
                 "target",
                 "tiny",
