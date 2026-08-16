@@ -180,4 +180,4 @@ Important files in this directory:
 Git commits:
 
 - Preparation: `66b00c4` (`benchmark: add Qwen3.5 native MTP smoke test`)
-- Results commit: to be filled immediately after this report is committed
+- Results commit: `718ecbb` (`benchmark: record Qwen3.5 native MTP results`)
