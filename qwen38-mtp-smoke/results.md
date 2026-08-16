@@ -106,7 +106,7 @@ No generated text or token IDs exist because the sanity generation failed.
 - Harness: [`benchmark.py`](benchmark.py)
 - Commands: [`commands.txt`](commands.txt)
 - Harness/config commit: `266fca3` (`benchmark: add Qwen3.8 native MTP feasibility test`)
-- Results commit: pending
+- Measurement/report commit: `0ed5bec` (`benchmark: record Qwen3.8 native MTP results`)
 
 No `mtp.log` exists because the native-MTP stage was intentionally not
 attempted. Model weights, Hugging Face caches, `.venv`, and Python caches were
