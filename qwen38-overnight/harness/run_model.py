@@ -256,6 +256,15 @@ def load_target_bundle(model_id: str) -> tuple[Any, Any, str]:
         callable_processor.__dict__.update(processor.__dict__)
         processor = callable_processor
     model = TextOnlyModel(language_model, config)
+    # mlx-vlm's generic text-only adapter looks for ``embed_tokens`` one
+    # level below the wrapped mlx-lm model.  Qwen3.5 stores it below
+    # ``language_model.model`` in mlx-lm 0.31.3; bind the exact embedding
+    # module without modifying either installed package.
+    qwen_text_model = getattr(getattr(language_model, "language_model", None), "model", None)
+    embedding = getattr(qwen_text_model, "embed_tokens", None)
+    if embedding is None:
+        raise RuntimeError("could not locate Qwen3.5 text embedding module")
+    model.language_model._token_embedding = lambda: embedding
     model._text_only_runtime = True
     return model, processor, "mlx-lm-text-only"
 
