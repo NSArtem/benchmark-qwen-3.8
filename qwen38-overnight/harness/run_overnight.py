@@ -424,6 +424,7 @@ def main() -> int:
         ("target-tiny-text-only", ("missing", "vision")),
         ("target-tiny-text-only-embedding", ("token embeddings",)),
         ("target-tiny-text-only-stopping", ("stopping_criteria",)),
+        ("target-tiny-text-only-detokenizer", ("skip_special_token_ids",)),
     )
     for retry_stage, fragments in retry_specs:
         if healthy(tiny):

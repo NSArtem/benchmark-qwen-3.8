@@ -247,6 +247,7 @@ def load_target_bundle(model_id: str) -> tuple[Any, Any, str]:
         return model, processor, "mlx-vlm"
     from mlx_lm.utils import load as load_lm
     from mlx_vlm.models.text_only import Model as TextOnlyModel
+    from mlx_vlm.tokenizer_utils import BPEStreamingDetokenizer
 
     language_model, processor, config = load_lm(model_id, return_config=True)
     from mlx_vlm.utils import StoppingCriteria
@@ -257,6 +258,10 @@ def load_target_bundle(model_id: str) -> tuple[Any, Any, str]:
         callable_processor = CallableTokenizerWrapper.__new__(CallableTokenizerWrapper)
         callable_processor.__dict__.update(processor.__dict__)
         processor = callable_processor
+    # mlx-lm 0.31.3's BPE detokenizer predates mlx-vlm's optional
+    # ``skip_special_token_ids`` argument. Qwen3.8 uses BPE tokenization, so
+    # use the compatible mlx-vlm implementation for streamed output only.
+    processor._detokenizer_class = BPEStreamingDetokenizer
     eos_token_ids = getattr(processor, "eos_token_ids", None)
     if eos_token_ids is None:
         eos_token_ids = getattr(processor, "eos_token_id", None)
