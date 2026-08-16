@@ -1,0 +1,12 @@
+{
+  "draft_configuration": null,
+  "draft_model": null,
+  "error": "BPEStreamingDetokenizer.add_token() got an unexpected keyword argument 'skip_special_token_ids'",
+  "error_type": "TypeError",
+  "load_seconds": 4.519184540999959,
+  "mode": "target",
+  "model_id": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+  "requested_draft_kind": null,
+  "status": "failed_or_aborted",
+  "target_backend": "mlx-lm-text-only"
+}
