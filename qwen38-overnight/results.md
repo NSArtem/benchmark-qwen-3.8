@@ -1,6 +1,6 @@
 # Qwen3.8-27B overnight exploration
 
-Generated: 2026-08-17 02:57:29 +04
+Generated: 2026-08-17 02:59:57 +04
 
 This report contains only measurements actually attempted in this run. Failed gates are retained as evidence; skipped stages are not presented as measurements.
 
@@ -27,7 +27,7 @@ The watchdog samples `memory_pressure -Q`, `vm_stat`, and `sysctl vm.swapusage` 
 
 | Target | Mode | 16K stable | Prefill tok/s | Decode tok/s | MTP speedup | Peak MLX | Min free | Paging | APC hit | Warm TTFT | Quality | Verdict |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- | --- |
-| — | — | pending | — | — | — | — | — | — | — | — | pending | No practical run has completed yet |
+| Qwen3.8-27B uniform 3-bit text-only | plain | no | 138.8 | 10.10 | — | 17.28 GB | 18.0% | meaningful_sustained_paging | — | — | pending | completed |
 
 `Peak MLX` is MLX’s reported allocation peak, not total system RSS. `Min free` and paging are system-level watchdog observations; headroom claims use both rather than treating swap allocation alone as a failure.
 
@@ -37,6 +37,7 @@ The watchdog samples `memory_pressure -Q`, `vm_stat`, and `sysctl vm.swapusage` 
 - `lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly`: status `ok`, revision `c98bba5926f51fec1c8d8737e577221673f524d7`, reported weight download `11.77 GB`, text-only inference `{'basis': 'repository_name', 'text_only': True}`.
 - `rapid-mlx/Qwen3.8-27B-mixed-3.5bpw-MLX`: status `ok`, revision `d8b68e21eab505332d4a456dacec6d4125c96d73`, reported weight download `13.91 GB`, text-only inference `{'basis': 'vision_or_processor_metadata_present', 'processor_files': ['preprocessor_config.json', 'processor_config.json', 'video_preprocessor_config.json'], 'text_only': False, 'vision_keys': ['image_token_id', 'video_token_id', 'vision_config']}`.
 - `q38-2bit/target-tiny`: `failed_or_aborted`; watchdog `False` ``.
+- `q38-3bit/target-practical`: `complete`; watchdog `False` ``.
 - `q38-3bit/target-tiny`: `failed_or_aborted`; watchdog `False` ``.
 - `q38-3bit/target-tiny-text-only`: `failed_or_aborted`; watchdog `False` ``.
 - `q38-3bit/target-tiny-text-only-detokenizer`: `complete`; watchdog `False` ``.
