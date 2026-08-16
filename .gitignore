@@ -11,3 +11,10 @@ __pycache__/
 
 # Local archive used during experimentation
 archive.zip
+
+# Qwen3.5 native-MTP smoke-test local model/cache files
+qwen35-mtp-smoke/model-cache/
+qwen35-mtp-smoke/__pycache__/
+qwen35-mtp-smoke/*.safetensors
+qwen35-mtp-smoke/*.bin
+qwen35-mtp-smoke/*.gguf

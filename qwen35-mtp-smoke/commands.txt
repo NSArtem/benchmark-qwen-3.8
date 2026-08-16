@@ -1,0 +1,7 @@
+# Qwen3.5 native MTP smoke test commands
+# Run from /Users/artem/projects/benchmark-qwen-3.8 with the repository uv project.
+
+UV_CACHE_DIR=.uv-cache uv add mlx-vlm
+UV_CACHE_DIR=.uv-cache uv sync
+
+# The measured commands are appended here after the one baseline and one MTP run.
