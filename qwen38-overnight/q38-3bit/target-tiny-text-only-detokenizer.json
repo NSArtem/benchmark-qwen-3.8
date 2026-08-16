@@ -1,0 +1,34 @@
+{
+  "batch_size": 1,
+  "draft_configuration": null,
+  "draft_model": null,
+  "input_tokens": 17,
+  "load_seconds": 4.548017709000305,
+  "max_tokens": 12,
+  "mlx_memory": {
+    "active_gb": 11.771723786,
+    "cache_gb": 0.202497515,
+    "peak_gb": 12.059449071
+  },
+  "mode": "target",
+  "model_id": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+  "output_text": "OK",
+  "output_text_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
+  "output_tokens": 2,
+  "prefill_step_size": 2048,
+  "requested_draft_kind": null,
+  "resolved_draft_kind": null,
+  "sanity_check": {
+    "generated_tokens": 2,
+    "generation_tps": 22.455982764934017,
+    "output": "OK",
+    "prompt_tokens": 17,
+    "speculative": null,
+    "wall_seconds": 1.6889325829997688
+  },
+  "stage": "tiny",
+  "status": "complete",
+  "target_backend": "mlx-lm-text-only",
+  "temperature": 0.0,
+  "thinking_enabled": false
+}
