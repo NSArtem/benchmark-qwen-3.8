@@ -1,6 +1,6 @@
 # Qwen3.8-27B overnight exploration
 
-Generated: 2026-08-17 03:00:50 +04
+Generated: 2026-08-17 03:04:51 +04
 
 This report contains only measurements actually attempted in this run. Failed gates are retained as evidence; skipped stages are not presented as measurements.
 
@@ -28,6 +28,7 @@ The watchdog samples `memory_pressure -Q`, `vm_stat`, and `sysctl vm.swapusage` 
 | Target | Mode | 16K stable | Prefill tok/s | Decode tok/s | MTP speedup | Peak MLX | Min free | Paging | APC hit | Warm TTFT | Quality | Verdict |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- | --- |
 | Qwen3.8-27B uniform 3-bit text-only | plain | no | 138.8 | 10.10 | — | 17.28 GB | 18.0% | meaningful_sustained_paging | — | — | pending | completed |
+| Qwen3.8-27B 2-bit text-only | plain | yes | 74.9 | 13.14 | — | 13.92 GB | 20.0% | no_meaningful_sustained_paging | — | — | pending | completed |
 
 `Peak MLX` is MLX’s reported allocation peak, not total system RSS. `Min free` and paging are system-level watchdog observations; headroom claims use both rather than treating swap allocation alone as a failure.
 
@@ -36,6 +37,7 @@ The watchdog samples `memory_pressure -Q`, `vm_stat`, and `sysctl vm.swapusage` 
 - `lukaskremla/Qwen3.8-27B-2bit-MLX-TextOnly`: status `ok`, revision `33b90b60fd7ba16b668854e049bd65e22d6afddf`, reported weight download `8.41 GB`, text-only inference `{'basis': 'repository_name', 'text_only': True}`.
 - `lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly`: status `ok`, revision `c98bba5926f51fec1c8d8737e577221673f524d7`, reported weight download `11.77 GB`, text-only inference `{'basis': 'repository_name', 'text_only': True}`.
 - `rapid-mlx/Qwen3.8-27B-mixed-3.5bpw-MLX`: status `ok`, revision `d8b68e21eab505332d4a456dacec6d4125c96d73`, reported weight download `13.91 GB`, text-only inference `{'basis': 'vision_or_processor_metadata_present', 'processor_files': ['preprocessor_config.json', 'processor_config.json', 'video_preprocessor_config.json'], 'text_only': False, 'vision_keys': ['image_token_id', 'video_token_id', 'vision_config']}`.
+- `q38-2bit/target-practical`: `complete`; watchdog `False` ``.
 - `q38-2bit/target-tiny`: `failed_or_aborted`; watchdog `False` ``.
 - `q38-2bit/target-tiny-text-only-fixed`: `complete`; watchdog `False` ``.
 - `q38-3bit/target-practical`: `complete`; watchdog `False` ``.
@@ -52,7 +54,20 @@ The watchdog samples `memory_pressure -Q`, `vm_stat`, and `sysctl vm.swapusage` 
 
 ## Direct answers
 
-1–14. No practical winner exists yet; the report will be regenerated after the staged gates and quality smoke complete.
+1. Highest-quality safely completed variant: **Qwen3.8-27B 2-bit text-only + plain** (based only on the recorded smoke results: pending).
+2. Decode at the practical prompt length: **13.14 tok/s** with `16727` input tokens.
+3. Memory headroom: MLX peak **13.92 GB**; watchdog minimum free memory **20.0%**. This is the defensible headroom evidence; MLX peak is not total system memory.
+4. Sustained paging: **no_meaningful_sustained_paging**; swap before/peak/after **593.4 / 593.4 / 569.4 MB**.
+5. Native MTP: **not selected as a useful improvement**.
+6. MTP acceptance/speedup: **—**, **—**; drafted `—`, accepted `—`.
+7. APC: **not run or not verified**.
+8. Cold/warm TTFT: **— / —**.
+9. Prior Qwen3.5-9B reference (not rerun): 24.16 tok/s plain, 29.85 tok/s native MTP, and APC warm TTFT 1.491 s after a 64.829 s cold TTFT at roughly 16.7K tokens.
+10. Worth the extra cost: this must be judged from the recorded quality smoke and the memory/latency trade-off; no unsupported general intelligence claim is made here.
+11. Mixed 3.5 bpw quality advantage: only yes if its deterministic smoke exceeds uniform 3-bit; otherwise no convincing advantage was demonstrated.
+12. 2-bit usability: only the recorded smoke result is considered; unmeasured degradation remains unknown.
+13. Suggested use: coding agent favors the stable configuration with verified APC and useful MTP; TTRPG favors the highest-smoke-quality stable configuration if its latency is acceptable.
+14. Single most useful next experiment: a narrowly controlled human/automated coding-quality comparison on the winning Qwen3.8 mode versus the existing Qwen3.5 stack, without changing memory policy.
 
 ## Prior reference (not rerun)
 

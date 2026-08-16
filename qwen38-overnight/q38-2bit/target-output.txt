@@ -1,0 +1,7 @@
+>
+
+**[Terminal State (2)]**
+*   **2**: The terminal state of the incident is described in the incident report.**
+*   **2**: The incident involves a failed job.**
+*   **2**: The incident involves a failed job.**
+</think>**

@@ -1,0 +1,30 @@
+{
+  "final": {
+    "healthy": true,
+    "memory": {
+      "compressor_pages": 194114,
+      "free_percent": 88.0,
+      "page_size": 16384,
+      "pageins": 5947662,
+      "pageouts": 7149,
+      "swap": {
+        "free_mb": 1478.62,
+        "total_mb": 2048.0,
+        "used_mb": 569.38
+      },
+      "swapins": 295729,
+      "swapouts": 347220,
+      "timestamp": 1786921491.221459
+    },
+    "rates": {
+      "pageins_per_second": 2.8975986584782008,
+      "pageouts_per_second": 0.0,
+      "swapins_per_second": 0.0,
+      "swapouts_per_second": 0.0
+    },
+    "timestamp": 1786921491.241429
+  },
+  "healthy": true,
+  "sample_count": 8,
+  "waited_seconds": 7.223217875000046
+}
