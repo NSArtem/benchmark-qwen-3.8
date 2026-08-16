@@ -106,6 +106,12 @@ def choose_winner(registry: dict[str, Any]) -> tuple[str, str, dict[str, Any]] |
             continue
         quality = quality_for(registry, candidate)
         passed = quality.get("passed", -1) if quality else -1
+        # A speed/memory success with a 0/5 smoke is not a practically useful
+        # coding-agent winner. Require at least a majority of deterministic
+        # tasks before selecting a recommendation.
+        total = quality.get("total", 0) if quality else 0
+        if not isinstance(passed, int) or not isinstance(total, int) or passed * 2 < total:
+            continue
         target_metrics = result_metrics(target)
         # Quality smoke dominates.  Stability and memory headroom are hard gates;
         # quantization priority is only a tie-breaker until measured quality differs.
@@ -175,7 +181,12 @@ def render(registry: dict[str, Any], environment: dict[str, Any]) -> str:
             multiplier_text = "—"
         else:
             multiplier_text = fmt(multiplier, 2, "x")
-        verdict = metrics.get("final_verdict") or metrics.get("final_status") or "—"
+        if metrics.get("paging_assessment") in {"severe_sustained_paging", "meaningful_sustained_paging"}:
+            verdict = "not practically viable: sustained paging"
+        elif quality and quality.get("passed") == 0:
+            verdict = "stable run but quality smoke 0/5"
+        else:
+            verdict = metrics.get("final_verdict") or metrics.get("final_status") or "—"
         lines.append(
             f"| {LABELS.get(candidate, candidate)} | {mode} | {stable} | {fmt(metrics.get('prefill_tok_s'), 1)} | {fmt(metrics.get('decode_tok_s'), 2)} | {multiplier_text} | {fmt(metrics.get('mlx_peak_memory_gb'), 2, ' GB')} | {fmt(metrics.get('minimum_free_memory_percent'), 1, '%')} | {metrics.get('paging_assessment', '—')} | {fmt(turn2.get('cached_tokens') if isinstance(turn2, dict) else None, 0)} | {fmt(turn2.get('ttft_seconds') if isinstance(turn2, dict) else None, 2, ' s')} | {quality_text(quality)} | {verdict} |"
         )
@@ -238,8 +249,25 @@ def render(registry: dict[str, Any], environment: dict[str, Any]) -> str:
             "14. Single most useful next experiment: a narrowly controlled human/automated coding-quality comparison on the winning Qwen3.8 mode versus the existing Qwen3.5 stack, without changing memory policy.",
         ]
     else:
+        target_3bit = mapping.get(("q38-3bit", "target-practical"))
+        target_2bit = mapping.get(("q38-2bit", "target-practical"))
+        m3 = result_metrics(target_3bit) if target_3bit else {}
+        m2 = result_metrics(target_2bit) if target_2bit else {}
         lines += [
-            "1–14. No practical winner exists yet; the report will be regenerated after the staged gates and quality smoke complete.",
+            "1. **No Qwen3.8-27B configuration met all three requirements (quality, stable 16K operation, and practical unattended behavior).** Uniform 3-bit had the best smoke result (3/5) but failed the 16K paging gate; 2-bit passed the memory gate but scored 0/5.",
+            f"2. Uniform 3-bit measured **{fmt(m3.get('decode_tok_s'), 2, ' tok/s')}** at `{m3.get('input_tokens', '—')}` tokens; the stable 2-bit control measured **{fmt(m2.get('decode_tok_s'), 2, ' tok/s')}**.",
+            f"3. Uniform 3-bit: MLX peak **{fmt(m3.get('mlx_peak_memory_gb'), 2, ' GB')}**, minimum free **{fmt(m3.get('minimum_free_memory_percent'), 1, '%')}**. 2-bit: MLX peak **{fmt(m2.get('mlx_peak_memory_gb'), 2, ' GB')}**, minimum free **{fmt(m2.get('minimum_free_memory_percent'), 1, '%')}**.",
+            f"4. Uniform 3-bit showed **{m3.get('paging_assessment', 'not recorded')}** with page-out delta `{m3.get('pageout_delta', '—')}` and no swap-out delta; 2-bit showed **{m2.get('paging_assessment', 'not recorded')}** with no swap-outs.",
+            "5. Native MTP was **not attempted** for a practical candidate: 3-bit failed the paging gate, 2-bit failed the quality gate, and mixed 3.5 bpw was watchdog-aborted during tiny loading.",
+            "6. MTP acceptance and speedup: **not measured**; no unsupported estimate is made.",
+            "7. APC: **not run** because no candidate qualified for a persistent coding-agent server test.",
+            "8. APC cold/warm TTFT: **not measured**. For context, 3-bit cold TTFT was approximately 120.66 s at 16,727 tokens, and 2-bit cold TTFT was approximately 223.47 s; neither is an APC result.",
+            "9. Compared with the existing Qwen3.5-9B-4bit reference (24.16 tok/s plain, 29.85 tok/s native MTP, APC cold/warm about 64.83/1.49 s), Qwen3.8 3-bit was slower at 10.10 tok/s and paged; 2-bit was 13.14 tok/s and stable but failed every smoke task.",
+            "10. Is the extra size worth it? **Not for this unattended 18 GB / 16K use case based on these measurements.** 3-bit showed some quality signal (3/5) but insufficient memory headroom; 2-bit supplied no useful quality signal.",
+            "11. Mixed 3.5 bpw provided **no demonstrated quality advantage**: its tiny target run triggered conservative watchdog termination under sustained swap-out pressure, so no practical or quality run was authorized.",
+            "12. 2-bit is **not usable for the tested coding-agent smoke** (0/5), despite being the only Qwen3.8 target that completed the 16K memory gate cleanly.",
+            "13. Recommended configuration: keep using **Qwen3.5-9B-4bit + native MTP + APC** for both the coding agent and TTRPG. Do not run Qwen3.8-27B 3-bit unattended at 16K; treat 2-bit as a stable but quality-failed experiment only.",
+            "14. Single most useful next experiment: run the same five deterministic tasks against the existing Qwen3.5 stack, then compare task-level quality and latency directly with the Qwen3.8 3-bit 3/5 result—without any memory-policy changes.",
         ]
     lines += [
         "",
@@ -249,9 +277,16 @@ def render(registry: dict[str, Any], environment: dict[str, Any]) -> str:
         "",
         "## Artifacts",
         "",
-        "Raw logs, stage JSON, watchdog telemetry, metadata, and quality outputs live under `qwen38-overnight/`. The final archive path and Git verification are added at completion.",
+        "Raw logs, stage JSON, watchdog telemetry, metadata, and quality outputs live under `qwen38-overnight/`.",
         "",
     ]
+    archive = registry.get("archive")
+    if isinstance(archive, dict):
+        lines += [
+            f"Archive: `{archive.get('path', '—')}` ({fmt(archive.get('size_bytes'), 0, ' bytes')}).",
+            f"Git verification: `{registry.get('git_verification', 'pending')}`.",
+            "",
+        ]
     return "\n".join(lines)
 
 

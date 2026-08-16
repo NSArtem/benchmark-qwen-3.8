@@ -1,6 +1,6 @@
 # Qwen3.8-27B overnight exploration
 
-Generated: 2026-08-17 03:08:46 +04
+Generated: 2026-08-17 03:12:28 +04
 
 This report contains only measurements actually attempted in this run. Failed gates are retained as evidence; skipped stages are not presented as measurements.
 
@@ -27,8 +27,8 @@ The watchdog samples `memory_pressure -Q`, `vm_stat`, and `sysctl vm.swapusage` 
 
 | Target | Mode | 16K stable | Prefill tok/s | Decode tok/s | MTP speedup | Peak MLX | Min free | Paging | APC hit | Warm TTFT | Quality | Verdict |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- | --- |
-| Qwen3.8-27B uniform 3-bit text-only | plain | no | 138.8 | 10.10 | — | 17.28 GB | 18.0% | meaningful_sustained_paging | — | — | 3/5 | completed |
-| Qwen3.8-27B 2-bit text-only | plain | yes | 74.9 | 13.14 | — | 13.92 GB | 20.0% | no_meaningful_sustained_paging | — | — | 0/5 | completed |
+| Qwen3.8-27B uniform 3-bit text-only | plain | no | 138.8 | 10.10 | — | 17.28 GB | 18.0% | meaningful_sustained_paging | — | — | 3/5 | not practically viable: sustained paging |
+| Qwen3.8-27B 2-bit text-only | plain | yes | 74.9 | 13.14 | — | 13.92 GB | 20.0% | no_meaningful_sustained_paging | — | — | 0/5 | stable run but quality smoke 0/5 |
 
 `Peak MLX` is MLX’s reported allocation peak, not total system RSS. `Min free` and paging are system-level watchdog observations; headroom claims use both rather than treating swap allocation alone as a failure.
 
@@ -65,20 +65,20 @@ The watchdog samples `memory_pressure -Q`, `vm_stat`, and `sysctl vm.swapusage` 
 
 ## Direct answers
 
-1. Highest-quality safely completed variant: **Qwen3.8-27B 2-bit text-only + plain** (based only on the recorded smoke results: 0/5).
-2. Decode at the practical prompt length: **13.14 tok/s** with `16727` input tokens.
-3. Memory headroom: MLX peak **13.92 GB**; watchdog minimum free memory **20.0%**. This is the defensible headroom evidence; MLX peak is not total system memory.
-4. Sustained paging: **no_meaningful_sustained_paging**; swap before/peak/after **593.4 / 593.4 / 569.4 MB**.
-5. Native MTP: **not selected as a useful improvement**.
-6. MTP acceptance/speedup: **—**, **—**; drafted `—`, accepted `—`.
-7. APC: **not run or not verified**.
-8. Cold/warm TTFT: **— / —**.
-9. Prior Qwen3.5-9B reference (not rerun): 24.16 tok/s plain, 29.85 tok/s native MTP, and APC warm TTFT 1.491 s after a 64.829 s cold TTFT at roughly 16.7K tokens.
-10. Worth the extra cost: this must be judged from the recorded quality smoke and the memory/latency trade-off; no unsupported general intelligence claim is made here.
-11. Mixed 3.5 bpw quality advantage: only yes if its deterministic smoke exceeds uniform 3-bit; otherwise no convincing advantage was demonstrated.
-12. 2-bit usability: only the recorded smoke result is considered; unmeasured degradation remains unknown.
-13. Suggested use: coding agent favors the stable configuration with verified APC and useful MTP; TTRPG favors the highest-smoke-quality stable configuration if its latency is acceptable.
-14. Single most useful next experiment: a narrowly controlled human/automated coding-quality comparison on the winning Qwen3.8 mode versus the existing Qwen3.5 stack, without changing memory policy.
+1. **No Qwen3.8-27B configuration met all three requirements (quality, stable 16K operation, and practical unattended behavior).** Uniform 3-bit had the best smoke result (3/5) but failed the 16K paging gate; 2-bit passed the memory gate but scored 0/5.
+2. Uniform 3-bit measured **10.10 tok/s** at `16727` tokens; the stable 2-bit control measured **13.14 tok/s**.
+3. Uniform 3-bit: MLX peak **17.28 GB**, minimum free **18.0%**. 2-bit: MLX peak **13.92 GB**, minimum free **20.0%**.
+4. Uniform 3-bit showed **meaningful_sustained_paging** with page-out delta `449` and no swap-out delta; 2-bit showed **no_meaningful_sustained_paging** with no swap-outs.
+5. Native MTP was **not attempted** for a practical candidate: 3-bit failed the paging gate, 2-bit failed the quality gate, and mixed 3.5 bpw was watchdog-aborted during tiny loading.
+6. MTP acceptance and speedup: **not measured**; no unsupported estimate is made.
+7. APC: **not run** because no candidate qualified for a persistent coding-agent server test.
+8. APC cold/warm TTFT: **not measured**. For context, 3-bit cold TTFT was approximately 120.66 s at 16,727 tokens, and 2-bit cold TTFT was approximately 223.47 s; neither is an APC result.
+9. Compared with the existing Qwen3.5-9B-4bit reference (24.16 tok/s plain, 29.85 tok/s native MTP, APC cold/warm about 64.83/1.49 s), Qwen3.8 3-bit was slower at 10.10 tok/s and paged; 2-bit was 13.14 tok/s and stable but failed every smoke task.
+10. Is the extra size worth it? **Not for this unattended 18 GB / 16K use case based on these measurements.** 3-bit showed some quality signal (3/5) but insufficient memory headroom; 2-bit supplied no useful quality signal.
+11. Mixed 3.5 bpw provided **no demonstrated quality advantage**: its tiny target run triggered conservative watchdog termination under sustained swap-out pressure, so no practical or quality run was authorized.
+12. 2-bit is **not usable for the tested coding-agent smoke** (0/5), despite being the only Qwen3.8 target that completed the 16K memory gate cleanly.
+13. Recommended configuration: keep using **Qwen3.5-9B-4bit + native MTP + APC** for both the coding agent and TTRPG. Do not run Qwen3.8-27B 3-bit unattended at 16K; treat 2-bit as a stable but quality-failed experiment only.
+14. Single most useful next experiment: run the same five deterministic tasks against the existing Qwen3.5 stack, then compare task-level quality and latency directly with the Qwen3.8 3-bit 3/5 result—without any memory-policy changes.
 
 ## Prior reference (not rerun)
 
@@ -86,4 +86,7 @@ The existing Qwen3.5-9B-4bit reference remains outside this overnight run: appro
 
 ## Artifacts
 
-Raw logs, stage JSON, watchdog telemetry, metadata, and quality outputs live under `qwen38-overnight/`. The final archive path and Git verification are added at completion.
+Raw logs, stage JSON, watchdog telemetry, metadata, and quality outputs live under `qwen38-overnight/`.
+
+Archive: `qwen38-overnight-report.tar.gz` (214700 bytes).
+Git verification: `verified: intended qwen38-overnight commits are scoped; no model weights or MLX/HF/APC caches are tracked; unrelated pre-existing root files and the report archive remain untracked`.

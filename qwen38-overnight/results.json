@@ -1,5 +1,11 @@
 {
+  "archive": {
+    "path": "qwen38-overnight-report.tar.gz",
+    "size_bytes": 214700,
+    "weights_and_caches_excluded": true
+  },
   "created_at": "2026-08-17T00:00:00Z",
+  "git_verification": "verified: intended qwen38-overnight commits are scoped; no model weights or MLX/HF/APC caches are tracked; unrelated pre-existing root files and the report archive remain untracked",
   "quality": [
     {
       "candidate": "q38-2bit",
@@ -333,7 +339,7 @@
         "drafted_tokens": null,
         "effective_tokens_per_round": null,
         "final_status": "complete",
-        "final_verdict": "completed",
+        "final_verdict": "stable_but_quality_smoke_failed_0_of_5",
         "input_tokens": 16727,
         "minimum_free_memory_percent": 20.0,
         "mlx_peak_memory_gb": 13.91942869,
@@ -346,7 +352,10 @@
         "paging_assessment": "no_meaningful_sustained_paging",
         "prefill_time_seconds": 223.35085345800053,
         "prefill_tok_s": 74.89113984131423,
-        "quality_smoke_results": null,
+        "quality_smoke_results": {
+          "passed": 0,
+          "total": 5
+        },
         "quantization": {
           "bits": 2,
           "group_size": 64,
@@ -875,7 +884,7 @@
         "drafted_tokens": null,
         "effective_tokens_per_round": null,
         "final_status": "complete",
-        "final_verdict": "completed",
+        "final_verdict": "not_practically_viable_due_to_sustained_paging",
         "input_tokens": 16727,
         "minimum_free_memory_percent": 18.0,
         "mlx_peak_memory_gb": 17.281294418,
@@ -888,7 +897,10 @@
         "paging_assessment": "meaningful_sustained_paging",
         "prefill_time_seconds": 120.54649579199939,
         "prefill_tok_s": 138.75973656556644,
-        "quality_smoke_results": null,
+        "quality_smoke_results": {
+          "passed": 3,
+          "total": 5
+        },
         "quantization": {
           "bits": 3,
           "group_size": 64,
@@ -1890,7 +1902,7 @@
         "drafted_tokens": null,
         "effective_tokens_per_round": null,
         "final_status": "watchdog_aborted",
-        "final_verdict": null,
+        "final_verdict": "aborted_by_conservative_watchdog",
         "input_tokens": null,
         "minimum_free_memory_percent": 15.0,
         "mlx_peak_memory_gb": null,
