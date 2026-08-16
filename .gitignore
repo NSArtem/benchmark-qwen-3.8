@@ -27,3 +27,7 @@ qwen35-mtp-apc-smoke/*.py[cod]
 # Qwen3.5 DFlash smoke-test local Python artifacts
 qwen35-dflash-smoke/__pycache__/
 qwen35-dflash-smoke/*.py[cod]
+
+# Qwen3.8 native-MTP feasibility-test Python artifacts
+qwen38-mtp-smoke/__pycache__/
+qwen38-mtp-smoke/*.py[cod]
