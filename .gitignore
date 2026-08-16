@@ -23,3 +23,7 @@ qwen35-mtp-smoke/*.gguf
 qwen35-mtp-apc-smoke/apc-cache/
 qwen35-mtp-apc-smoke/__pycache__/
 qwen35-mtp-apc-smoke/*.py[cod]
+
+# Qwen3.5 DFlash smoke-test local Python artifacts
+qwen35-dflash-smoke/__pycache__/
+qwen35-dflash-smoke/*.py[cod]
