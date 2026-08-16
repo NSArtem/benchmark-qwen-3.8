@@ -417,6 +417,13 @@ def main() -> int:
     candidate = "q38-3bit"
     models = MODELS[candidate]
     tiny = model_stage(candidate, "target-tiny", models["target"], "target", "tiny", 480, 12)
+    # Preserve the first mlx-vlm dispatch failure, then retry once through the
+    # installed mlx-lm text backend when the advertised TextOnly checkpoint
+    # was rejected solely because mlx-vlm instantiated its vision wrapper.
+    if not healthy(tiny):
+        failed_result = (tiny or {}).get("result", {})
+        if "Missing" in str(failed_result.get("error", "")) and "vision" in str(failed_result.get("error", "")).lower():
+            tiny = model_stage(candidate, "target-tiny-text-only", models["target"], "target", "tiny", 480, 12)
     if healthy(tiny):
         target = model_stage(candidate, "target-practical", models["target"], "target", "practical", 1200)
     else:

@@ -14,6 +14,7 @@
 - Exact prompt copied from `coding_prompt.md` to `coding-prompt.txt`.
 - Practical measurement: batch size 1, temperature 0, greedy, thinking disabled, 128 output tokens, prefill step 2048.
 - Long-context conclusions require the actual model-formatted prompt to be approximately 15K–17K tokens; tiny sanity generations are not performance results.
+- Explicit `TextOnly` checkpoints are first checked through the current mlx-vlm path. If that path selects a multimodal wrapper and fails on missing vision tensors, the failure is preserved and one bounded retry uses the installed mlx-lm Qwen3.5 text implementation wrapped in mlx-vlm’s text-only adapter; no package or upstream source is modified.
 
 ## Ordered gates
 

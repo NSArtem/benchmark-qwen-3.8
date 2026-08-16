@@ -83,13 +83,22 @@ def generation_kwargs(max_tokens: int) -> dict[str, Any]:
 
 
 def apply_prompt(processor: Any, model: Any, raw_prompt: str) -> tuple[str, int]:
-    formatted = apply_chat_template(
-        processor,
-        model.config,
-        raw_prompt,
-        enable_thinking=False,
-        thinking_mode="disabled",
-    )
+    if getattr(model, "_text_only_runtime", False):
+        formatted = processor.apply_chat_template(
+            [{"role": "user", "content": raw_prompt}],
+            tokenize=False,
+            add_generation_prompt=True,
+            enable_thinking=False,
+            thinking_mode="disabled",
+        )
+    else:
+        formatted = apply_chat_template(
+            processor,
+            model.config,
+            raw_prompt,
+            enable_thinking=False,
+            thinking_mode="disabled",
+        )
     tokenized = prepare_inputs(
         processor,
         prompts=formatted,
@@ -215,9 +224,31 @@ def draft_configuration(draft_model: Any | None) -> dict[str, Any] | None:
     }
 
 
-def load_bundle(model_id: str, mode: str, draft_model_id: str | None) -> tuple[Any, Any, Any | None, str | None, float, dict[str, Any] | None]:
+def load_target_bundle(model_id: str) -> tuple[Any, Any, str]:
+    """Use mlx-lm for checkpoints explicitly converted as text-only.
+
+    mlx-vlm 0.6.13 dispatches a Qwen3.5 config with ``vision_config: null`` to
+    its multimodal qwen3_5 class before it reaches the generic text-only
+    fallback, which produces a strict missing-vision-weights error for these
+    checkpoints.  The installed mlx-lm Qwen3.5 implementation is the matching
+    text backend and is wrapped in mlx-vlm's text-only adapter so the same
+    stream_generate/timing path remains comparable.
+    """
+    if "TextOnly" not in model_id:
+        model, processor = load(model_id)
+        return model, processor, "mlx-vlm"
+    from mlx_lm.utils import load as load_lm
+    from mlx_vlm.models.text_only import Model as TextOnlyModel
+
+    language_model, processor, config = load_lm(model_id, return_config=True)
+    model = TextOnlyModel(language_model, config)
+    model._text_only_runtime = True
+    return model, processor, "mlx-lm-text-only"
+
+
+def load_bundle(model_id: str, mode: str, draft_model_id: str | None) -> tuple[Any, Any, Any | None, str | None, float, dict[str, Any] | None, str]:
     started = time.perf_counter()
-    model, processor = load(model_id)
+    model, processor, target_backend = load_target_bundle(model_id)
     draft_model = None
     resolved_kind = None
     if mode == "mtp":
@@ -234,6 +265,7 @@ def load_bundle(model_id: str, mode: str, draft_model_id: str | None) -> tuple[A
         resolved_kind,
         time.perf_counter() - started,
         draft_configuration(draft_model),
+        target_backend,
     )
 
 
@@ -263,13 +295,14 @@ def main() -> int:
     resolved_kind: str | None = None
     load_seconds: float | None = None
     draft_config: dict[str, Any] | None = None
+    target_backend: str | None = None
     try:
         print(json.dumps({"status": "loading", "model": args.model, "mode": args.mode}), flush=True)
-        model, processor, draft_model, resolved_kind, load_seconds, draft_config = load_bundle(
+        model, processor, draft_model, resolved_kind, load_seconds, draft_config, target_backend = load_bundle(
             args.model, args.mode, args.draft_model
         )
         progress(args.progress_file, "loaded", load_seconds=load_seconds)
-        print(json.dumps({"status": "loaded", "load_seconds": load_seconds}), flush=True)
+        print(json.dumps({"status": "loaded", "load_seconds": load_seconds, "target_backend": target_backend}), flush=True)
         mx.random.seed(SEED)
 
         check_formatted, check_input_tokens = apply_prompt(processor, model, CHECK_PROMPT)
@@ -302,6 +335,7 @@ def main() -> int:
                 "requested_draft_kind": "mtp" if args.mode == "mtp" else None,
                 "resolved_draft_kind": resolved_kind,
                 "draft_configuration": draft_config,
+                "target_backend": target_backend,
                 "load_seconds": load_seconds,
                 "sanity_check": sanity,
                 "input_tokens": check["prompt_tokens"],
@@ -365,6 +399,7 @@ def main() -> int:
             "resolved_draft_kind": resolved_kind,
             "compatibility_validation": "passed" if args.mode == "mtp" else None,
             "draft_configuration": draft_config,
+            "target_backend": target_backend,
             "load_seconds": load_seconds,
             "raw_prompt_sha256": digest(raw_prompt),
             "formatted_prompt_sha256": digest(formatted_prompt),
@@ -414,6 +449,7 @@ def main() -> int:
             "requested_draft_kind": "mtp" if args.mode == "mtp" else None,
             "load_seconds": load_seconds,
             "draft_configuration": draft_config,
+            "target_backend": target_backend,
             "error_type": type(exc).__name__,
             "error": str(exc),
         }

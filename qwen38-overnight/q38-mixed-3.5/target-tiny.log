@@ -1,0 +1,6 @@
+{"status": "loading", "model": "rapid-mlx/Qwen3.8-27B-mixed-3.5bpw-MLX", "mode": "target"}
+Fetching 14 files:   0%|          | 0/14 [00:00<?, ?it/s]Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Fetching 14 files:  43%|████▎     | 6/14 [00:00<00:00, 10.23it/s]Fetching 14 files:  57%|█████▋    | 8/14 [00:01<00:00,  6.65it/s]Fetching 14 files:  71%|███████▏  | 10/14 [00:01<00:00,  5.66it/s]Fetching 14 files:  79%|███████▊  | 11/14 [00:02<00:01,  2.76it/s]Fetching 14 files:  86%|████████▌ | 12/14 [04:33<01:53, 56.65s/it]Fetching 14 files:  93%|█████████▎| 13/14 [06:02<01:03, 63.94s/it]Fetching 14 files: 100%|██████████| 14/14 [06:09<00:00, 49.97s/it]Fetching 14 files: 100%|██████████| 14/14 [06:09<00:00, 26.39s/it]
+{"status": "loaded", "load_seconds": 374.741296917}
+{"status": "sanity_start", "prompt_tokens": 17}
+[WARNING] Generating with a model that requires 13264 MB which is close to the maximum recommended size of 12288 MB. This can be slow. See the documentation for possible work-arounds: https://github.com/ml-explore/mlx-lm/tree/main#large-models

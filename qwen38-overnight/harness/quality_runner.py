@@ -17,6 +17,8 @@ from mlx_vlm.generate import stream_generate
 from mlx_vlm.prompt_utils import apply_chat_template
 from mlx_vlm.utils import load, prepare_inputs, should_add_special_tokens
 
+from run_model import load_target_bundle
+
 
 TEMPERATURE = 0.0
 PREFILL_STEP_SIZE = 2048
@@ -39,13 +41,22 @@ def progress(path: Path, **fields: Any) -> None:
 
 
 def format_prompt(processor: Any, model: Any, raw: str) -> tuple[str, int]:
-    formatted = apply_chat_template(
-        processor,
-        model.config,
-        raw,
-        enable_thinking=False,
-        thinking_mode="disabled",
-    )
+    if getattr(model, "_text_only_runtime", False):
+        formatted = processor.apply_chat_template(
+            [{"role": "user", "content": raw}],
+            tokenize=False,
+            add_generation_prompt=True,
+            enable_thinking=False,
+            thinking_mode="disabled",
+        )
+    else:
+        formatted = apply_chat_template(
+            processor,
+            model.config,
+            raw,
+            enable_thinking=False,
+            thinking_mode="disabled",
+        )
     tokenized = prepare_inputs(
         processor,
         prompts=formatted,
@@ -237,9 +248,9 @@ def main() -> int:
     try:
         progress(args.progress_file, status="loading", model=args.model)
         load_started = time.perf_counter()
-        model, processor = load(args.model)
+        model, processor, target_backend = load_target_bundle(args.model)
         load_seconds = time.perf_counter() - load_started
-        print(json.dumps({"status": "loaded", "model": args.model, "load_seconds": load_seconds}), flush=True)
+        print(json.dumps({"status": "loaded", "model": args.model, "load_seconds": load_seconds, "target_backend": target_backend}), flush=True)
         mx.random.seed(0)
         tasks: list[dict[str, Any]] = []
         raw_outputs: dict[str, str] = {}
@@ -269,6 +280,7 @@ def main() -> int:
             "candidate": args.candidate,
             "model_id": args.model,
             "mode": "target-only-quality",
+            "target_backend": target_backend,
             "load_seconds": load_seconds,
             "total": len(tasks),
             "passed": sum(item["status"] == "pass" for item in tasks),
