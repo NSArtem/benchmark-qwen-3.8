@@ -482,6 +482,16 @@ def main() -> int:
     candidate = "q38-2bit"
     models = MODELS[candidate]
     tiny = model_stage(candidate, "target-tiny", models["target"], "target", "tiny", 480, 12)
+    if not healthy(tiny) and "TokenizerWrapper" in str((tiny or {}).get("result", {}).get("error", "")):
+        tiny = model_stage(
+            candidate,
+            "target-tiny-text-only-fixed",
+            models["target"],
+            "target",
+            "tiny",
+            480,
+            12,
+        )
     target = model_stage(candidate, "target-practical", models["target"], "target", "practical", 1200) if healthy(tiny) else None
 
     # Stage 5: quality smoke for every candidate that completed a practical run.
