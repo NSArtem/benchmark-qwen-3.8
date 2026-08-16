@@ -30,7 +30,7 @@ def normalize(result: dict[str, Any], supervisor: dict[str, Any], metadata: dict
     draft = result.get("speculative") if isinstance(result.get("speculative"), dict) else {}
     draft_config = result.get("draft_configuration") if isinstance(result.get("draft_configuration"), dict) else {}
     text_status = metadata.get("text_only_status") if isinstance(metadata, dict) else {}
-    return {
+    normalized = {
         "model_id": result.get("model_id") or metadata.get("model_id"),
         "revision": metadata.get("revision"),
         "quantization": metadata.get("quantization_config"),
@@ -70,6 +70,28 @@ def normalize(result: dict[str, Any], supervisor: dict[str, Any], metadata: dict
         "final_status": result.get("status"),
         "final_verdict": None,
     }
+    turn1 = result.get("turn1") if isinstance(result.get("turn1"), dict) else None
+    turn2 = result.get("turn2") if isinstance(result.get("turn2"), dict) else None
+    if turn1 is not None or turn2 is not None:
+        normalized.update(
+            {
+                "input_tokens": turn1.get("prompt_tokens") if turn1 else None,
+                "output_tokens": turn1.get("completion_tokens") if turn1 else None,
+                "prefill_time_seconds": turn1.get("prefill_seconds") if turn1 else None,
+                "prefill_tok_s": turn1.get("prefill_tok_s") if turn1 else None,
+                "ttft_seconds": turn1.get("ttft_seconds") if turn1 else None,
+                "decode_tok_s": turn1.get("decode_tok_s") if turn1 else None,
+                "wall_seconds": turn1.get("wall_seconds") if turn1 else None,
+                "mlx_peak_memory_gb": turn1.get("peak_memory_gb") if turn1 else None,
+                "mtp_model": result.get("draft_model"),
+                "apc_cached_tokens": turn2.get("cached_tokens") if turn2 else None,
+                "apc_cache_hit_ratio": turn2.get("cache_hit_fraction") if turn2 else None,
+                "apc_cold_ttft_seconds": turn1.get("ttft_seconds") if turn1 else None,
+                "apc_warm_ttft_seconds": turn2.get("ttft_seconds") if turn2 else None,
+                "final_verdict": "APC completed" if result.get("status") == "complete" else result.get("status"),
+            }
+        )
+    return normalized
 
 
 def refresh_derived(registry: dict[str, Any]) -> None:
