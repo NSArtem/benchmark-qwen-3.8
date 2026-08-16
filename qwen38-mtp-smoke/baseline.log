@@ -1,0 +1,43 @@
+{"draft_model": null, "max_tokens": 128, "mode": "baseline", "prompt_file": "qwen38-mtp-smoke/coding-prompt.txt", "status": "loading", "target_model": "mlx-community/Qwen3.8-27B-4bit"}
+Fetching 13 files:   0%|          | 0/13 [00:00<?, ?it/s]Fetching 13 files: 100%|██████████| 13/13 [00:00<00:00, 2886.19it/s]
+{"status": "sanity_check_start", "mode": "baseline"}
+[WARNING] Generating with a model that requires 15310 MB which is close to the maximum recommended size of 12288 MB. This can be slow. See the documentation for possible work-arounds: https://github.com/ml-explore/mlx-lm/tree/main#large-models
+{
+  "draft_configuration": null,
+  "draft_model": null,
+  "error": "[METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).",
+  "error_type": "RuntimeError",
+  "load_seconds": 6.992893708000338,
+  "memory": {
+    "after_process": {
+      "compressor_pages": 408498,
+      "free_percent": 9.0,
+      "page_size": 16384,
+      "pageins": 9114745,
+      "pageouts": 18807,
+      "swap": {
+        "free_mb": 1175.81,
+        "total_mb": 3072.0,
+        "used_mb": 1896.19
+      },
+      "swapins": 7459555,
+      "swapouts": 8213727
+    },
+    "before_measured": null,
+    "free_percent_min_measured": null,
+    "max_pageouts_per_second": null,
+    "max_swapouts_per_second": null,
+    "measured_samples": [],
+    "note": "Sustained thrashing is assessed from the saved samples, not from swap growth alone.",
+    "paging_observed": false,
+    "sample_count_measured": 0,
+    "sample_count_total": 2,
+    "sustained_thrashing_assessment": null
+  },
+  "mode": "baseline",
+  "requested_draft_kind": null,
+  "resolved_draft_kind": null,
+  "sanity_check": null,
+  "status": "failed_or_aborted",
+  "target_model": "mlx-community/Qwen3.8-27B-4bit"
+}

@@ -17,5 +17,7 @@ cp qwen35-mtp-smoke/coding-prompt.txt qwen38-mtp-smoke/coding-prompt.txt
 # exactly one 128-token long-context run. The harness samples memory to memory.log.
 UV_CACHE_DIR=.uv-cache uv run python qwen38-mtp-smoke/benchmark.py --mode baseline --prompt qwen38-mtp-smoke/coding-prompt.txt --result-json qwen38-mtp-smoke/baseline.json --text-output qwen38-mtp-smoke/baseline-output.txt --tokens-output qwen38-mtp-smoke/baseline-tokens.json --memory-log qwen38-mtp-smoke/memory.log > qwen38-mtp-smoke/baseline.log 2>&1
 
-# Only if target-only completes without genuine thrashing: native MTP, no block-size override.
+# STOP CONDITION REACHED: target-only failed with Metal Insufficient Memory during the
+# short sanity generation, before the long prompt. The native-MTP command below was
+# intentionally not executed.
 UV_CACHE_DIR=.uv-cache uv run python qwen38-mtp-smoke/benchmark.py --mode mtp --prompt qwen38-mtp-smoke/coding-prompt.txt --result-json qwen38-mtp-smoke/mtp.json --text-output qwen38-mtp-smoke/mtp-output.txt --tokens-output qwen38-mtp-smoke/mtp-tokens.json --memory-log qwen38-mtp-smoke/memory.log > qwen38-mtp-smoke/mtp.log 2>&1

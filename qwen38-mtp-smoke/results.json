@@ -1,0 +1,137 @@
+{
+  "status": "target_only_failed_before_long_prompt",
+  "run_date": "2026-08-17",
+  "environment": {
+    "hardware_model": "Mac15,6",
+    "chip": "Apple M3 Pro",
+    "cores": 11,
+    "unified_memory_gb": 18,
+    "macos": "15.7.8",
+    "macos_build": "24G824",
+    "uv": "0.12.5",
+    "python": "3.14.7",
+    "mlx": "0.32.0",
+    "mlx_vlm": "0.6.13",
+    "mlx_lm": "0.31.3",
+    "mlx_dspark": "0.12.0",
+    "transformers": "5.15.0",
+    "huggingface_hub": "1.27.0"
+  },
+  "models": {
+    "target": "mlx-community/Qwen3.8-27B-4bit",
+    "native_mtp_drafter": "mlx-community/Qwen3.8-27B-MTP-4bit"
+  },
+  "configuration": {
+    "max_tokens": 128,
+    "sanity_tokens": 4,
+    "temperature": 0.0,
+    "seed": 0,
+    "thinking_enabled": false,
+    "batch_size": 1,
+    "prefill_step_size": 2048,
+    "draft_kind": "mtp",
+    "draft_block_size_override": null,
+    "published_native_mtp_block_size": 3,
+    "apc_used": false,
+    "server_used": false
+  },
+  "prompt": {
+    "file": "qwen38-mtp-smoke/coding-prompt.txt",
+    "sha256": "67dcccb037993b679c5593073bbc1875ad61541827a6fc3bb6720410b8096903",
+    "formatted_input_tokens": 16767,
+    "formatted_input_tokens_source": "previous exact Qwen3.8 tokenization artifact; current run failed before long-prompt preparation"
+  },
+  "target_only": {
+    "status": "failed_or_aborted",
+    "failure_stage": "target_sanity_generation",
+    "load_completed": true,
+    "load_seconds": 6.992893708000338,
+    "input_tokens": 16767,
+    "output_tokens": null,
+    "prefill_seconds": null,
+    "prefill_tok_s": null,
+    "ttft_seconds": null,
+    "decode_seconds": null,
+    "decode_tok_s": null,
+    "wall_seconds": null,
+    "peak_mlx_memory_gb": null,
+    "error_type": "RuntimeError",
+    "error": "[METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).",
+    "result_file": "qwen38-mtp-smoke/baseline.json",
+    "log_file": "qwen38-mtp-smoke/baseline.log"
+  },
+  "native_mtp": {
+    "status": "not_attempted_due_target_failure",
+    "input_tokens": null,
+    "output_tokens": null,
+    "block_size": null,
+    "prefill_seconds": null,
+    "prefill_tok_s": null,
+    "ttft_seconds": null,
+    "decode_seconds": null,
+    "decode_tok_s": null,
+    "wall_seconds": null,
+    "peak_mlx_memory_gb": null,
+    "acceptance_rate": null,
+    "drafted_tokens": null,
+    "accepted_draft_tokens": null,
+    "verification_rounds": null,
+    "speedup_vs_target": null
+  },
+  "memory_observations": {
+    "log_file": "qwen38-mtp-smoke/memory.log",
+    "start": {
+      "free_percent": 87.0,
+      "swap_used_mb": 399.44,
+      "pageins": 8143695,
+      "pageouts": 18430,
+      "swapins": 7057619,
+      "swapouts": 7713699
+    },
+    "first_sample": {
+      "elapsed_seconds": 5.218,
+      "free_percent": 15.0,
+      "swap_used_mb": 1170.31,
+      "pageins_per_second": 166908.9,
+      "pageouts_per_second": 62.3,
+      "swapins_per_second": 25.3,
+      "swapouts_per_second": 10377.8
+    },
+    "second_sample": {
+      "elapsed_seconds": 16.466,
+      "free_percent": 9.0,
+      "swap_used_mb": 1896.19,
+      "pageins_per_second": 5892.5,
+      "pageouts_per_second": 3.2,
+      "swapins_per_second": 24371.7,
+      "swapouts_per_second": 27078.6
+    },
+    "after_process": {
+      "free_percent": 9.0,
+      "swap_total_mb": 3072.0,
+      "swap_used_mb": 1896.19,
+      "pageins": 9114745,
+      "pageouts": 18807,
+      "swapins": 7459555,
+      "swapouts": 8213727
+    },
+    "genuine_thrashing_or_oom": true,
+    "sustained_paging_observed": true,
+    "assessment": "Free memory collapsed, paging rates spiked, swap grew, and the Metal command buffer failed with OOM."
+  },
+  "correctness": {
+    "target_only_output_available": false,
+    "native_mtp_output_available": false,
+    "comparison_performed": false
+  },
+  "verdict": {
+    "target_usable_at_16k": false,
+    "native_mtp_feasibility_established": false,
+    "apc_next_step_justified": false,
+    "summary": "Qwen3.8-27B-4bit reached genuine memory pressure and Metal OOM during the short target-only sanity generation; stop before MTP."
+  },
+  "commits": {
+    "harness": "266fca3",
+    "results": null
+  }
+}
