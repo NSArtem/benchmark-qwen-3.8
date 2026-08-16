@@ -135,7 +135,7 @@ was tested.
 - Harness: [`benchmark.py`](benchmark.py)
 - Reproduction commands: [`commands.txt`](commands.txt)
 - Harness/config commit: `2eb576f` (`benchmark: add Qwen3.5 DFlash smoke test`)
-- Results commit: pending
+- Measurement/report commit: `171ea88` (`benchmark: record Qwen3.5 DFlash results`)
 
 The model/Hugging Face cache, `.venv`, and Python caches were not staged. The
 pre-existing unrelated archives in the repository root were preserved.
