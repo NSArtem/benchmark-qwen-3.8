@@ -1,6 +1,6 @@
 {
   "child_log": "qwen38-overnight/harness/watchdog-test-child.log",
-  "child_pid": 3717,
+  "child_pid": 3931,
   "child_result": "qwen38-overnight/harness/watchdog-test-child.json",
   "child_returncode": 0,
   "command": [
@@ -11,10 +11,10 @@
   "memory_log": "qwen38-overnight/harness/watchdog-test-memory.log",
   "memory_summary": {
     "after": {
-      "compressor_pages": 14829,
+      "compressor_pages": 14270,
       "free_percent": 89.0,
       "page_size": 16384,
-      "pageins": 454069,
+      "pageins": 455994,
       "pageouts": 1163,
       "swap": {
         "free_mb": 0.0,
@@ -23,13 +23,13 @@
       },
       "swapins": 0,
       "swapouts": 0,
-      "timestamp": 1786918797.9921558
+      "timestamp": 1786919466.683329
     },
     "before": {
-      "compressor_pages": 14830,
+      "compressor_pages": 14270,
       "free_percent": 89.0,
       "page_size": 16384,
-      "pageins": 454043,
+      "pageins": 455971,
       "pageouts": 1163,
       "swap": {
         "free_mb": 0.0,
@@ -38,7 +38,7 @@
       },
       "swapins": 0,
       "swapouts": 0,
-      "timestamp": 1786918794.9628851
+      "timestamp": 1786919463.6474922
     },
     "max_pageouts_per_second": 0.0,
     "max_swapouts_per_second": 0.0,
@@ -66,7 +66,7 @@
     "rationale": "Swap growth alone is not an abort condition.  Abort only when free memory is persistently low and page-outs/swap-outs show active pressure, when free memory is emergency-low, when the child reports Metal OOM, or when progress stalls during worsening pressure.",
     "sample_interval_seconds": 1.0
   },
-  "wall_seconds": 3.052241625000079,
+  "wall_seconds": 3.061092500000086,
   "watchdog_abort": false,
   "watchdog_reason": null
 }

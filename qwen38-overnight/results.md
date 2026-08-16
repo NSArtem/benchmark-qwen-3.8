@@ -1,6 +1,6 @@
 # Qwen3.8-27B overnight exploration
 
-Generated: 2026-08-17 02:21:53 +04
+Generated: 2026-08-17 02:36:48 +04
 
 This report contains only measurements actually attempted in this run. Failed gates are retained as evidence; skipped stages are not presented as measurements.
 
@@ -33,7 +33,8 @@ The watchdog samples `memory_pressure -Q`, `vm_stat`, and `sysctl vm.swapusage` 
 
 ## Metadata and attempted stages
 
-- Metadata collection pending.
+- `lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly`: status `ok`, revision `c98bba5926f51fec1c8d8737e577221673f524d7`, reported weight download `11.77 GB`, text-only inference `{'basis': 'repository_name', 'text_only': True}`.
+- `q38-3bit/target-tiny`: `failed_or_aborted`; watchdog `False` ``.
 
 ## Quality smoke
 
