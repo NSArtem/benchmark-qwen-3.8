@@ -112,8 +112,7 @@ variance across trials, cache eviction, concurrency, or long-run memory behavior
 ## Reproduction artifacts and commits
 
 - Harness/config commit: `03f5f72` (`benchmark: add Qwen3.5 MTP APC server smoke test`)
-- Results commit: pending
-- Final report commit: pending
+- Measurement/report commit: `2a3cb4f` (`benchmark: record Qwen3.5 MTP APC results`)
 
 Saved artifacts include [`results.json`](results.json), [`commands.txt`](commands.txt),
 [`server.log`](server.log), [`turn1-response.json`](turn1-response.json),
