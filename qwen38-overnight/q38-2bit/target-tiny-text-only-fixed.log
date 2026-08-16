@@ -1,0 +1,5 @@
+{"status": "loading", "model": "lukaskremla/Qwen3.8-27B-2bit-MLX-TextOnly", "mode": "target"}
+Fetching 8 files:   0%|          | 0/8 [00:00<?, ?it/s]Fetching 8 files: 100%|██████████| 8/8 [00:00<00:00, 2668.34it/s]
+{"status": "loaded", "load_seconds": 2.860806250000678, "target_backend": "mlx-lm-text-only"}
+{"status": "sanity_start", "prompt_tokens": 17}
+{"generated_tokens": 2, "generation_tps": 29.81227597391271, "output": "OK", "prompt_tokens": 17, "speculative": null, "status": "sanity_done", "wall_seconds": 1.1833857909996368}
