@@ -1,6 +1,6 @@
 # Qwen3.8-27B overnight exploration
 
-Generated: 2026-08-17 02:51:49 +04
+Generated: 2026-08-17 02:53:50 +04
 
 This report contains only measurements actually attempted in this run. Failed gates are retained as evidence; skipped stages are not presented as measurements.
 
@@ -39,6 +39,7 @@ The watchdog samples `memory_pressure -Q`, `vm_stat`, and `sysctl vm.swapusage` 
 - `q38-2bit/target-tiny`: `failed_or_aborted`; watchdog `False` ``.
 - `q38-3bit/target-tiny`: `failed_or_aborted`; watchdog `False` ``.
 - `q38-3bit/target-tiny-text-only`: `failed_or_aborted`; watchdog `False` ``.
+- `q38-3bit/target-tiny-text-only-embedding`: `failed_or_aborted`; watchdog `False` ``.
 - `q38-mixed-3.5/target-tiny`: `watchdog_aborted`; watchdog `True` `critical_swapout_rate_with_pressure`.
 
 ## Quality smoke
