@@ -249,12 +249,18 @@ def load_target_bundle(model_id: str) -> tuple[Any, Any, str]:
     from mlx_vlm.models.text_only import Model as TextOnlyModel
 
     language_model, processor, config = load_lm(model_id, return_config=True)
+    from mlx_vlm.utils import StoppingCriteria
+
     if isinstance(processor, TokenizerWrapper) and not isinstance(
         processor, CallableTokenizerWrapper
     ):
         callable_processor = CallableTokenizerWrapper.__new__(CallableTokenizerWrapper)
         callable_processor.__dict__.update(processor.__dict__)
         processor = callable_processor
+    eos_token_ids = getattr(processor, "eos_token_ids", None)
+    if eos_token_ids is None:
+        eos_token_ids = getattr(processor, "eos_token_id", None)
+    object.__setattr__(processor, "stopping_criteria", StoppingCriteria(eos_token_ids, processor))
     model = TextOnlyModel(language_model, config)
     # mlx-vlm's generic text-only adapter looks for ``embed_tokens`` one
     # level below the wrapped mlx-lm model.  Qwen3.5 stores it below

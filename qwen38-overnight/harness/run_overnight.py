@@ -438,6 +438,16 @@ def main() -> int:
                 480,
                 12,
             )
+        elif "stopping_criteria" in error_text.lower():
+            tiny = model_stage(
+                candidate,
+                "target-tiny-text-only-stopping",
+                models["target"],
+                "target",
+                "tiny",
+                480,
+                12,
+            )
     if healthy(tiny):
         target = model_stage(candidate, "target-practical", models["target"], "target", "practical", 1200)
     else:
