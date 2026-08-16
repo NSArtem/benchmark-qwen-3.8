@@ -422,8 +422,22 @@ def main() -> int:
     # was rejected solely because mlx-vlm instantiated its vision wrapper.
     if not healthy(tiny):
         failed_result = (tiny or {}).get("result", {})
-        if "Missing" in str(failed_result.get("error", "")) and "vision" in str(failed_result.get("error", "")).lower():
-            tiny = model_stage(candidate, "target-tiny-text-only", models["target"], "target", "tiny", 480, 12)
+        error_text = str(failed_result.get("error", ""))
+        if "Missing" in error_text and "vision" in error_text.lower():
+            retry_stage = "target-tiny-text-only"
+            if existing_run(candidate, retry_stage) is not None:
+                retry_stage = "target-tiny-text-only-embedding"
+            tiny = model_stage(candidate, retry_stage, models["target"], "target", "tiny", 480, 12)
+        elif "token embeddings" in error_text.lower():
+            tiny = model_stage(
+                candidate,
+                "target-tiny-text-only-embedding",
+                models["target"],
+                "target",
+                "tiny",
+                480,
+                12,
+            )
     if healthy(tiny):
         target = model_stage(candidate, "target-practical", models["target"], "target", "practical", 1200)
     else:
