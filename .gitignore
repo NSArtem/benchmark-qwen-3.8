@@ -44,3 +44,10 @@ qwen38-overnight/**/*.gguf
 qwen38-gguf/**/*.gguf
 qwen38-gguf/**/__pycache__/
 qwen38-gguf/**/*.py[cod]
+
+# Qwen3.8 MLX threshold experiment: model weights and local Python artifacts
+qwen38-mlx-threshold/**/*.safetensors
+qwen38-mlx-threshold/**/*.bin
+qwen38-mlx-threshold/**/*.gguf
+qwen38-mlx-threshold/**/__pycache__/
+qwen38-mlx-threshold/**/*.py[cod]
