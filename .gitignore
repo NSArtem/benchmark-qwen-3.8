@@ -39,3 +39,8 @@ qwen38-overnight/**/apc-cache/
 qwen38-overnight/**/*.safetensors
 qwen38-overnight/**/*.bin
 qwen38-overnight/**/*.gguf
+
+# Qwen3.8 GGUF branch: model files/cache are never repository artifacts
+qwen38-gguf/**/*.gguf
+qwen38-gguf/**/__pycache__/
+qwen38-gguf/**/*.py[cod]

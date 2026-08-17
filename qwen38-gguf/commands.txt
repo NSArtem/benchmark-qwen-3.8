@@ -1,0 +1,32 @@
+# Qwen3.8-27B GGUF / llama.cpp command log
+# Start: 2026-08-17; cwd is the repository root.
+
+git status --short --branch
+command -v llama-cli
+command -v llama-bench
+command -v llama-tokenize
+llama-cli --version
+llama-cli --help
+llama-bench --help
+llama-cli --cache-list
+llama-cli --list-devices
+system_profiler SPHardwareDataType
+sysctl hw.memsize
+sysctl iogpu.wired_limit_mb
+sw_vers
+uname -a
+df -h .
+uv --version
+
+# Prompt provenance
+cp qwen38-3bit-mlx-rescue/prompt-4k-control.txt qwen38-gguf/prompts/4k.txt
+cp qwen38-3bit-mlx-rescue/prompt-8k-control.txt qwen38-gguf/prompts/8k.txt
+cp qwen38-3bit-mlx-rescue/prompt-16k.txt qwen38-gguf/prompts/16k.txt
+cp qwen38-3bit-textonly/prompts/24k.txt qwen38-gguf/prompts/24k.txt
+cp qwen38-3bit-textonly/prompts/32k.txt qwen38-gguf/prompts/32k.txt
+shasum -a 256 qwen38-gguf/prompts/*.txt
+
+# Model discovery (uv, not bare pip)
+UV_CACHE_DIR=/private/tmp/qwen38-gguf-uv-cache uv run --no-project --with huggingface_hub python <HF metadata query>
+
+# Policy: no Ollama, no sudo, no mlock, no second llama.cpp build.
