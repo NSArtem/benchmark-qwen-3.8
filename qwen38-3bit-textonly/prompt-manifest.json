@@ -1,0 +1,35 @@
+{
+  "canonical_prompt": {
+    "path": "qwen38-3bit-textonly/prompt.txt",
+    "prompt_tokens": 31578,
+    "sha256": "cacb38daa2a93ac4a5688bf92bca592d419d88dc9b6fd07afbc04d0fc8697b75"
+  },
+  "chat_template": "Qwen3.8 tokenizer apply_chat_template; add_generation_prompt=true; enable_thinking=false",
+  "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+  "source": "coding_prompt.md",
+  "supplement": "qwen38-3bit-textonly/harness/supplemental_context.md",
+  "tokenizer_source": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+  "variants": {
+    "16k": {
+      "path": "qwen38-3bit-textonly/prompts/16k.txt",
+      "prompt_tokens": 16727,
+      "sha256": "67dcccb037993b679c5593073bbc1875ad61541827a6fc3bb6720410b8096903",
+      "supplement_chars": 0,
+      "target_tokens": 16384
+    },
+    "24k": {
+      "path": "qwen38-3bit-textonly/prompts/24k.txt",
+      "prompt_tokens": 24561,
+      "sha256": "5636b80d934e7b8fd7b798864e5f33b2884cfcdf945e0e8b06c258207fbefe1a",
+      "supplement_chars": 30039,
+      "target_tokens": 24576
+    },
+    "32k": {
+      "path": "qwen38-3bit-textonly/prompts/32k.txt",
+      "prompt_tokens": 31578,
+      "sha256": "cacb38daa2a93ac4a5688bf92bca592d419d88dc9b6fd07afbc04d0fc8697b75",
+      "supplement_chars": 59326,
+      "target_tokens": 32768
+    }
+  }
+}

@@ -1,0 +1,3212 @@
+# Lantern repository context
+
+You are acting as a coding agent inside the fictional Lantern monorepo. Lantern is a small
+multi-tenant job orchestration service used by a design-rendering company. A user submits a
+render job, the API writes the job and an outbox record in PostgreSQL, a worker claims the job
+from Redis, and the worker emits lifecycle events. The web dashboard consumes a compact event
+stream over server-sent events (SSE). The repository is deliberately incomplete below: these
+are the relevant excerpts from a checkout at commit `7b91e1a`.
+
+The service is written in TypeScript with strict mode enabled. API requests may be retried by a
+client, workers may crash and restart, and the same event may be delivered more than once. The
+intended invariants are:
+
+* a job has one logical state machine: queued -> running -> succeeded or failed, with cancelled
+  allowed from queued or running;
+* state transitions are monotonic in the event sequence, and a late event must never make a
+  terminal job appear active again;
+* every mutation carrying an idempotency key returns the same result on a retry;
+* the outbox row and the corresponding state change commit atomically;
+* the dashboard may reconnect with `Last-Event-ID` and must receive a coherent replay;
+* a worker lease can expire, but only the current lease holder may publish a completion event;
+* tenant data must never be read across tenant boundaries.
+
+## Repository map
+
+```text
+apps/
+  api/src/main.ts
+  api/src/routes/jobs.ts
+  api/src/routes/events.ts
+  api/src/application/job-service.ts
+  api/src/domain/job.ts
+  api/src/infra/postgres/job-repository.ts
+  api/src/infra/postgres/outbox-repository.ts
+  api/src/infra/redis/job-queue.ts
+  api/src/infra/redis/lease-store.ts
+  worker/src/worker.ts
+  worker/src/events/outbox-publisher.ts
+  worker/src/render/render-engine.ts
+  web/src/dashboard/job-row.tsx
+packages/
+  events/src/job-events.ts
+  events/src/event-store.ts
+  queue/src/lease.ts
+  shared/src/idempotency.ts
+  shared/src/clock.ts
+  shared/src/errors.ts
+  config/src/index.ts
+db/migrations/004_job_events.sql
+db/migrations/005_job_idempotency.sql
+```
+
+## Architecture notes
+
+The API and workers run in separate processes but share the same PostgreSQL database. The
+`job_events` table is the durable ordering source. Its `tenant_id, job_id, sequence` key is
+unique, and `sequence` is allocated by the job row's `next_event_sequence` field while holding
+the job row lock. The outbox publisher sends committed event payloads to Redis Streams. The API
+SSE route reads the durable table for replay, then tails Redis for low latency. A browser can
+disconnect between those two phases, so the route uses an event id encoded as `job_id:sequence`.
+
+The current production issue is reported as: “after a flaky network retry, a completed render
+occasionally returns to running in the dashboard, and a second retry sometimes creates a second
+render.” The incident is most common when an API request times out after committing and a worker
+finishes at nearly the same time. The task at the end asks you to diagnose this from the excerpts.
+
+## `package.json`
+
+```json
+{
+  "name": "lantern",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "build": "turbo run build",
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.ts",
+    "lint": "eslint .",
+    "dev:api": "tsx apps/api/src/main.ts",
+    "dev:worker": "tsx apps/worker/src/worker.ts"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^9.4.0",
+    "@fastify/cors": "^10.0.2",
+    "@fastify/sse": "^0.1.1",
+    "fastify": "^5.2.1",
+    "ioredis": "^5.4.1",
+    "pg": "^8.13.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "vitest": "^2.1.8"
+  }
+}
+```
+
+## `packages/shared/src/clock.ts` and `errors.ts`
+
+```ts
+export interface Clock {
+  now(): Date;
+}
+
+export class SystemClock implements Clock {
+  now(): Date {
+    return new Date();
+  }
+}
+
+export class FixedClock implements Clock {
+  constructor(private readonly instant: Date) {}
+  now(): Date {
+    return new Date(this.instant);
+  }
+}
+```
+
+```ts
+export class DomainError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly statusCode = 400,
+  ) {
+    super(message);
+    this.name = "DomainError";
+  }
+}
+
+export class NotFoundError extends DomainError {
+  constructor(resource: string) {
+    super(`${resource} was not found`, "not_found", 404);
+  }
+}
+
+export class ConflictError extends DomainError {
+  constructor(message: string, code = "conflict") {
+    super(message, code, 409);
+  }
+}
+
+export class LeaseLostError extends DomainError {
+  constructor() {
+    super("worker lease is no longer owned", "lease_lost", 409);
+  }
+}
+```
+
+## `packages/shared/src/idempotency.ts`
+
+```ts
+import { createHash } from "node:crypto";
+
+export interface IdempotencyRecord {
+  tenantId: string;
+  key: string;
+  requestHash: string;
+  statusCode: number;
+  responseBody: unknown;
+  createdAt: Date;
+}
+
+export function hashRequest(body: unknown): string {
+  return createHash("sha256")
+    .update(JSON.stringify(body, Object.keys(body as object).sort()))
+    .digest("hex");
+}
+
+export function normalizeIdempotencyKey(raw: string | undefined): string | null {
+  if (!raw) return null;
+  const key = raw.trim();
+  if (key.length === 0 || key.length > 200) return null;
+  return key;
+}
+```
+
+## `packages/events/src/job-events.ts`
+
+```ts
+import { z } from "zod";
+
+export const JobState = z.enum([
+  "queued",
+  "running",
+  "succeeded",
+  "failed",
+  "cancelled",
+]);
+export type JobState = z.infer<typeof JobState>;
+
+const BaseEvent = z.object({
+  eventId: z.string(),
+  tenantId: z.string().uuid(),
+  jobId: z.string().uuid(),
+  sequence: z.number().int().positive(),
+  occurredAt: z.string().datetime(),
+});
+
+export const JobQueued = BaseEvent.extend({
+  type: z.literal("job.queued"),
+  state: z.literal("queued"),
+  payload: z.object({ inputUri: z.string(), renderer: z.string() }),
+});
+
+export const JobStarted = BaseEvent.extend({
+  type: z.literal("job.started"),
+  state: z.literal("running"),
+  payload: z.object({ workerId: z.string(), leaseId: z.string() }),
+});
+
+export const JobProgress = BaseEvent.extend({
+  type: z.literal("job.progress"),
+  state: z.literal("running"),
+  payload: z.object({ completed: z.number().int().nonnegative(), total: z.number().int().positive() }),
+});
+
+export const JobSucceeded = BaseEvent.extend({
+  type: z.literal("job.succeeded"),
+  state: z.literal("succeeded"),
+  payload: z.object({ outputUri: z.string(), checksum: z.string() }),
+});
+
+export const JobFailed = BaseEvent.extend({
+  type: z.literal("job.failed"),
+  state: z.literal("failed"),
+  payload: z.object({ errorCode: z.string(), message: z.string() }),
+});
+
+export const JobCancelled = BaseEvent.extend({
+  type: z.literal("job.cancelled"),
+  state: z.literal("cancelled"),
+  payload: z.object({ reason: z.string() }),
+});
+
+export const JobEvent = z.discriminatedUnion("type", [
+  JobQueued,
+  JobStarted,
+  JobProgress,
+  JobSucceeded,
+  JobFailed,
+  JobCancelled,
+]);
+export type JobEvent = z.infer<typeof JobEvent>;
+
+export function eventStreamId(jobId: string, sequence: number): string {
+  return `${jobId}:${sequence}`;
+}
+
+export function stateFromEvent(event: JobEvent): JobState {
+  return event.state;
+}
+```
+
+## `apps/api/src/domain/job.ts`
+
+```ts
+import { ConflictError, DomainError } from "../../../packages/shared/src/errors.js";
+import type { JobEvent, JobState } from "../../../packages/events/src/job-events.js";
+
+export interface Job {
+  id: string;
+  tenantId: string;
+  state: JobState;
+  inputUri: string;
+  renderer: string;
+  outputUri: string | null;
+  failureCode: string | null;
+  failureMessage: string | null;
+  version: number;
+  nextEventSequence: number;
+  leaseId: string | null;
+  leaseExpiresAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const terminal = new Set<JobState>(["succeeded", "failed", "cancelled"]);
+
+export function isTerminal(state: JobState): boolean {
+  return terminal.has(state);
+}
+
+export function assertTransition(current: JobState, next: JobState): void {
+  if (current === next) return;
+  if (isTerminal(current)) {
+    throw new ConflictError(`cannot transition terminal job from ${current} to ${next}`, "terminal_job");
+  }
+  const valid: Record<JobState, JobState[]> = {
+    queued: ["running", "cancelled"],
+    running: ["succeeded", "failed", "cancelled"],
+    succeeded: [],
+    failed: [],
+    cancelled: [],
+  };
+  if (!valid[current].includes(next)) {
+    throw new DomainError(`invalid job transition ${current} -> ${next}`, "invalid_transition");
+  }
+}
+
+export function applyEvent(job: Job, event: JobEvent): Job {
+  if (event.jobId !== job.id || event.tenantId !== job.tenantId) {
+    throw new DomainError("event does not belong to job", "event_scope");
+  }
+  if (event.sequence <= job.version) return job;
+  assertTransition(job.state, event.state);
+  return {
+    ...job,
+    state: event.state,
+    version: event.sequence,
+    outputUri: event.type === "job.succeeded" ? event.payload.outputUri : job.outputUri,
+    failureCode: event.type === "job.failed" ? event.payload.errorCode : job.failureCode,
+    failureMessage: event.type === "job.failed" ? event.payload.message : job.failureMessage,
+    updatedAt: new Date(event.occurredAt),
+  };
+}
+```
+
+## `packages/queue/src/lease.ts`
+
+```ts
+import { randomUUID } from "node:crypto";
+import { LeaseLostError } from "../../shared/src/errors.js";
+
+export interface Lease {
+  jobId: string;
+  workerId: string;
+  leaseId: string;
+  expiresAtMs: number;
+}
+
+export interface LeaseStore {
+  acquire(jobId: string, workerId: string, ttlMs: number): Promise<Lease | null>;
+  renew(lease: Lease, ttlMs: number): Promise<boolean>;
+  release(lease: Lease): Promise<void>;
+  assertOwned(lease: Lease): Promise<void>;
+}
+
+export function newLease(jobId: string, workerId: string, ttlMs: number, now = Date.now()): Lease {
+  return { jobId, workerId, leaseId: randomUUID(), expiresAtMs: now + ttlMs };
+}
+
+export async function withLease<T>(
+  store: LeaseStore,
+  lease: Lease,
+  work: () => Promise<T>,
+): Promise<T> {
+  await store.assertOwned(lease);
+  const result = await work();
+  await store.assertOwned(lease);
+  return result;
+}
+
+export function requireRenewed(ok: boolean): void {
+  if (!ok) throw new LeaseLostError();
+}
+```
+
+## `apps/api/src/infra/postgres/job-repository.ts`
+
+```ts
+import type { Pool, PoolClient } from "pg";
+import type { Job, JobState } from "../../domain/job.js";
+
+type DbJob = {
+  id: string;
+  tenant_id: string;
+  state: JobState;
+  input_uri: string;
+  renderer: string;
+  output_uri: string | null;
+  failure_code: string | null;
+  failure_message: string | null;
+  version: number;
+  next_event_sequence: number;
+  lease_id: string | null;
+  lease_expires_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+};
+
+function mapJob(row: DbJob): Job {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    state: row.state,
+    inputUri: row.input_uri,
+    renderer: row.renderer,
+    outputUri: row.output_uri,
+    failureCode: row.failure_code,
+    failureMessage: row.failure_message,
+    version: row.version,
+    nextEventSequence: row.next_event_sequence,
+    leaseId: row.lease_id,
+    leaseExpiresAt: row.lease_expires_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export class JobRepository {
+  constructor(private readonly pool: Pool) {}
+
+  async find(tenantId: string, jobId: string): Promise<Job | null> {
+    const result = await this.pool.query<DbJob>(
+      `SELECT * FROM jobs WHERE tenant_id = $1 AND id = $2`,
+      [tenantId, jobId],
+    );
+    return result.rows[0] ? mapJob(result.rows[0]) : null;
+  }
+
+  async lock(client: PoolClient, tenantId: string, jobId: string): Promise<Job | null> {
+    const result = await client.query<DbJob>(
+      `SELECT * FROM jobs WHERE tenant_id = $1 AND id = $2 FOR UPDATE`,
+      [tenantId, jobId],
+    );
+    return result.rows[0] ? mapJob(result.rows[0]) : null;
+  }
+
+  async insert(client: PoolClient, job: Job): Promise<void> {
+    await client.query(
+      `INSERT INTO jobs
+       (id, tenant_id, state, input_uri, renderer, output_uri, failure_code, failure_message,
+        version, next_event_sequence, lease_id, lease_expires_at, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      [job.id, job.tenantId, job.state, job.inputUri, job.renderer, job.outputUri,
+       job.failureCode, job.failureMessage, job.version, job.nextEventSequence,
+       job.leaseId, job.leaseExpiresAt, job.createdAt, job.updatedAt],
+    );
+  }
+
+  async updateLocked(client: PoolClient, job: Job): Promise<void> {
+    await client.query(
+      `UPDATE jobs SET state = $3, output_uri = $4, failure_code = $5, failure_message = $6,
+       version = $7, next_event_sequence = $8, lease_id = $9, lease_expires_at = $10,
+       updated_at = $11 WHERE tenant_id = $1 AND id = $2`,
+      [job.tenantId, job.id, job.state, job.outputUri, job.failureCode, job.failureMessage,
+       job.version, job.nextEventSequence, job.leaseId, job.leaseExpiresAt, job.updatedAt],
+    );
+  }
+
+  async claimNext(client: PoolClient, workerId: string, leaseId: string, expiresAt: Date): Promise<Job | null> {
+    const result = await client.query<DbJob>(
+      `WITH candidate AS (
+         SELECT id FROM jobs
+         WHERE state = 'queued' AND (lease_expires_at IS NULL OR lease_expires_at < now())
+         ORDER BY created_at
+         FOR UPDATE SKIP LOCKED LIMIT 1
+       )
+       UPDATE jobs j SET state = 'running', lease_id = $1, lease_expires_at = $2,
+         version = version + 1, next_event_sequence = next_event_sequence + 1,
+         updated_at = now()
+       FROM candidate WHERE j.id = candidate.id
+       RETURNING j.*`,
+      [leaseId, expiresAt],
+    );
+    return result.rows[0] ? mapJob(result.rows[0]) : null;
+  }
+
+  async markSucceeded(
+    client: PoolClient,
+    tenantId: string,
+    jobId: string,
+    leaseId: string,
+    outputUri: string,
+    checksum: string,
+  ): Promise<Job | null> {
+    const result = await client.query<DbJob>(
+      `UPDATE jobs SET state = 'succeeded', output_uri = $5, lease_id = NULL,
+         lease_expires_at = NULL, version = version + 1,
+         next_event_sequence = next_event_sequence + 1, updated_at = now()
+       WHERE tenant_id = $1 AND id = $2 AND lease_id = $3 AND state = 'running'
+       RETURNING *`,
+      [tenantId, jobId, leaseId, checksum, outputUri],
+    );
+    return result.rows[0] ? mapJob(result.rows[0]) : null;
+  }
+}
+```
+
+## `apps/api/src/infra/postgres/outbox-repository.ts`
+
+```ts
+import type { PoolClient } from "pg";
+import type { JobEvent } from "../../../../packages/events/src/job-events.js";
+
+export interface OutboxRow {
+  id: string;
+  tenantId: string;
+  jobId: string;
+  sequence: number;
+  topic: string;
+  payload: JobEvent;
+  publishedAt: Date | null;
+  createdAt: Date;
+}
+
+export class OutboxRepository {
+  async append(client: PoolClient, event: JobEvent): Promise<void> {
+    await client.query(
+      `INSERT INTO outbox (id, tenant_id, job_id, sequence, topic, payload, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
+       ON CONFLICT (tenant_id, job_id, sequence) DO NOTHING`,
+      [event.eventId, event.tenantId, event.jobId, event.sequence, "job-events",
+       JSON.stringify(event), event.occurredAt],
+    );
+  }
+
+  async pending(client: PoolClient, limit: number): Promise<OutboxRow[]> {
+    const result = await client.query<OutboxRow>(
+      `SELECT id, tenant_id AS "tenantId", job_id AS "jobId", sequence, topic,
+              payload, published_at AS "publishedAt", created_at AS "createdAt"
+       FROM outbox WHERE published_at IS NULL ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT $1`,
+      [limit],
+    );
+    return result.rows;
+  }
+
+  async markPublished(client: PoolClient, id: string): Promise<void> {
+    await client.query(`UPDATE outbox SET published_at = now() WHERE id = $1`, [id]);
+  }
+}
+```
+
+## `apps/api/src/infra/redis/job-queue.ts`
+
+```ts
+import type Redis from "ioredis";
+
+export interface QueueMessage {
+  jobId: string;
+  tenantId: string;
+  enqueuedAt: number;
+}
+
+export class JobQueue {
+  constructor(private readonly redis: Redis, private readonly stream = "lantern:jobs") {}
+
+  async enqueue(message: QueueMessage): Promise<string> {
+    return this.redis.xadd(this.stream, "MAXLEN", "~", 10000, "*", "job", JSON.stringify(message));
+  }
+
+  async read(consumer: string, group: string): Promise<[string, string[]][]> {
+    const reply = await this.redis.xreadgroup(
+      "GROUP", group, consumer, "COUNT", 1, "BLOCK", 1000, "STREAMS", this.stream, ">",
+    );
+    if (!reply) return [];
+    return (reply[0]?.[1] ?? []) as [string, string[]][];
+  }
+}
+```
+
+## `apps/api/src/application/job-service.ts`
+
+```ts
+import { randomUUID } from "node:crypto";
+import type { Pool } from "pg";
+import { ConflictError, NotFoundError } from "../../../packages/shared/src/errors.js";
+import { hashRequest, normalizeIdempotencyKey, type IdempotencyRecord } from "../../../packages/shared/src/idempotency.js";
+import type { Job, JobState } from "../domain/job.js";
+import { assertTransition } from "../domain/job.js";
+import { JobRepository } from "../infra/postgres/job-repository.js";
+import { OutboxRepository } from "../infra/postgres/outbox-repository.js";
+import { JobQueue } from "../infra/redis/job-queue.js";
+import type { JobEvent } from "../../../packages/events/src/job-events.js";
+
+export interface CreateJobRequest {
+  inputUri: string;
+  renderer: "pdf" | "png" | "svg";
+}
+
+export interface ServiceResult<T> {
+  statusCode: number;
+  body: T;
+}
+
+export class JobService {
+  constructor(
+    private readonly pool: Pool,
+    private readonly jobs: JobRepository,
+    private readonly outbox: OutboxRepository,
+    private readonly queue: JobQueue,
+  ) {}
+
+  async create(
+    tenantId: string,
+    request: CreateJobRequest,
+    rawKey: string | undefined,
+  ): Promise<ServiceResult<Job>> {
+    const key = normalizeIdempotencyKey(rawKey);
+    if (rawKey && !key) throw new ConflictError("invalid idempotency key", "invalid_idempotency_key");
+    const requestHash = hashRequest(request);
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      if (key) {
+        const existing = await client.query<IdempotencyRecord>(
+          `SELECT tenant_id AS "tenantId", key, request_hash AS "requestHash",
+                  status_code AS "statusCode", response_body AS "responseBody", created_at AS "createdAt"
+           FROM idempotency_keys WHERE tenant_id = $1 AND key = $2`,
+          [tenantId, key],
+        );
+        const record = existing.rows[0];
+        if (record) {
+          if (record.requestHash !== requestHash) {
+            throw new ConflictError("idempotency key was used with a different request", "idempotency_conflict");
+          }
+          await client.query("COMMIT");
+          return { statusCode: record.statusCode, body: record.responseBody as Job };
+        }
+      }
+
+      const now = new Date();
+      const job: Job = {
+        id: randomUUID(), tenantId, state: "queued", inputUri: request.inputUri,
+        renderer: request.renderer, outputUri: null, failureCode: null, failureMessage: null,
+        version: 0, nextEventSequence: 2, leaseId: null, leaseExpiresAt: null,
+        createdAt: now, updatedAt: now,
+      };
+      await this.jobs.insert(client, job);
+      const event: JobEvent = {
+        eventId: randomUUID(), tenantId, jobId: job.id, sequence: 1,
+        occurredAt: now.toISOString(), type: "job.queued", state: "queued",
+        payload: { inputUri: job.inputUri, renderer: job.renderer },
+      };
+      await this.outbox.append(client, event);
+      if (key) {
+        await client.query(
+          `INSERT INTO idempotency_keys (tenant_id, key, request_hash, status_code, response_body)
+           VALUES ($1, $2, $3, $4, $5::jsonb)`,
+          [tenantId, key, requestHash, 202, JSON.stringify(job)],
+        );
+      }
+      await client.query("COMMIT");
+      await this.queue.enqueue({ jobId: job.id, tenantId, enqueuedAt: now.getTime() });
+      return { statusCode: 202, body: job };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async cancel(tenantId: string, jobId: string, reason: string): Promise<Job> {
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const job = await this.jobs.lock(client, tenantId, jobId);
+      if (!job) throw new NotFoundError("job");
+      assertTransition(job.state, "cancelled");
+      const next: Job = {
+        ...job, state: "cancelled", version: job.version + 1,
+        nextEventSequence: job.nextEventSequence + 1, leaseId: null, leaseExpiresAt: null,
+        updatedAt: new Date(),
+      };
+      await this.jobs.updateLocked(client, next);
+      await this.outbox.append(client, {
+        eventId: randomUUID(), tenantId, jobId, sequence: next.version,
+        occurredAt: next.updatedAt.toISOString(), type: "job.cancelled", state: "cancelled",
+        payload: { reason },
+      });
+      await client.query("COMMIT");
+      return next;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+}
+```
+
+## `apps/api/src/routes/jobs.ts`
+
+```ts
+import type { FastifyInstance } from "fastify";
+import { z } from "zod";
+import { JobService } from "../application/job-service.js";
+import { NotFoundError } from "../../../packages/shared/src/errors.js";
+
+const CreateBody = z.object({ inputUri: z.string().url(), renderer: z.enum(["pdf", "png", "svg"]) });
+
+export async function registerJobRoutes(app: FastifyInstance, service: JobService): Promise<void> {
+  app.post("/v1/jobs", async (request, reply) => {
+    const tenantId = request.user.tenantId;
+    const body = CreateBody.parse(request.body);
+    const result = await service.create(tenantId, body, request.headers["idempotency-key"]);
+    return reply.code(result.statusCode).send(result.body);
+  });
+
+  app.get<{ Params: { id: string } }>("/v1/jobs/:id", async (request, reply) => {
+    const job = await app.jobs.find(request.user.tenantId, request.params.id);
+    if (!job) throw new NotFoundError("job");
+    return reply.send(job);
+  });
+
+  app.post<{ Params: { id: string } }>("/v1/jobs/:id/cancel", async (request, reply) => {
+    const job = await service.cancel(request.user.tenantId, request.params.id, "user_request");
+    return reply.send(job);
+  });
+}
+```
+
+## `apps/api/src/routes/events.ts`
+
+```ts
+import type { FastifyInstance } from "fastify";
+import { eventStreamId, JobEvent } from "../../../packages/events/src/job-events.js";
+
+function parseLastEventId(value: string | undefined): number {
+  if (!value) return 0;
+  const sequence = Number(value.split(":").at(-1));
+  return Number.isSafeInteger(sequence) && sequence >= 0 ? sequence : 0;
+}
+
+export async function registerEventRoutes(app: FastifyInstance): Promise<void> {
+  app.get<{ Params: { id: string } }>("/v1/jobs/:id/events", async (request, reply) => {
+    const tenantId = request.user.tenantId;
+    const jobId = request.params.id;
+    const after = parseLastEventId(request.headers["last-event-id"]);
+    reply.raw.setHeader("Content-Type", "text/event-stream");
+    reply.raw.setHeader("Cache-Control", "no-cache");
+    reply.raw.setHeader("Connection", "keep-alive");
+
+    const replay = await app.eventStore.listAfter(tenantId, jobId, after);
+    for (const row of replay) {
+      const event = JobEvent.parse(row.payload);
+      reply.raw.write(`id: ${eventStreamId(jobId, event.sequence)}\n`);
+      reply.raw.write(`event: ${event.type}\n`);
+      reply.raw.write(`data: ${JSON.stringify(event)}\n\n`);
+    }
+
+    const unsubscribe = app.eventBus.subscribe({ tenantId, jobId }, (event) => {
+      reply.raw.write(`id: ${eventStreamId(jobId, event.sequence)}\n`);
+      reply.raw.write(`event: ${event.type}\n`);
+      reply.raw.write(`data: ${JSON.stringify(event)}\n\n`);
+    });
+    request.raw.on("close", unsubscribe);
+  });
+}
+```
+
+## `packages/events/src/event-store.ts`
+
+```ts
+import type { Pool } from "pg";
+import type { JobEvent } from "./job-events.js";
+
+export interface StoredEvent {
+  tenantId: string;
+  jobId: string;
+  sequence: number;
+  payload: JobEvent;
+}
+
+export class EventStore {
+  constructor(private readonly pool: Pool) {}
+
+  async listAfter(tenantId: string, jobId: string, sequence: number): Promise<StoredEvent[]> {
+    const result = await this.pool.query<StoredEvent>(
+      `SELECT tenant_id AS "tenantId", job_id AS "jobId", sequence, payload
+       FROM job_events WHERE tenant_id = $1 AND job_id = $2 AND sequence > $3
+       ORDER BY sequence ASC`,
+      [tenantId, jobId, sequence],
+    );
+    return result.rows;
+  }
+
+  async append(client: import("pg").PoolClient, event: JobEvent): Promise<void> {
+    await client.query(
+      `INSERT INTO job_events (event_id, tenant_id, job_id, sequence, type, payload, occurred_at)
+       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
+       ON CONFLICT (tenant_id, job_id, sequence) DO NOTHING`,
+      [event.eventId, event.tenantId, event.jobId, event.sequence, event.type,
+       JSON.stringify(event), event.occurredAt],
+    );
+  }
+}
+```
+
+## `apps/api/src/main.ts`
+
+```ts
+import Fastify from "fastify";
+import cors from "@fastify/cors";
+import cookie from "@fastify/cookie";
+import { Pool } from "pg";
+import Redis from "ioredis";
+import { SystemClock } from "../../packages/shared/src/clock.js";
+import { JobRepository } from "./infra/postgres/job-repository.js";
+import { OutboxRepository } from "./infra/postgres/outbox-repository.js";
+import { EventStore } from "../../packages/events/src/event-store.js";
+import { JobQueue } from "./infra/redis/job-queue.js";
+import { JobService } from "./application/job-service.js";
+import { registerJobRoutes } from "./routes/jobs.js";
+import { registerEventRoutes } from "./routes/events.js";
+import { loadConfig } from "../../packages/config/src/index.js";
+
+declare module "fastify" {
+  interface FastifyRequest { user: { tenantId: string; userId: string }; }
+  interface FastifyInstance {
+    jobs: JobRepository;
+    eventStore: EventStore;
+    eventBus: { subscribe(filter: { tenantId: string; jobId: string }, cb: (event: any) => void): () => void };
+  }
+}
+
+const config = loadConfig(process.env);
+const pool = new Pool({ connectionString: config.databaseUrl, max: 20 });
+const redis = new Redis(config.redisUrl);
+const app = Fastify({ logger: true });
+const jobs = new JobRepository(pool);
+const events = new EventStore(pool);
+const outbox = new OutboxRepository();
+const queue = new JobQueue(redis);
+const service = new JobService(pool, jobs, outbox, queue);
+
+await app.register(cors, { origin: config.webOrigin, credentials: true });
+await app.register(cookie, { secret: config.cookieSecret });
+app.decorate("jobs", jobs);
+app.decorate("eventStore", events);
+app.decorate("eventBus", createEventBus(redis));
+app.addHook("preHandler", async (request) => {
+  request.user = await authenticate(request, config.authSecret);
+});
+await registerJobRoutes(app, service);
+await registerEventRoutes(app);
+
+app.setErrorHandler((error, _request, reply) => {
+  app.log.error(error);
+  const status = "statusCode" in error && typeof error.statusCode === "number" ? error.statusCode : 500;
+  return reply.code(status).send({ error: status === 500 ? "internal_error" : error.message });
+});
+
+await app.listen({ host: config.host, port: config.port });
+
+function createEventBus(redisClient: Redis) {
+  return {
+    subscribe(filter: { tenantId: string; jobId: string }, cb: (event: any) => void): () => void {
+      const channel = `lantern:events:${filter.tenantId}:${filter.jobId}`;
+      const subscriber = redisClient.duplicate();
+      void subscriber.subscribe(channel);
+      const handler = (_channel: string, raw: string) => cb(JSON.parse(raw));
+      subscriber.on("message", handler);
+      return () => {
+        subscriber.off("message", handler);
+        void subscriber.unsubscribe(channel).finally(() => subscriber.disconnect());
+      };
+    },
+  };
+}
+
+async function authenticate(request: any, secret: string): Promise<{ tenantId: string; userId: string }> {
+  const token = request.cookies.session;
+  if (!token) throw new Error("unauthorized");
+  return verifySession(token, secret);
+}
+
+function verifySession(token: string, _secret: string): { tenantId: string; userId: string } {
+  const [tenantId, userId] = Buffer.from(token, "base64url").toString("utf8").split(":");
+  if (!tenantId || !userId) throw new Error("unauthorized");
+  return { tenantId, userId };
+}
+```
+
+## `apps/worker/src/events/outbox-publisher.ts`
+
+```ts
+import type Redis from "ioredis";
+import type { Pool } from "pg";
+import { OutboxRepository } from "../../../api/src/infra/postgres/outbox-repository.js";
+import type { JobEvent } from "../../../../packages/events/src/job-events.js";
+
+export class OutboxPublisher {
+  private stopped = false;
+  constructor(private readonly pool: Pool, private readonly redis: Redis, private readonly outbox: OutboxRepository) {}
+
+  async run(): Promise<void> {
+    while (!this.stopped) {
+      const client = await this.pool.connect();
+      try {
+        await client.query("BEGIN");
+        const rows = await this.outbox.pending(client, 100);
+        for (const row of rows) {
+          const event = row.payload as JobEvent;
+          await this.redis.publish(`lantern:events:${row.tenantId}:${row.jobId}`, JSON.stringify(event));
+          await this.outbox.markPublished(client, row.id);
+        }
+        await client.query("COMMIT");
+        if (rows.length === 0) await new Promise((resolve) => setTimeout(resolve, 100));
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      } finally {
+        client.release();
+      }
+    }
+  }
+
+  stop(): void { this.stopped = true; }
+}
+```
+
+## `apps/worker/src/render/render-engine.ts`
+
+```ts
+import { createHash } from "node:crypto";
+
+export interface RenderInput { inputUri: string; renderer: string; }
+export interface RenderOutput { outputUri: string; checksum: string; }
+
+export interface RenderEngine {
+  render(input: RenderInput, onProgress: (completed: number, total: number) => Promise<void>): Promise<RenderOutput>;
+}
+
+export class LocalRenderEngine implements RenderEngine {
+  async render(input: RenderInput, onProgress: (completed: number, total: number) => Promise<void>): Promise<RenderOutput> {
+    const total = input.renderer === "svg" ? 3 : 12;
+    const chunks: Buffer[] = [];
+    for (let i = 0; i < total; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 15));
+      const chunk = Buffer.from(`${input.renderer}:${input.inputUri}:${i}\n`);
+      chunks.push(chunk);
+      await onProgress(i + 1, total);
+    }
+    const output = Buffer.concat(chunks);
+    return { outputUri: `s3://lantern-output/${Date.now()}-${input.renderer}`, checksum: createHash("sha256").update(output).digest("hex") };
+  }
+}
+```
+
+## `apps/worker/src/worker.ts`
+
+```ts
+import { randomUUID } from "node:crypto";
+import { Pool } from "pg";
+import Redis from "ioredis";
+import { JobRepository } from "../../api/src/infra/postgres/job-repository.js";
+import { OutboxRepository } from "../../api/src/infra/postgres/outbox-repository.js";
+import { EventStore } from "../../../packages/events/src/event-store.js";
+import { LeaseLostError } from "../../../packages/shared/src/errors.js";
+import { loadConfig } from "../../../packages/config/src/index.js";
+import { LocalRenderEngine } from "./render/render-engine.js";
+
+const config = loadConfig(process.env);
+const pool = new Pool({ connectionString: config.databaseUrl, max: 8 });
+const redis = new Redis(config.redisUrl);
+const jobs = new JobRepository(pool);
+const outbox = new OutboxRepository();
+const eventStore = new EventStore(pool);
+const engine = new LocalRenderEngine();
+const workerId = `${config.hostname}:${process.pid}`;
+
+async function processMessage(raw: string): Promise<void> {
+  const message = JSON.parse(raw) as { tenantId: string; jobId: string };
+  const leaseId = randomUUID();
+  const expiresAt = new Date(Date.now() + config.leaseTtlMs);
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const job = await jobs.claimNext(client, workerId, leaseId, expiresAt);
+    if (!job || job.id !== message.jobId || job.tenantId !== message.tenantId) {
+      await client.query("ROLLBACK");
+      return;
+    }
+    const started: any = {
+      eventId: randomUUID(), tenantId: job.tenantId, jobId: job.id,
+      sequence: job.version, occurredAt: new Date().toISOString(),
+      type: "job.started", state: "running", payload: { workerId, leaseId },
+    };
+    await eventStore.append(client, started);
+    await outbox.append(client, started);
+    await client.query("COMMIT");
+
+    const output = await engine.render(job, async (completed, total) => {
+      await publishProgress(job.tenantId, job.id, leaseId, completed, total);
+    });
+
+    const finishClient = await pool.connect();
+    try {
+      await finishClient.query("BEGIN");
+      const finished = await jobs.markSucceeded(finishClient, job.tenantId, job.id, leaseId, output.outputUri, output.checksum);
+      if (!finished) throw new LeaseLostError();
+      const event: any = {
+        eventId: randomUUID(), tenantId: job.tenantId, jobId: job.id,
+        sequence: finished.version, occurredAt: finished.updatedAt.toISOString(),
+        type: "job.succeeded", state: "succeeded",
+        payload: { outputUri: output.outputUri, checksum: output.checksum },
+      };
+      await eventStore.append(finishClient, event);
+      await outbox.append(finishClient, event);
+      await finishClient.query("COMMIT");
+    } catch (error) {
+      await finishClient.query("ROLLBACK");
+      throw error;
+    } finally {
+      finishClient.release();
+    }
+  } finally {
+    client.release();
+  }
+}
+
+async function publishProgress(tenantId: string, jobId: string, leaseId: string, completed: number, total: number): Promise<void> {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const result = await client.query(
+      `SELECT state, version, lease_id FROM jobs WHERE tenant_id = $1 AND id = $2 FOR UPDATE`,
+      [tenantId, jobId],
+    );
+    const row = result.rows[0];
+    if (!row || row.lease_id !== leaseId || row.state !== "running") throw new LeaseLostError();
+    const sequence = Number(row.version) + 1;
+    const event: any = {
+      eventId: randomUUID(), tenantId, jobId, sequence,
+      occurredAt: new Date().toISOString(), type: "job.progress", state: "running",
+      payload: { completed, total },
+    };
+    await client.query(`UPDATE jobs SET version = $3, next_event_sequence = $3 + 1, updated_at = now() WHERE tenant_id = $1 AND id = $2`, [tenantId, jobId, sequence]);
+    await eventStore.append(client, event);
+    await outbox.append(client, event);
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally { client.release(); }
+}
+
+async function main(): Promise<void> {
+  const group = "render-workers";
+  await redis.xgroup("CREATE", "lantern:jobs", group, "$", "MKSTREAM").catch((error: any) => {
+    if (!String(error.message).includes("BUSYGROUP")) throw error;
+  });
+  while (true) {
+    const messages = await redis.xreadgroup("GROUP", group, workerId, "COUNT", 1, "BLOCK", 1000, "STREAMS", "lantern:jobs", ">");
+    for (const [, entries] of messages ?? []) {
+      for (const [id, fields] of entries as [string, string[]][]) {
+        const raw = fields[fields.indexOf("job") + 1];
+        try {
+          await processMessage(raw);
+          await redis.xack("lantern:jobs", group, id);
+        } catch (error) {
+          console.error({ error, id }, "job failed");
+          await redis.xclaim("lantern:jobs", group, workerId, 0, id);
+        }
+      }
+    }
+  }
+}
+
+void main();
+```
+
+## `packages/config/src/index.ts`
+
+```ts
+import os from "node:os";
+import { z } from "zod";
+
+const Env = z.object({
+  DATABASE_URL: z.string().url(),
+  REDIS_URL: z.string().url(),
+  COOKIE_SECRET: z.string().min(16),
+  AUTH_SECRET: z.string().min(16),
+  WEB_ORIGIN: z.string().url().default("http://localhost:5173"),
+  HOST: z.string().default("0.0.0.0"),
+  PORT: z.coerce.number().int().positive().default(3000),
+  LEASE_TTL_MS: z.coerce.number().int().positive().default(30_000),
+});
+
+export function loadConfig(env: NodeJS.ProcessEnv) {
+  const value = Env.parse(env);
+  return {
+    databaseUrl: value.DATABASE_URL, redisUrl: value.REDIS_URL,
+    cookieSecret: value.COOKIE_SECRET, authSecret: value.AUTH_SECRET,
+    webOrigin: value.WEB_ORIGIN, host: value.HOST, port: value.PORT,
+    leaseTtlMs: value.LEASE_TTL_MS, hostname: os.hostname(),
+  };
+}
+```
+
+## `db/migrations/004_job_events.sql`
+
+```sql
+CREATE TABLE job_events (
+  event_id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL,
+  job_id uuid NOT NULL,
+  sequence integer NOT NULL,
+  type text NOT NULL,
+  payload jsonb NOT NULL,
+  occurred_at timestamptz NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (tenant_id, job_id, sequence)
+);
+
+CREATE INDEX job_events_replay_idx
+  ON job_events (tenant_id, job_id, sequence);
+
+ALTER TABLE jobs ADD COLUMN version integer NOT NULL DEFAULT 0;
+ALTER TABLE jobs ADD COLUMN next_event_sequence integer NOT NULL DEFAULT 1;
+ALTER TABLE jobs ADD COLUMN lease_id uuid;
+ALTER TABLE jobs ADD COLUMN lease_expires_at timestamptz;
+```
+
+## `db/migrations/005_job_idempotency.sql`
+
+```sql
+CREATE TABLE idempotency_keys (
+  tenant_id uuid NOT NULL,
+  key text NOT NULL,
+  request_hash text NOT NULL,
+  status_code integer NOT NULL,
+  response_body jsonb NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (tenant_id, key)
+);
+
+CREATE TABLE outbox (
+  id uuid PRIMARY KEY,
+  tenant_id uuid NOT NULL,
+  job_id uuid NOT NULL,
+  sequence integer NOT NULL,
+  topic text NOT NULL,
+  payload jsonb NOT NULL,
+  published_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (tenant_id, job_id, sequence)
+);
+
+CREATE INDEX outbox_unpublished_idx ON outbox (created_at) WHERE published_at IS NULL;
+```
+
+## `apps/web/src/dashboard/job-row.tsx`
+
+```tsx
+import { useEffect, useState } from "react";
+
+type Job = { id: string; state: string; version: number; outputUri: string | null };
+type Event = { type: string; state: string; sequence: number; payload: Record<string, unknown> };
+
+export function JobRow({ initial }: { initial: Job }) {
+  const [job, setJob] = useState(initial);
+  useEffect(() => {
+    const source = new EventSource(`/v1/jobs/${job.id}/events`);
+    const onEvent = (message: MessageEvent<string>) => {
+      const event = JSON.parse(message.data) as Event;
+      setJob((old) => ({ ...old, state: event.state, version: event.sequence }));
+    };
+    source.addEventListener("job.queued", onEvent);
+    source.addEventListener("job.started", onEvent);
+    source.addEventListener("job.progress", onEvent);
+    source.addEventListener("job.succeeded", onEvent);
+    source.addEventListener("job.failed", onEvent);
+    source.addEventListener("job.cancelled", onEvent);
+    return () => source.close();
+  }, [job.id]);
+  return <div data-state={job.state}>{job.id}: {job.state} (v{job.version})</div>;
+}
+```
+
+## Existing tests
+
+```ts
+import { describe, expect, it } from "vitest";
+import { assertTransition, applyEvent, type Job } from "../apps/api/src/domain/job.js";
+
+const base: Job = {
+  id: "11111111-1111-1111-1111-111111111111",
+  tenantId: "22222222-2222-2222-2222-222222222222",
+  state: "queued", inputUri: "s3://in/a", renderer: "png", outputUri: null,
+  failureCode: null, failureMessage: null, version: 0, nextEventSequence: 2,
+  leaseId: null, leaseExpiresAt: null, createdAt: new Date(0), updatedAt: new Date(0),
+};
+
+function event(sequence: number, state: "queued" | "running" | "succeeded"): any {
+  return {
+    eventId: `event-${sequence}`, tenantId: base.tenantId, jobId: base.id, sequence,
+    occurredAt: new Date(sequence * 1000).toISOString(),
+    type: state === "queued" ? "job.queued" : state === "running" ? "job.started" : "job.succeeded",
+    state, payload: state === "running" ? { workerId: "w", leaseId: "l" } :
+      state === "succeeded" ? { outputUri: "s3://out/a", checksum: "abc" } :
+      { inputUri: base.inputUri, renderer: base.renderer },
+  };
+}
+
+describe("job state", () => {
+  it("allows the normal lifecycle", () => {
+    expect(() => assertTransition("queued", "running")).not.toThrow();
+    expect(() => assertTransition("running", "succeeded")).not.toThrow();
+  });
+
+  it("ignores a duplicate event", () => {
+    const running = applyEvent(base, event(1, "queued"));
+    expect(applyEvent(running, event(1, "queued"))).toEqual(running);
+  });
+
+  it("does not allow a terminal state to reopen", () => {
+    const completed = applyEvent(applyEvent(base, event(1, "queued")), event(2, "running"));
+    const done = applyEvent(completed, event(3, "succeeded"));
+    expect(() => applyEvent(done, event(4, "running"))).toThrow(/terminal/);
+  });
+});
+```
+
+```ts
+import { describe, expect, it, vi } from "vitest";
+import { JobService } from "../apps/api/src/application/job-service.js";
+
+describe("job creation", () => {
+  it("returns the original response for an identical retry", async () => {
+    const pool = fakeTransactionalPool();
+    const service = new JobService(pool as any, fakeJobs(), fakeOutbox(), fakeQueue());
+    const first = await service.create("tenant-a", { inputUri: "https://files/a", renderer: "png" }, "request-1");
+    const second = await service.create("tenant-a", { inputUri: "https://files/a", renderer: "png" }, "request-1");
+    expect(second).toEqual(first);
+  });
+
+  it("rejects a reused key with a changed request", async () => {
+    const pool = fakeTransactionalPool();
+    const service = new JobService(pool as any, fakeJobs(), fakeOutbox(), fakeQueue());
+    await service.create("tenant-a", { inputUri: "https://files/a", renderer: "png" }, "request-1");
+    await expect(service.create("tenant-a", { inputUri: "https://files/b", renderer: "png" }, "request-1"))
+      .rejects.toThrow("different request");
+  });
+});
+```
+
+The integration harness also has a useful race helper:
+
+```ts
+export async function race<T>(left: Promise<T>, right: Promise<T>): Promise<[T, T]> {
+  return Promise.all([left, right]);
+}
+
+export function fakeTransactionalPool() {
+  const idempotency = new Map<string, any>();
+  return {
+    connect: async () => ({
+      query: async (sql: string, args: any[]) => {
+        if (sql.includes("FROM idempotency_keys")) {
+          const record = idempotency.get(`${args[0]}:${args[1]}`);
+          return { rows: record ? [record] : [] };
+        }
+        if (sql.includes("INSERT INTO idempotency_keys")) {
+          idempotency.set(`${args[0]}:${args[1]}`, { tenantId: args[0], key: args[1], requestHash: args[2], statusCode: args[3], responseBody: JSON.parse(args[4]) });
+        }
+        return { rows: [] };
+      }, release: () => {},
+    }),
+  };
+}
+```
+
+## Operational observations
+
+1. A client sends `POST /v1/jobs` with `Idempotency-Key: render-42`. The API inserts the job,
+   queued event, outbox row, and idempotency row, then the response is lost while the queue
+   message is successfully delivered.
+2. The client retries. In production, two API replicas can observe no idempotency row before
+   either transaction commits. PostgreSQL primary-key enforcement is the only arbiter.
+3. A worker claims the job and commits `running` plus `job.started`. It then emits progress
+   events. The render completes and commits `succeeded` plus `job.succeeded`.
+4. The dashboard first replays PostgreSQL rows and then subscribes to Redis. Redis publication
+   is not transactional with PostgreSQL; duplicate and out-of-order notifications are possible.
+5. In one incident trace, `job.succeeded` had sequence 15, while a delayed `job.started` event
+   with sequence 2 was delivered later. The browser displayed `running` after `succeeded`.
+6. In another trace, the same idempotency key was used concurrently with identical bodies. One
+   request returned 202 for job A, the other returned a unique job B after a serialization retry.
+
+## Additional relevant excerpts
+
+## `apps/api/src/infra/redis/lease-store.ts`
+
+```ts
+import type Redis from "ioredis";
+import { newLease, type Lease, type LeaseStore } from "../../../../packages/queue/src/lease.js";
+
+const acquireScript = `
+local key = KEYS[1]
+if redis.call('exists', key) == 1 then return 0 end
+redis.call('hset', key, 'jobId', ARGV[1], 'workerId', ARGV[2], 'leaseId', ARGV[3])
+redis.call('pexpire', key, ARGV[4])
+return 1
+`;
+
+const renewScript = `
+local key = KEYS[1]
+if redis.call('hget', key, 'leaseId') ~= ARGV[1] then return 0 end
+redis.call('pexpire', key, ARGV[2])
+return 1
+`;
+
+const releaseScript = `
+local key = KEYS[1]
+if redis.call('hget', key, 'leaseId') == ARGV[1] then
+  return redis.call('del', key)
+end
+return 0
+`;
+
+export class RedisLeaseStore implements LeaseStore {
+  constructor(private readonly redis: Redis, private readonly prefix = "lantern:lease:") {}
+
+  async acquire(jobId: string, workerId: string, ttlMs: number): Promise<Lease | null> {
+    const lease = newLease(jobId, workerId, ttlMs);
+    const ok = await this.redis.eval(acquireScript, 1, this.key(jobId), lease.jobId,
+      lease.workerId, lease.leaseId, ttlMs);
+    return Number(ok) === 1 ? lease : null;
+  }
+
+  async renew(lease: Lease, ttlMs: number): Promise<boolean> {
+    const ok = await this.redis.eval(renewScript, 1, this.key(lease.jobId), lease.leaseId, ttlMs);
+    if (Number(ok) !== 1) return false;
+    lease.expiresAtMs = Date.now() + ttlMs;
+    return true;
+  }
+
+  async release(lease: Lease): Promise<void> {
+    await this.redis.eval(releaseScript, 1, this.key(lease.jobId), lease.leaseId);
+  }
+
+  async assertOwned(lease: Lease): Promise<void> {
+    const owner = await this.redis.hget(this.key(lease.jobId), "leaseId");
+    if (owner !== lease.leaseId) throw new Error("lease lost");
+  }
+
+  private key(jobId: string): string { return `${this.prefix}${jobId}`; }
+}
+```
+
+## `apps/worker/src/lease-renewer.ts`
+
+```ts
+import type { Lease, LeaseStore } from "../../../packages/queue/src/lease.js";
+
+export class LeaseRenewer {
+  private timer: NodeJS.Timeout | undefined;
+  private lost = false;
+
+  constructor(
+    private readonly store: LeaseStore,
+    private readonly lease: Lease,
+    private readonly ttlMs: number,
+    private readonly onLost: () => void,
+  ) {}
+
+  start(): void {
+    this.timer = setInterval(() => {
+      void this.store.renew(this.lease, this.ttlMs).then((ok) => {
+        if (!ok && !this.lost) {
+          this.lost = true;
+          this.onLost();
+        }
+      });
+    }, Math.floor(this.ttlMs / 3));
+    this.timer.unref();
+  }
+
+  stop(): void {
+    if (this.timer) clearInterval(this.timer);
+  }
+
+  assertAlive(): void {
+    if (this.lost) throw new Error("lease renewer observed lease loss");
+  }
+}
+```
+
+## `apps/api/src/infra/postgres/transaction.ts`
+
+```ts
+import type { Pool, PoolClient } from "pg";
+
+export async function inTransaction<T>(pool: Pool, fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const result = await fn(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function withSerializableRetry<T>(
+  pool: Pool,
+  fn: (client: PoolClient) => Promise<T>,
+  attempts = 3,
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      return await inTransactionWithIsolation(pool, "SERIALIZABLE", fn);
+    } catch (error: any) {
+      lastError = error;
+      if (error?.code !== "40001" && error?.code !== "40P01") throw error;
+      await new Promise((resolve) => setTimeout(resolve, 5 * 2 ** attempt));
+    }
+  }
+  throw lastError;
+}
+
+async function inTransactionWithIsolation<T>(pool: Pool, isolation: string, fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
+  try {
+    await client.query(`BEGIN ISOLATION LEVEL ${isolation}`);
+    const result = await fn(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally { client.release(); }
+}
+```
+
+## `apps/api/src/infra/postgres/idempotency-repository.ts`
+
+```ts
+import type { PoolClient } from "pg";
+import type { IdempotencyRecord } from "../../../../packages/shared/src/idempotency.js";
+
+export class IdempotencyRepository {
+  async get(client: PoolClient, tenantId: string, key: string): Promise<IdempotencyRecord | null> {
+    const result = await client.query<IdempotencyRecord>(
+      `SELECT tenant_id AS "tenantId", key, request_hash AS "requestHash",
+              status_code AS "statusCode", response_body AS "responseBody", created_at AS "createdAt"
+       FROM idempotency_keys WHERE tenant_id = $1 AND key = $2 FOR UPDATE`,
+      [tenantId, key],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  async insert(client: PoolClient, record: IdempotencyRecord): Promise<boolean> {
+    const result = await client.query(
+      `INSERT INTO idempotency_keys
+         (tenant_id, key, request_hash, status_code, response_body, created_at)
+       VALUES ($1, $2, $3, $4, $5::jsonb, $6)
+       ON CONFLICT (tenant_id, key) DO NOTHING`,
+      [record.tenantId, record.key, record.requestHash, record.statusCode,
+       JSON.stringify(record.responseBody), record.createdAt],
+    );
+    return result.rowCount === 1;
+  }
+}
+```
+
+## `packages/events/src/projector.ts`
+
+```ts
+import { applyEvent, type Job } from "../../apps/api/src/domain/job.js";
+import { JobEvent, type JobEvent as Event } from "./job-events.js";
+
+export interface ProjectionStore {
+  get(tenantId: string, jobId: string): Promise<Job | null>;
+  save(job: Job): Promise<void>;
+}
+
+export class JobProjector {
+  constructor(private readonly store: ProjectionStore) {}
+
+  async consume(raw: unknown): Promise<void> {
+    const event = JobEvent.parse(raw);
+    const current = await this.store.get(event.tenantId, event.jobId);
+    if (!current) {
+      if (event.type !== "job.queued") return;
+      await this.store.save(jobFromQueued(event));
+      return;
+    }
+    if (event.sequence <= current.version) return;
+    await this.store.save(applyEvent(current, event));
+  }
+}
+
+function jobFromQueued(event: Extract<Event, { type: "job.queued" }>): Job {
+  const now = new Date(event.occurredAt);
+  return {
+    id: event.jobId, tenantId: event.tenantId, state: "queued",
+    inputUri: event.payload.inputUri, renderer: event.payload.renderer,
+    outputUri: null, failureCode: null, failureMessage: null,
+    version: event.sequence, nextEventSequence: event.sequence + 1,
+    leaseId: null, leaseExpiresAt: null, createdAt: now, updatedAt: now,
+  };
+}
+```
+
+## `packages/events/src/event-bus.ts`
+
+```ts
+import type { JobEvent } from "./job-events.js";
+
+type Filter = { tenantId: string; jobId: string };
+type Listener = { filter: Filter; callback: (event: JobEvent) => void };
+
+export class InMemoryEventBus {
+  private readonly listeners = new Set<Listener>();
+
+  subscribe(filter: Filter, callback: (event: JobEvent) => void): () => void {
+    const listener = { filter, callback };
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  publish(event: JobEvent): void {
+    for (const listener of this.listeners) {
+      if (listener.filter.tenantId === event.tenantId && listener.filter.jobId === event.jobId) {
+        queueMicrotask(() => listener.callback(event));
+      }
+    }
+  }
+}
+```
+
+## `apps/api/src/application/job-transition-service.ts`
+
+```ts
+import { randomUUID } from "node:crypto";
+import type { Pool, PoolClient } from "pg";
+import { assertTransition, type Job } from "../domain/job.js";
+import { JobRepository } from "../infra/postgres/job-repository.js";
+import { OutboxRepository } from "../infra/postgres/outbox-repository.js";
+import { EventStore } from "../../../packages/events/src/event-store.js";
+import type { JobEvent, JobState } from "../../../packages/events/src/job-events.js";
+
+export class JobTransitionService {
+  constructor(
+    private readonly pool: Pool,
+    private readonly jobs: JobRepository,
+    private readonly events: EventStore,
+    private readonly outbox: OutboxRepository,
+  ) {}
+
+  async transition(
+    tenantId: string,
+    jobId: string,
+    nextState: JobState,
+    payload: Record<string, unknown>,
+    predicate?: (job: Job) => boolean,
+  ): Promise<Job> {
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const job = await this.jobs.lock(client, tenantId, jobId);
+      if (!job) throw new Error("job not found");
+      if (predicate && !predicate(job)) throw new Error("transition predicate failed");
+      assertTransition(job.state, nextState);
+      const version = job.version + 1;
+      const now = new Date();
+      const next = { ...job, state: nextState, version, nextEventSequence: version + 1, updatedAt: now };
+      await this.jobs.updateLocked(client, next);
+      const event = this.buildEvent(job, next, payload);
+      await this.events.append(client, event);
+      await this.outbox.append(client, event);
+      await client.query("COMMIT");
+      return next;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally { client.release(); }
+  }
+
+  private buildEvent(previous: Job, next: Job, payload: Record<string, unknown>): JobEvent {
+    const type = `job.${next.state}` as JobEvent["type"];
+    return {
+      eventId: randomUUID(), tenantId: next.tenantId, jobId: next.id,
+      sequence: next.version, occurredAt: next.updatedAt.toISOString(),
+      type, state: next.state, payload,
+    } as JobEvent;
+  }
+}
+```
+
+## `apps/api/src/routes/events.test.ts`
+
+```ts
+import { describe, expect, it, vi } from "vitest";
+import { InMemoryEventBus } from "../../../packages/events/src/event-bus.js";
+
+describe("event replay boundary", () => {
+  it("does not duplicate a live event already included in replay", async () => {
+    const eventBus = new InMemoryEventBus();
+    const received: number[] = [];
+    const unsubscribe = eventBus.subscribe({ tenantId: "t", jobId: "j" }, (event) => received.push(event.sequence));
+    eventBus.publish({ tenantId: "t", jobId: "j", sequence: 4 } as any);
+    await Promise.resolve();
+    unsubscribe();
+    expect(received).toEqual([4]);
+  });
+
+  it("filters a same-id job from another tenant", async () => {
+    const eventBus = new InMemoryEventBus();
+    const callback = vi.fn();
+    eventBus.subscribe({ tenantId: "tenant-a", jobId: "same" }, callback);
+    eventBus.publish({ tenantId: "tenant-b", jobId: "same", sequence: 1 } as any);
+    await Promise.resolve();
+    expect(callback).not.toHaveBeenCalled();
+  });
+});
+```
+
+## `apps/worker/src/worker.integration.test.ts`
+
+```ts
+import { describe, expect, it } from "vitest";
+import { race } from "../../test/helpers/race.js";
+
+describe("worker completion race", () => {
+  it("allows only the current lease to complete", async () => {
+    const fixture = await makeWorkerFixture({ leaseTtlMs: 20 });
+    const first = fixture.startWorker("worker-a");
+    await fixture.advanceTime(25);
+    const second = fixture.startWorker("worker-b");
+    const [a, b] = await race(first.finish(), second.finish());
+    expect([a.ok, b.ok].filter(Boolean)).toHaveLength(1);
+    expect(await fixture.jobState()).toBe("succeeded");
+    expect(await fixture.successEvents()).toHaveLength(1);
+  });
+});
+```
+
+## API contract notes
+
+The public `POST /v1/jobs` contract returns `202` and the complete job representation. The
+client treats the response body as durable: it stores the returned job id and uses that id for
+subsequent polling. It is therefore not acceptable for an idempotent retry to return a fresh
+job with a different id, even if both requests have the same request body. A request hash must
+include all fields that influence creation, but must not include headers such as tracing ids.
+
+The current API has two PostgreSQL pools in the same process in one deployment: the request
+pool and a background pool used by the outbox publisher. They share the database but not a
+transaction. An outbox publish can be repeated after a process crash, and the Redis subscriber
+can receive the same payload twice. A sequence number is scoped to one tenant and job, not
+globally to the stream.
+
+The event table is intended to be append-only. There is no trigger today preventing an event
+with sequence 18 from being inserted before sequence 17, because workers and a future repair
+tool can both write it. Consumers should tolerate a gap while replaying, but an SSE connection
+should not silently claim that a gap is complete. The web UI currently assumes every live
+notification is newer than its local state.
+
+The worker's `claimNext` SQL is a legacy optimization from before the lease store was added.
+The Redis lease implementation above is now used by a separate worker pool in another branch,
+but this checkout still uses the `jobs.lease_id` column as its authoritative completion guard.
+Do not blindly combine both lease designs in the minimal patch; decide which authority is
+needed and explain how the other one should be retired or integrated.
+
+## Request traces and edge cases
+
+```text
+request A: BEGIN
+request A: SELECT idempotency_keys WHERE (tenant-a, render-42) -> no rows
+request B: BEGIN
+request B: SELECT idempotency_keys WHERE (tenant-a, render-42) -> no rows
+request A: INSERT jobs(job-A), INSERT outbox(seq 1), INSERT idempotency(render-42)
+request A: COMMIT; queue XADD(job-A); socket closes before HTTP response
+request B: INSERT jobs(job-B), INSERT outbox(seq 1), INSERT idempotency(render-42)
+request B: COMMIT; queue XADD(job-B); response 202 job-B
+```
+
+The trace above is produced by a test double whose `INSERT idempotency` does not model the
+primary-key conflict. In PostgreSQL one insert would block and then fail with `23505`, so a
+blind retry of the whole serializable transaction can accidentally create a second job unless
+the retry path re-reads the idempotency row and compares the request hash. Also note that a
+replayed key with a changed body must return a conflict, not the original response.
+
+```text
+worker W1: UPDATE jobs SET state=running, lease_id=L1, version=10 WHERE state=queued
+worker W1: COMMIT; render continues for 40 seconds
+worker W2: UPDATE jobs SET state=running, lease_id=L2, version=11 WHERE lease expired
+worker W2: COMMIT; render succeeds; INSERT job.succeeded(seq 12); COMMIT
+worker W1: UPDATE jobs SET state=succeeded, lease_id=NULL, version=12 WHERE lease_id=L1
+           -> zero rows, but old code logs and continues in one error path
+browser: receives seq 12 succeeded, then delayed seq 10 started
+```
+
+The correct result is one terminal projection and one terminal event. A stale worker may be
+allowed to finish its expensive local render, but it must not mutate the job or publish a
+success event after losing ownership. A failed conditional update is a normal domain result,
+not a reason to emit an event using the stale `version` it read earlier.
+
+The SSE route also has a boundary race: it queries rows through sequence 12, then subscribes
+to Redis, while a publisher sends sequence 13 between those operations. A robust route either
+subscribes before taking a replay watermark and filters duplicates, or performs a second durable
+read after subscribing. The fix must retain tenant and job predicates on every read and should
+not rely on a client-supplied `Last-Event-ID` job id to select authorization scope.
+## Supplementary checkout material
+
+The following excerpts are from the same Lantern checkout. They are included as additional
+repository context for the coding-agent task; they are not a second task. Some snippets are
+from adjacent packages that were not copied into the original incident bundle. Preserve the
+existing architectural constraints when reasoning about them: PostgreSQL is the durable
+ordering source, Redis is a delivery mechanism, and tenant scope is part of every lookup.
+
+## `apps/api/src/infra/postgres/idempotency-repository.ts`
+
+```ts
+import type { PoolClient } from "pg";
+import type { Job } from "../../domain/job.js";
+
+export type StoredIdempotency = {
+  tenantId: string;
+  key: string;
+  requestHash: string;
+  response: Job;
+  createdAt: Date;
+};
+
+export class IdempotencyRepository {
+  async find(client: PoolClient, tenantId: string, key: string): Promise<StoredIdempotency | null> {
+    const result = await client.query<StoredIdempotency>(
+      `SELECT tenant_id AS "tenantId", key, request_hash AS "requestHash",
+              response_json AS response, created_at AS "createdAt"
+         FROM idempotency_keys
+        WHERE tenant_id = $1 AND key = $2`,
+      [tenantId, key],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  async insert(
+    client: PoolClient,
+    value: Omit<StoredIdempotency, "createdAt">,
+  ): Promise<void> {
+    await client.query(
+      `INSERT INTO idempotency_keys
+         (tenant_id, key, request_hash, response_json)
+       VALUES ($1, $2, $3, $4)`,
+      [value.tenantId, value.key, value.requestHash, JSON.stringify(value.response)],
+    );
+  }
+}
+```
+
+The idempotency key is supplied by the client and is only unique within a tenant. A retry with
+the same key but a different canonical request hash is a conflict. A retry with the same hash
+must return the stored job representation, including the original id and timestamps. The
+repository intentionally leaves the unique-violation retry path to the application service so
+that the transaction can re-read the row after PostgreSQL resolves the concurrent insert.
+
+## `apps/api/src/infra/postgres/transaction.ts`
+
+```ts
+import type { Pool, PoolClient } from "pg";
+
+export async function inTransaction<T>(pool: Pool, fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const value = await fn(client);
+    await client.query("COMMIT");
+    return value;
+  } catch (error) {
+    try { await client.query("ROLLBACK"); } catch { /* preserve original error */ }
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function serializable<T>(pool: Pool, fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  return inTransaction(pool, async (client) => {
+    await client.query("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
+    return fn(client);
+  });
+}
+```
+
+The helper is used for operations that allocate an idempotency record or a next event
+sequence. It does not make Redis operations part of the database transaction. Redis enqueue is
+performed after commit and is safe to repeat because the outbox publisher records its delivery
+cursor and event ids.
+
+## `apps/api/src/application/job-command-service.ts`
+
+```ts
+import { createHash } from "node:crypto";
+import type { Pool, PoolClient } from "pg";
+import { inTransaction } from "../infra/postgres/transaction.js";
+import { IdempotencyRepository } from "../infra/postgres/idempotency-repository.js";
+import { JobRepository } from "../infra/postgres/job-repository.js";
+import { OutboxRepository } from "../infra/postgres/outbox-repository.js";
+
+type CreateInput = { tenantId: string; idempotencyKey: string; width: number; height: number; assetId: string };
+
+function requestHash(input: CreateInput): string {
+  const canonical = JSON.stringify({ assetId: input.assetId, height: input.height, width: input.width });
+  return createHash("sha256").update(canonical).digest("hex");
+}
+
+export async function createJob(
+  pool: Pool,
+  jobs: JobRepository,
+  idempotency: IdempotencyRepository,
+  outbox: OutboxRepository,
+  input: CreateInput,
+) {
+  const hash = requestHash(input);
+  return inTransaction(pool, async (client: PoolClient) => {
+    const existing = await idempotency.find(client, input.tenantId, input.idempotencyKey);
+    if (existing) {
+      if (existing.requestHash !== hash) throw new Error("idempotency key reused with different request");
+      return existing.response;
+    }
+    const job = await jobs.insertQueued(client, input.tenantId, input);
+    await outbox.append(client, jobs.createdEvent(job));
+    try {
+      await idempotency.insert(client, {
+        tenantId: input.tenantId,
+        key: input.idempotencyKey,
+        requestHash: hash,
+        response: job,
+      });
+    } catch (error) {
+      // A concurrent transaction can win the unique key. The caller must retry the
+      // transaction and then return the winner after comparing requestHash.
+      throw error;
+    }
+    return job;
+  });
+}
+```
+
+## `apps/api/src/infra/postgres/job-repository-locking.ts`
+
+```ts
+import type { PoolClient } from "pg";
+import type { Job, JobState } from "../../domain/job.js";
+
+export class LockedJobRepository {
+  async lock(client: PoolClient, tenantId: string, jobId: string): Promise<Job | null> {
+    const row = await client.query<Job>(
+      `SELECT id, tenant_id AS "tenantId", state, version, next_event_sequence AS "nextEventSequence",
+              lease_id AS "leaseId", updated_at AS "updatedAt"
+         FROM jobs
+        WHERE tenant_id = $1 AND id = $2
+        FOR UPDATE`,
+      [tenantId, jobId],
+    );
+    return row.rows[0] ?? null;
+  }
+
+  async updateState(client: PoolClient, job: Job, nextState: JobState, leaseId: string | null): Promise<Job> {
+    const next = {
+      ...job,
+      state: nextState,
+      version: job.version + 1,
+      nextEventSequence: job.nextEventSequence + 1,
+      leaseId,
+      updatedAt: new Date(),
+    };
+    await client.query(
+      `UPDATE jobs SET state = $1, version = $2, next_event_sequence = $3,
+                       lease_id = $4, updated_at = $5
+        WHERE tenant_id = $6 AND id = $7`,
+      [next.state, next.version, next.nextEventSequence, next.leaseId,
+       next.updatedAt, next.tenantId, next.id],
+    );
+    return next;
+  }
+}
+```
+
+Every state-changing command locks the job row before reading its current version. A command
+must create the event payload from the returned row, append the event, append the outbox row,
+and commit all three changes together. A worker completion is not allowed to use a job object
+that it read before a lease check.
+
+## `apps/worker/src/lease-store.ts`
+
+```ts
+import type { RedisClientType } from "redis";
+
+const acquireScript = `
+  if redis.call('exists', KEYS[1]) == 0 then
+    redis.call('set', KEYS[1], ARGV[1], 'PX', ARGV[2]); return 1
+  end
+  return 0
+`;
+
+const renewScript = `
+  if redis.call('get', KEYS[1]) == ARGV[1] then
+    redis.call('pexpire', KEYS[1], ARGV[2]); return 1
+  end
+  return 0
+`;
+
+const releaseScript = `
+  if redis.call('get', KEYS[1]) == ARGV[1] then
+    return redis.call('del', KEYS[1])
+  end
+  return 0
+`;
+
+export class LeaseStore {
+  constructor(private readonly redis: RedisClientType) {}
+
+  async acquire(key: string, owner: string, ttlMs: number): Promise<boolean> {
+    return Number(await this.redis.eval(acquireScript, { keys: [key], arguments: [owner, String(ttlMs)] })) === 1;
+  }
+
+  async renew(key: string, owner: string, ttlMs: number): Promise<boolean> {
+    return Number(await this.redis.eval(renewScript, { keys: [key], arguments: [owner, String(ttlMs)] })) === 1;
+  }
+
+  async release(key: string, owner: string): Promise<boolean> {
+    return Number(await this.redis.eval(releaseScript, { keys: [key], arguments: [owner] })) === 1;
+  }
+}
+```
+
+The Redis lease is useful for work ownership, but it is not itself the durable event authority.
+The completion transaction still needs a compare-and-set against the lease id stored on the
+job row, or an equivalent authoritative lease table. A successful Redis renewal and a stale
+PostgreSQL row must never be interpreted as permission to publish a completion.
+
+## `apps/worker/src/lease-renewer.ts`
+
+```ts
+export class LeaseRenewer {
+  private timer: NodeJS.Timeout | undefined;
+  private lost = false;
+
+  constructor(
+    private readonly renew: () => Promise<boolean>,
+    private readonly everyMs: number,
+  ) {}
+
+  start(): void {
+    this.timer = setInterval(async () => {
+      try {
+        if (!(await this.renew())) this.lost = true;
+      } catch {
+        this.lost = true;
+      }
+    }, this.everyMs);
+  }
+
+  hasLost(): boolean { return this.lost; }
+
+  stop(): void {
+    if (this.timer) clearInterval(this.timer);
+    this.timer = undefined;
+  }
+}
+```
+
+The renewer can report a lost lease while a render is still running. Rendering may finish for
+resource accounting, but the worker must discard the result unless the completion transaction
+revalidates ownership. The boolean is advisory and can race with expiry; it is not a substitute
+for a conditional update under a database lock.
+
+## `apps/worker/src/render/render-engine.ts`
+
+```ts
+export type RenderResult = {
+  bytes: Uint8Array;
+  contentType: string;
+  checksum: string;
+  durationMs: number;
+};
+
+export interface RenderEngine {
+  render(input: { assetId: string; width: number; height: number; signal: AbortSignal }): Promise<RenderResult>;
+}
+
+export async function renderWithLease(
+  engine: RenderEngine,
+  input: { assetId: string; width: number; height: number },
+  signal: AbortSignal,
+): Promise<RenderResult> {
+  const started = performance.now();
+  const result = await engine.render({ ...input, signal });
+  return { ...result, durationMs: performance.now() - started };
+}
+```
+
+The render output is immutable content-addressed data. Uploading it before the completion
+transaction is acceptable if orphan cleanup is idempotent. The worker must not make the object
+visible as the job's result, or emit a success event, until it owns the job at commit time.
+
+## `apps/worker/src/job-runner.ts`
+
+```ts
+import { randomUUID } from "node:crypto";
+import type { Pool } from "pg";
+import { inTransaction } from "../../api/src/infra/postgres/transaction.js";
+import { LockedJobRepository } from "../../api/src/infra/postgres/job-repository-locking.js";
+import { EventStore } from "../../packages/events/src/event-store.js";
+import { OutboxRepository } from "../../api/src/infra/postgres/outbox-repository.js";
+
+export async function markRunning(pool: Pool, jobs: LockedJobRepository, events: EventStore, outbox: OutboxRepository, tenantId: string, jobId: string, leaseId: string) {
+  return inTransaction(pool, async (client) => {
+    const current = await jobs.lock(client, tenantId, jobId);
+    if (!current || current.leaseId !== leaseId) return { ok: false as const, reason: "lost-lease" };
+    const next = await jobs.updateState(client, current, "running", leaseId);
+    const event = { eventId: randomUUID(), tenantId, jobId, sequence: next.version, state: next.state, type: "job.running" as const, occurredAt: next.updatedAt.toISOString(), payload: {} };
+    await events.append(client, event);
+    await outbox.append(client, event);
+    return { ok: true as const, job: next };
+  });
+}
+
+export async function complete(pool: Pool, jobs: LockedJobRepository, events: EventStore, outbox: OutboxRepository, tenantId: string, jobId: string, leaseId: string, output: { objectKey: string; checksum: string }) {
+  return inTransaction(pool, async (client) => {
+    const current = await jobs.lock(client, tenantId, jobId);
+    if (!current || current.leaseId !== leaseId || current.state !== "running") {
+      return { ok: false as const, reason: "lost-lease" };
+    }
+    const next = await jobs.updateState(client, current, "succeeded", null);
+    const event = { eventId: randomUUID(), tenantId, jobId, sequence: next.version, state: next.state, type: "job.succeeded" as const, occurredAt: next.updatedAt.toISOString(), payload: output };
+    await events.append(client, event);
+    await outbox.append(client, event);
+    return { ok: true as const, job: next };
+  });
+}
+```
+
+The important property in both methods is that the row is locked and the lease is checked in
+the same transaction that changes state and appends the event. A zero-row conditional update or
+a failed lease comparison is a normal lost-work result. It must not be logged as a successful
+completion or retried with the stale version.
+
+## `apps/worker/src/outbox-publisher.ts`
+
+```ts
+import type { RedisClientType } from "redis";
+import type { Pool } from "pg";
+import { OutboxRepository } from "../../api/src/infra/postgres/outbox-repository.js";
+
+export class OutboxPublisher {
+  constructor(
+    private readonly pool: Pool,
+    private readonly outbox: OutboxRepository,
+    private readonly redis: RedisClientType,
+  ) {}
+
+  async publishBatch(limit: number): Promise<number> {
+    const rows = await this.outbox.unpublished(this.pool, limit);
+    let count = 0;
+    for (const row of rows) {
+      await this.redis.xAdd(`tenant:${row.tenantId}:jobs`, "*", {
+        eventId: row.eventId,
+        jobId: row.jobId,
+        sequence: String(row.sequence),
+        payload: JSON.stringify(row.payload),
+      });
+      await this.outbox.markPublished(this.pool, row.id);
+      count += 1;
+    }
+    return count;
+  }
+}
+```
+
+The publisher is at-least-once. It can crash after `XADD` and before `markPublished`, so the
+consumer must deduplicate by `(tenantId, jobId, sequence)` or event id. Marking a row published
+before Redis acknowledges it would create a permanent gap. The durable outbox row remains the
+recovery source.
+
+## `packages/events/src/event-schema.ts`
+
+```ts
+import { z } from "zod";
+
+export const jobEventSchema = z.object({
+  eventId: z.string().uuid(),
+  tenantId: z.string().min(1),
+  jobId: z.string().min(1),
+  sequence: z.number().int().positive(),
+  occurredAt: z.string().datetime(),
+  type: z.enum(["job.queued", "job.running", "job.succeeded", "job.failed", "job.cancelled"]),
+  state: z.enum(["queued", "running", "succeeded", "failed", "cancelled"]),
+  payload: z.record(z.string(), z.unknown()),
+});
+
+export type ValidatedJobEvent = z.infer<typeof jobEventSchema>;
+
+export function eventKey(event: Pick<ValidatedJobEvent, "tenantId" | "jobId" | "sequence">): string {
+  return `${event.tenantId}:${event.jobId}:${event.sequence}`;
+}
+```
+
+Event validation must happen before a message is handed to a reducer. The tenant id in the
+payload is not trusted as an authorization grant; the stream and the authenticated request
+still determine which tenant may receive it.
+
+## `packages/events/src/projector.ts`
+
+```ts
+import type { PoolClient } from "pg";
+import type { JobEvent } from "./job-events.js";
+
+export async function applyEvent(client: PoolClient, event: JobEvent): Promise<"applied" | "stale" | "gap"> {
+  const current = await client.query<{ state: string; version: number }>(
+    `SELECT state, version FROM jobs WHERE tenant_id = $1 AND id = $2 FOR UPDATE`,
+    [event.tenantId, event.jobId],
+  );
+  const job = current.rows[0];
+  if (!job) return "stale";
+  if (event.sequence <= job.version) return "stale";
+  if (event.sequence !== job.version + 1) return "gap";
+  await client.query(
+    `UPDATE jobs SET state = $1, version = $2, updated_at = $3
+      WHERE tenant_id = $4 AND id = $5 AND version = $6`,
+    [event.state, event.sequence, event.occurredAt, event.tenantId, event.jobId, job.version],
+  );
+  return "applied";
+}
+```
+
+The projection should either apply a contiguous event under a row lock or retain the event for
+gap repair. It must not apply a lower sequence after a terminal state, and it must not silently
+advance over a missing event. If the write side already updates the projection transactionally,
+the consumer applies only recovery events and must use the same monotonic checks.
+
+## `packages/events/src/replay-cursor.ts`
+
+```ts
+export type Cursor = { jobId: string; sequence: number };
+
+export function parseCursor(value: string | undefined): Cursor | null {
+  if (!value) return null;
+  const separator = value.lastIndexOf(":");
+  if (separator <= 0) return null;
+  const jobId = value.slice(0, separator);
+  const sequence = Number(value.slice(separator + 1));
+  return Number.isSafeInteger(sequence) && sequence > 0 ? { jobId, sequence } : null;
+}
+
+export function cursorFor(event: { jobId: string; sequence: number }): string {
+  return `${event.jobId}:${event.sequence}`;
+}
+```
+
+The cursor is a replay position, not an authorization selector. The authenticated tenant and
+job access check must be performed before using it in a query. A malformed cursor is treated as
+no cursor or a client error according to the API contract; it must never widen the query.
+
+## `apps/api/src/routes/events-stream.ts`
+
+```ts
+export async function eventsStream(request: Request, response: Response, deps: Dependencies) {
+  const tenantId = request.auth.tenantId;
+  const jobId = request.params.jobId;
+  await deps.authorizeJob(tenantId, jobId);
+
+  const live = deps.eventBus.subscribe({ tenantId, jobId }, (event) => {
+    if (event.sequence > lastSequence) {
+      lastSequence = event.sequence;
+      response.write(`id: ${event.jobId}:${event.sequence}\ndata: ${JSON.stringify(event)}\n\n`);
+    }
+  });
+  try {
+    const watermark = await deps.events.maxSequence(tenantId, jobId);
+    let lastSequence = Number(deps.parseLastEventId(request.headers.get("last-event-id"))) || 0;
+    const replay = await deps.events.after(tenantId, jobId, lastSequence, watermark);
+    for (const event of replay) {
+      if (event.sequence > lastSequence) {
+        lastSequence = event.sequence;
+        response.write(`id: ${event.jobId}:${event.sequence}\ndata: ${JSON.stringify(event)}\n\n`);
+      }
+    }
+    // Read once more after subscription to cover the watermark boundary.
+    const catchUp = await deps.events.after(tenantId, jobId, lastSequence, undefined);
+    for (const event of catchUp) {
+      if (event.sequence > lastSequence) {
+        lastSequence = event.sequence;
+        response.write(`id: ${event.jobId}:${event.sequence}\ndata: ${JSON.stringify(event)}\n\n`);
+      }
+    }
+    await deps.waitForDisconnect(request);
+  } finally {
+    live();
+  }
+}
+```
+
+This sketch intentionally shows the subscribe-before-replay shape and a second durable read.
+The actual route should use a small helper to avoid the variable-initialization ordering shown
+in this excerpt. Live events and replay both pass through the same monotonic cursor, so a
+duplicate caused by the boundary race is invisible to the client.
+
+## `apps/web/src/dashboard/job-reducer.ts`
+
+```ts
+import type { JobEvent } from "../../../packages/events/src/job-events.js";
+
+const terminal = new Set(["succeeded", "failed", "cancelled"]);
+
+export function reduceJob(state: JobView, event: JobEvent): JobView {
+  if (event.tenantId !== state.tenantId || event.jobId !== state.id) return state;
+  if (event.sequence <= state.sequence) return state;
+  if (terminal.has(state.state)) return state;
+  if (event.sequence !== state.sequence + 1) {
+    return { ...state, needsResync: true };
+  }
+  return {
+    ...state,
+    state: event.state,
+    sequence: event.sequence,
+    result: event.state === "succeeded" ? event.payload : state.result,
+    needsResync: false,
+  };
+}
+```
+
+The browser reducer is a final defense, not the durable consistency mechanism. A terminal view
+must not be reopened by a delayed `running` event. A gap should trigger a resync rather than be
+silently accepted as a newer state.
+
+## `apps/api/src/routes/jobs.test.ts`
+
+```ts
+describe("idempotent create", () => {
+  it("returns one durable job for concurrent identical requests", async () => {
+    const [a, b] = await Promise.all([
+      create({ tenantId: "tenant-a", idempotencyKey: "request-7", width: 800, height: 600, assetId: "asset-1" }),
+      create({ tenantId: "tenant-a", idempotencyKey: "request-7", width: 800, height: 600, assetId: "asset-1" }),
+    ]);
+    expect(a.job.id).toBe(b.job.id);
+    expect(await countJobs("tenant-a")).toBe(1);
+    expect(await countIdempotencyRows("tenant-a", "request-7")).toBe(1);
+  });
+
+  it("rejects a changed request under an existing key", async () => {
+    await create({ tenantId: "tenant-a", idempotencyKey: "request-8", width: 800, height: 600, assetId: "asset-1" });
+    await expect(create({ tenantId: "tenant-a", idempotencyKey: "request-8", width: 801, height: 600, assetId: "asset-1" })).rejects.toThrow(/different request/);
+  });
+});
+```
+
+The concurrency test must use a real unique constraint or a faithful transaction test double.
+Two independent reads followed by two inserts are not an adequate test of the production
+behavior. The response comparison should include all fields that the client persists.
+
+## `apps/worker/src/job-runner.test.ts`
+
+```ts
+describe("completion ownership", () => {
+  it("does not emit success after another worker takes the lease", async () => {
+    const fixture = await makeWorkerFixture();
+    await fixture.queue("tenant-a", "job-1");
+    const first = await fixture.claim("worker-a");
+    await fixture.expireLease(first.leaseId);
+    const second = await fixture.claim("worker-b");
+    const staleResult = await fixture.finish(first, { objectKey: "orphan/a", checksum: "a" });
+    expect(staleResult.ok).toBe(false);
+    expect(await fixture.eventsFor("job-1")).not.toContainEqual(expect.objectContaining({ state: "succeeded", payload: { objectKey: "orphan/a", checksum: "a" } }));
+    await fixture.finish(second, { objectKey: "result/b", checksum: "b" });
+    expect(await fixture.terminalSequences("job-1")).toEqual([2]);
+  });
+});
+```
+
+The test should force the lease handoff between rendering and completion. A unit test that only
+sets a boolean on the first worker misses the race between Redis expiry and the database write.
+
+## `apps/api/src/routes/events-stream.test.ts`
+
+```ts
+it("does not duplicate an event crossing replay and subscription", async () => {
+  const fixture = await makeStreamFixture({ durableThrough: 12 });
+  const responsePromise = fixture.connect({ tenantId: "tenant-a", jobId: "job-1", lastEventId: "job-1:11" });
+  await fixture.publish({ tenantId: "tenant-a", jobId: "job-1", sequence: 12 });
+  const response = await responsePromise;
+  expect(response.events.map((event) => event.sequence)).toEqual([12]);
+});
+
+it("never reads another tenant when a cursor names the same job id", async () => {
+  const fixture = await makeStreamFixture({ durableThrough: 4, otherTenantThrough: 9 });
+  const response = await fixture.connect({ tenantId: "tenant-a", jobId: "same-id", lastEventId: "same-id:8" });
+  expect(response.events.every((event) => event.tenantId === "tenant-a")).toBe(true);
+});
+```
+
+The first test controls the timing so the event is visible in either the replay query or the
+live callback, but never twice. The second test is a security regression test as well as an
+ordering test: `(tenant_id, job_id)` must be present in every durable query.
+
+## `db/migrations/006_consistency_constraints.sql`
+
+```sql
+ALTER TABLE idempotency_keys
+  ADD CONSTRAINT idempotency_keys_tenant_key_unique UNIQUE (tenant_id, key);
+
+CREATE INDEX job_events_tenant_job_sequence
+  ON job_events (tenant_id, job_id, sequence);
+
+CREATE UNIQUE INDEX job_events_tenant_job_sequence_unique
+  ON job_events (tenant_id, job_id, sequence);
+
+ALTER TABLE jobs
+  ADD CONSTRAINT jobs_version_nonnegative CHECK (version >= 0),
+  ADD CONSTRAINT jobs_next_event_after_version CHECK (next_event_sequence > version);
+```
+
+The unique event index catches duplicate sequence allocation, but it does not allocate the next
+number. Allocation still belongs inside the locked job transaction. If an online migration is
+needed, create the indexes concurrently and validate constraints in a later deploy.
+
+## `db/queries/replay.sql`
+
+```sql
+-- The application has already authorized the tenant/job pair.
+SELECT event_id, tenant_id, job_id, sequence, occurred_at, type, state, payload
+  FROM job_events
+ WHERE tenant_id = $1
+   AND job_id = $2
+   AND sequence > $3
+   AND ($4::bigint IS NULL OR sequence <= $4)
+ ORDER BY sequence ASC;
+```
+
+Never replace the tenant predicate with a lookup by job id alone. A cursor received from a
+browser is untrusted input. The upper watermark is an optimization; the second catch-up read
+after subscribing is what closes the replay/live race.
+
+## `packages/shared/src/request-hash.ts`
+
+```ts
+import { createHash } from "node:crypto";
+
+export function stableRequestHash(value: unknown): string {
+  return createHash("sha256").update(stableJson(value)).digest("hex");
+}
+
+function stableJson(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b));
+  return `{${entries.map(([key, item]) => `${JSON.stringify(key)}:${stableJson(item)}`).join(",`)}}`;
+}
+```
+
+The hash must cover every field that changes the created job, including output dimensions and
+render options. Trace ids, authorization headers, and transport retries are not part of the
+idempotent operation. Canonicalization must be shared by all API instances.
+
+## `packages/shared/src/result.ts`
+
+```ts
+export type Result<T, E> = { ok: true; value: T } | { ok: false; error: E };
+
+export type DomainError =
+  | { kind: "not-found" }
+  | { kind: "conflict"; message: string }
+  | { kind: "lost-lease" }
+  | { kind: "event-gap"; expected: number; received: number };
+
+export function isOk<T, E>(result: Result<T, E>): result is { ok: true; value: T } {
+  return result.ok;
+}
+```
+
+A lost lease is not an infrastructure retry by default. Retrying the stale completion can emit
+an event from the wrong owner. The worker may enqueue the job again through a separate recovery
+policy, but that policy must acquire a fresh lease and re-read the job.
+
+## `apps/api/src/observability/job-metrics.ts`
+
+```ts
+export interface JobMetrics {
+  commandStarted(name: string, tenantId: string): void;
+  commandFinished(name: string, outcome: "ok" | "conflict" | "lost-lease" | "error", elapsedMs: number): void;
+  eventGap(tenantId: string, jobId: string, expected: number, received: number): void;
+  outboxRedelivery(tenantId: string, jobId: string, sequence: number): void;
+}
+
+export function redactJobId(jobId: string): string {
+  return jobId.length <= 8 ? "redacted" : `${jobId.slice(0, 4)}…${jobId.slice(-4)}`;
+}
+```
+
+Metrics should distinguish a duplicate delivery from an event gap and a lost lease. A spike in
+redeliveries is expected during a publisher restart; a spike in gaps indicates a durable or
+consumer ordering problem. Do not use a low free-memory metric from an unrelated host as a
+reason to abort a worker operation in this service.
+
+## `apps/api/src/application/retry-policy.ts`
+
+```ts
+export async function withSerializationRetry<T>(operation: () => Promise<T>, maxAttempts = 3): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (!isSerializationFailure(error) || attempt === maxAttempts) throw error;
+      await new Promise((resolve) => setTimeout(resolve, attempt * 10));
+    }
+  }
+  throw lastError;
+}
+
+function isSerializationFailure(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "40001";
+}
+```
+
+Serialization retries are safe only when the retried operation is idempotent and the recovery
+path re-reads the durable idempotency row. A retry that blindly calls `insertQueued` again can
+create a second job after the first transaction committed but its response was lost.
+
+## `apps/api/src/health/consistency-check.ts`
+
+```ts
+export async function checkJobConsistency(client: PoolClient, tenantId: string, jobId: string) {
+  const job = await client.query<{ version: number; state: string }>(
+    `SELECT version, state FROM jobs WHERE tenant_id = $1 AND id = $2`, [tenantId, jobId],
+  );
+  const events = await client.query<{ sequence: number; state: string }>(
+    `SELECT sequence, state FROM job_events WHERE tenant_id = $1 AND job_id = $2 ORDER BY sequence`,
+    [tenantId, jobId],
+  );
+  const rows = events.rows;
+  const contiguous = rows.every((row, index) => row.sequence === index + 1);
+  return {
+    exists: job.rowCount === 1,
+    eventCount: rows.length,
+    eventVersion: rows.at(-1)?.sequence ?? 0,
+    projectionVersion: job.rows[0]?.version ?? null,
+    contiguous,
+    terminal: ["succeeded", "failed", "cancelled"].includes(job.rows[0]?.state ?? ""),
+  };
+}
+```
+
+This check is for diagnostics and repair tooling. It must retain tenant scope and should report
+inconsistency rather than mutating production state from a health endpoint. Repair jobs should
+append a clearly identified event under the same sequence-allocation transaction.
+
+## `apps/web/src/dashboard/event-client.ts`
+
+```ts
+export class EventClient {
+  private source: EventSource | undefined;
+  private lastEventId: string | undefined;
+
+  connect(url: string, onEvent: (event: JobEvent) => void): void {
+    const query = this.lastEventId ? `?after=${encodeURIComponent(this.lastEventId)}` : "";
+    this.source = new EventSource(`${url}${query}`);
+    this.source.onmessage = (message) => {
+      const event = JSON.parse(message.data) as JobEvent;
+      this.lastEventId = message.lastEventId;
+      onEvent(event);
+    };
+    this.source.onerror = () => {
+      this.source?.close();
+      setTimeout(() => this.connect(url, onEvent), 250);
+    };
+  }
+
+  close(): void {
+    this.source?.close();
+    this.source = undefined;
+  }
+}
+```
+
+The browser can reconnect after receiving an event but before persisting its cursor. The server
+must make replay idempotent. The client should persist the last accepted sequence along with the
+tenant/job identity and discard an event whose identity does not match the current view.
+
+## `apps/api/src/routes/jobs.contract.ts`
+
+```ts
+export type CreateJobResponse = {
+  id: string;
+  tenantId: string;
+  state: "queued";
+  version: 1;
+  nextEventSequence: 2;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export function responseFor(job: Job): CreateJobResponse {
+  return {
+    id: job.id,
+    tenantId: job.tenantId,
+    state: "queued",
+    version: job.version,
+    nextEventSequence: job.nextEventSequence,
+    createdAt: job.createdAt.toISOString(),
+    updatedAt: job.updatedAt.toISOString(),
+  };
+}
+```
+
+The stored idempotency response should be the exact serialized API response or a representation
+that is provably equivalent. Reconstructing a response on retry from a later job row can change
+the version or state and violates the client contract.
+
+## `docs/operations/outbox-recovery.md`
+
+```text
+1. Stop the publisher deployment, not the API or worker deployments.
+2. Inspect unpublished rows by tenant and age; do not delete them as a first response.
+3. Verify the event exists in job_events before manually replaying a stream message.
+4. Re-run the publisher with the same event id and allow consumers to deduplicate it.
+5. If a gap remains, compare the durable sequence list with the projection version.
+6. Repair only through the audited sequence-allocation command.
+```
+
+Outbox recovery must preserve event ordering and tenant isolation. An operator tool that accepts
+only a job id is unsafe because job ids are not necessarily globally unique across all storage
+boundaries.
+
+## `docs/architecture/state-machine.md`
+
+```text
+queued    -> running, cancelled
+running   -> succeeded, failed, cancelled
+succeeded -> (none)
+failed    -> (none)
+cancelled -> (none)
+
+Every arrow increments version and consumes exactly one event sequence. A retry of the same
+command returns the existing result; it does not consume a second sequence. A stale event may
+be observed by a consumer, but it cannot move a projection or browser view backward.
+```
+
+The state machine is monotonic in both sequence and terminality. A late running event after a
+success is stale even if its payload contains a newer wall-clock timestamp; sequence and durable
+ownership determine ordering.
+
+## `docs/security/tenant-boundaries.md`
+
+```text
+Request authentication supplies tenantId. Route parameters supply a candidate jobId. Every
+repository method that reads or writes a job takes both values. Event streams are keyed by the
+authenticated tenant and job. A Last-Event-ID value is parsed only as a sequence cursor after
+authorization. Redis channel names are derived from server-side tenant ids, never from a raw
+client channel string.
+```
+
+Authorization and ordering are separate checks. A correctly ordered event from another tenant is
+still an authorization failure, and a same-tenant event with a sequence gap is still an ordering
+failure.
+
+## `docs/decisions/lease-authority.md`
+
+```text
+Decision: keep the PostgreSQL job lease_id as the completion authority for this checkout.
+
+Redis is the fast coordination lease and may expire before a worker notices. Completion opens a
+transaction, locks the job row, verifies lease_id and state, writes the terminal state, and
+appends the event/outbox row. A future migration may move authority to a dedicated lease table,
+but it must retain the same compare-and-set property. Do not combine two independent authorities
+without defining which one wins during expiry.
+```
+
+The smallest safe fix therefore keeps the existing column until a separate lease migration can
+be tested with failover and clock-skew cases.
+
+## `docs/testing/race-matrix.md`
+
+```text
+race                         required assertion
+---------------------------  -----------------------------------------------
+same idempotency key         one job, one key row, identical responses
+key with changed body        conflict, no second job
+worker loses lease            no stale terminal event or projection update
+publisher retries            one visible sequence after deduplication
+SSE boundary                 no duplicate and no permanent missing event
+late terminal predecessor    browser and projection remain terminal
+tenant collision             no cross-tenant event or job read
+serialization retry          re-read durable winner before returning
+```
+
+The matrix is intentionally small. Tests should exercise the races that caused the incident,
+not introduce a new messaging system or a broad rewrite of all workers.
+
+## `docs/performance/request-path.md`
+
+```text
+The API request path is: authenticate -> canonicalize/hash request -> begin transaction -> read
+or reserve idempotency key -> insert job and event/outbox atomically -> commit -> enqueue or let
+the publisher deliver -> return the stored response. The browser path is: authorize -> subscribe
+to live delivery -> take replay watermark -> replay durable rows -> catch up after the watermark
+-> reduce monotonically.
+```
+
+The API may return before the outbox publisher has sent the queue message. It must not return
+before the durable job and idempotency response have committed.
+
+## `docs/notes/known-followups.md`
+
+```text
+Separate follow-ups include: a formal event-gap repair queue, a dedicated lease table, object
+store orphan garbage collection, transactional Redis stream offsets, and a full browser offline
+replay protocol. They are useful improvements but should not be folded into the minimal fix for
+the incident unless a patch needs them to establish the listed invariants.
+```
+
+Keep the incident patch focused. In particular, replacing Redis Streams, changing the public API
+contract, or adding a new global event service is outside the requested scope.
+
+## `apps/api/src/middleware/auth-context.ts`
+
+```ts
+export type AuthContext = { tenantId: string; subjectId: string; scopes: string[] };
+
+export function requireTenant(request: Request): AuthContext {
+  const context = request.context?.auth;
+  if (!context || !context.tenantId) throw new HttpError(401, "missing tenant context");
+  return context;
+}
+
+export function requireScope(context: AuthContext, scope: string): void {
+  if (!context.scopes.includes(scope)) throw new HttpError(403, "missing scope");
+}
+```
+
+The route layer obtains the tenant once from authentication and passes it explicitly to every
+application method. A request body, path segment, Redis channel, or Last-Event-ID value cannot
+override that context. Tests should include a same-named job under two tenants and verify that
+the authenticated tenant remains the only query parameter used by the repository.
+
+## `apps/api/src/routes/job-events.ts`
+
+```ts
+export async function getJobEvents(request: Request): Promise<Response> {
+  const auth = requireTenant(request);
+  const jobId = request.params.jobId;
+  requireScope(auth, "jobs:read");
+  await jobs.assertVisible(auth.tenantId, jobId);
+
+  const cursor = parseCursor(request.query.after);
+  const after = cursor && cursor.jobId === jobId ? cursor.sequence : 0;
+  const events = await eventStore.after(auth.tenantId, jobId, after, undefined);
+  return Response.json(events.map(publicEvent));
+}
+```
+
+This ordinary JSON endpoint is used by resync after the SSE reducer observes a gap. It is not a
+shortcut around authorization. The route should reject a cursor naming another job rather than
+silently treating it as a cursor for the requested job.
+
+## `apps/api/src/infra/postgres/idempotency-repository.sql.ts`
+
+```ts
+export async function reserveKey(client: PoolClient, input: {
+  tenantId: string; key: string; requestHash: string; response: unknown;
+}): Promise<"inserted" | "exists"> {
+  const result = await client.query(
+    `INSERT INTO idempotency_keys (tenant_id, key, request_hash, response_json)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (tenant_id, key) DO NOTHING
+     RETURNING key`,
+    [input.tenantId, input.key, input.requestHash, JSON.stringify(input.response)],
+  );
+  return result.rowCount === 1 ? "inserted" : "exists";
+}
+```
+
+An `ON CONFLICT DO NOTHING` reservation can avoid surfacing a unique violation, but it must be
+followed by a read of the winner and a request-hash comparison. The read should happen in a
+transaction that cannot observe an uncommitted partial job. It is not correct to return the
+new caller's freshly generated job after the reservation lost the race.
+
+## `apps/api/src/infra/postgres/job-write.sql`
+
+```sql
+-- All statements run on one client between BEGIN and COMMIT.
+SELECT id, state, version, next_event_sequence, lease_id
+  FROM jobs
+ WHERE tenant_id = $1 AND id = $2
+ FOR UPDATE;
+
+UPDATE jobs
+   SET state = $3,
+       version = version + 1,
+       next_event_sequence = next_event_sequence + 1,
+       lease_id = $4,
+       updated_at = clock_timestamp()
+ WHERE tenant_id = $1
+   AND id = $2
+   AND state = $5
+   AND (lease_id = $6 OR $6 IS NULL)
+ RETURNING id, tenant_id, state, version, next_event_sequence, lease_id, updated_at;
+```
+
+The application may choose a row lock or a conditional update, but it must inspect the returned
+row count and never build an event after a zero-row update. If both are used, the lock makes the
+decision easy to reason about and the condition provides an additional ownership assertion.
+
+## `packages/events/src/dedup-store.ts`
+
+```ts
+export class EventDedupStore {
+  constructor(private readonly client: RedisClientType) {}
+
+  async firstSeen(event: JobEvent): Promise<boolean> {
+    const key = `event-seen:${event.tenantId}:${event.jobId}:${event.sequence}`;
+    const result = await this.client.set(key, event.eventId, { NX: true, EX: 86400 });
+    return result === "OK";
+  }
+}
+```
+
+Redis deduplication improves consumer efficiency but is not the durable source of truth: its TTL
+and eviction policy can remove an old marker. The projector's monotonic sequence check remains
+mandatory, and a replay after a restart must remain safe even if the Redis marker is gone.
+
+## `apps/worker/src/queue-consumer.ts`
+
+```ts
+export async function consume(message: QueueMessage, deps: WorkerDeps): Promise<void> {
+  const parsed = jobMessageSchema.parse(message);
+  const lease = await deps.leases.acquire(
+    `job:${parsed.tenantId}:${parsed.jobId}`,
+    deps.workerId,
+    deps.config.leaseTtlMs,
+  );
+  if (!lease) return;
+  const controller = new AbortController();
+  const renewer = deps.makeRenewer(parsed, controller);
+  renewer.start();
+  try {
+    const running = await deps.commands.markRunning(parsed, deps.workerId);
+    if (!running.ok) return;
+    const output = await deps.renderer.render({ ...parsed, signal: controller.signal });
+    if (renewer.hasLost()) {
+      await deps.objects.scheduleOrphanCleanup(output.objectKey);
+      return;
+    }
+    await deps.commands.complete(parsed, deps.workerId, output);
+  } finally {
+    renewer.stop();
+    await deps.leases.release(`job:${parsed.tenantId}:${parsed.jobId}`, deps.workerId);
+  }
+}
+```
+
+The early renewer check is a latency optimization only. `commands.complete` must still perform
+the authoritative database check because lease loss can occur between the check and the commit.
+The queue acknowledgement policy should retain a failed or lost-lease message for a recovery
+worker rather than acknowledging a job as successfully completed.
+
+## `apps/worker/src/recovery-queue.ts`
+
+```ts
+export async function requeueLostLease(job: Job, queue: JobQueue): Promise<void> {
+  if (job.state === "succeeded" || job.state === "failed" || job.state === "cancelled") return;
+  await queue.enqueue({
+    tenantId: job.tenantId,
+    jobId: job.id,
+    reason: "lease-lost",
+    attempt: job.attempt + 1,
+  });
+}
+```
+
+Recovery is a separate transition policy. It cannot reopen a terminal job, and it must not emit a
+new `running` event until a new owner has been acquired and the current job row has been read.
+
+## `packages/events/src/event-store.ts` additional methods
+
+```ts
+export class EventStore {
+  async maxSequence(tenantId: string, jobId: string): Promise<number> {
+    const result = await this.pool.query<{ max: number | null }>(
+      `SELECT max(sequence)::bigint AS max FROM job_events WHERE tenant_id = $1 AND job_id = $2`,
+      [tenantId, jobId],
+    );
+    return Number(result.rows[0]?.max ?? 0);
+  }
+
+  async after(tenantId: string, jobId: string, after: number, through?: number): Promise<JobEvent[]> {
+    const result = await this.pool.query<JobEvent>(
+      `SELECT event_id AS "eventId", tenant_id AS "tenantId", job_id AS "jobId",
+              sequence, occurred_at AS "occurredAt", type, state, payload
+         FROM job_events
+        WHERE tenant_id = $1 AND job_id = $2 AND sequence > $3
+          AND ($4::bigint IS NULL OR sequence <= $4)
+        ORDER BY sequence`,
+      [tenantId, jobId, after, through ?? null],
+    );
+    return result.rows;
+  }
+}
+```
+
+The upper bound is passed as a SQL value rather than interpolated. A nullable upper bound means
+the catch-up query includes all rows after the latest cursor. The event store does not infer a
+tenant from `jobId`, and it does not return rows in arrival order.
+
+## `packages/events/src/consumer.ts`
+
+```ts
+export async function consumeEvent(raw: unknown, deps: ConsumerDeps): Promise<void> {
+  const event = jobEventSchema.parse(raw);
+  if (!(await deps.authorizer.canProject(event.tenantId, event.jobId))) return;
+  await inTransaction(deps.pool, async (client) => {
+    const status = await applyEvent(client, event);
+    if (status === "gap") {
+      await deps.gaps.record(client, event.tenantId, event.jobId, event.sequence);
+    }
+  });
+}
+```
+
+Projection processing can be retried. A duplicate is a no-op, a contiguous event advances the
+row, and a gap is recorded for repair. The consumer does not skip a gap merely because a later
+event has a newer timestamp.
+
+## `apps/web/src/dashboard/job-view.ts`
+
+```ts
+export type JobView = {
+  tenantId: string;
+  id: string;
+  state: JobState;
+  sequence: number;
+  result?: Record<string, unknown>;
+  needsResync: boolean;
+};
+
+export function mergeInitialJob(initial: Job, prior: JobView | undefined): JobView {
+  if (!prior || prior.tenantId !== initial.tenantId || prior.id !== initial.id) {
+    return { tenantId: initial.tenantId, id: initial.id, state: initial.state, sequence: initial.version, needsResync: false };
+  }
+  if (prior.sequence >= initial.version || terminal.has(prior.state)) return prior;
+  return { ...prior, state: initial.state, sequence: initial.version, needsResync: false };
+}
+```
+
+Initial HTTP data and live SSE data may arrive in either order. The UI state uses the same
+sequence/terminal rule for both paths so a late HTTP response cannot reopen a terminal row.
+
+## `apps/web/src/dashboard/job-reducer.test.ts`
+
+```ts
+it("ignores a delayed running event after success", () => {
+  const success = reduceJob({ tenantId: "t", id: "j", state: "succeeded", sequence: 3, needsResync: false }, event("job.succeeded", 3));
+  const delayed = reduceJob(success, event("job.running", 2));
+  expect(delayed).toEqual(success);
+});
+
+it("flags a sequence gap instead of inventing state", () => {
+  const state = reduceJob({ tenantId: "t", id: "j", state: "running", sequence: 1, needsResync: false }, event("job.succeeded", 3));
+  expect(state.needsResync).toBe(true);
+  expect(state.state).toBe("running");
+});
+```
+
+The reducer test is intentionally independent of network timing. The server-side replay test
+proves delivery; this test proves the view cannot regress if a duplicate or delayed callback is
+still delivered by a browser event source.
+
+## `db/migrations/007_event-gap-records.sql`
+
+```sql
+CREATE TABLE event_gaps (
+  tenant_id text NOT NULL,
+  job_id text NOT NULL,
+  expected_sequence bigint NOT NULL,
+  observed_sequence bigint NOT NULL,
+  first_seen_at timestamptz NOT NULL DEFAULT now(),
+  last_seen_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (tenant_id, job_id, expected_sequence),
+  FOREIGN KEY (tenant_id, job_id) REFERENCES jobs (tenant_id, id)
+);
+```
+
+This table is a possible follow-up for durable gap repair. It is not needed to make the minimal
+write-side transaction atomic, but it illustrates why a consumer should report a gap rather than
+pretend a missing sequence is complete.
+
+## `db/migrations/008-outbox-claim.sql`
+
+```sql
+ALTER TABLE outbox
+  ADD COLUMN claimed_by text,
+  ADD COLUMN claimed_at timestamptz,
+  ADD COLUMN published_at timestamptz;
+
+-- A future publisher can use this pattern after selecting rows in a short transaction.
+-- SELECT ... FOR UPDATE SKIP LOCKED; update claimed_by; commit; publish; mark published.
+```
+
+Claiming outbox rows can improve parallelism, but it does not change at-least-once semantics.
+The publisher must continue to tolerate a crash between external delivery and the durable
+published marker.
+
+## `docs/architecture/sequence-allocation.md`
+
+```text
+For every transition, lock jobs(tenant_id, id), read next_event_sequence, and use that exact
+number for the event. Update the job projection and increment next_event_sequence in the same
+transaction. Do not allocate from a process-local counter, Redis INCR, wall-clock timestamp, or
+the worker's stale copy of version. The unique index is a guardrail, not a sequencer.
+```
+
+The first queued event may use sequence 1 while the job version is 1. The exact initial value is
+less important than the invariant that projection version and event sequence advance together
+and that every retry returns the already committed result.
+
+## `docs/operations/worker-failure.md`
+
+```text
+If a worker dies after claiming a job, the lease expires and the recovery poller sees the job as
+running with an expired lease. The poller may enqueue a retry. If the first worker later returns,
+its completion is rejected by the lease authority. Operators should expect an uploaded orphan
+object and should not manually write a success event to make the dashboard look complete.
+```
+
+A recovery poller must lock the row before deciding whether it is eligible, and it must not
+change a terminal state back to running. Orphan cleanup is keyed by object checksum and is safe
+to repeat.
+
+## `docs/api/idempotency.md`
+
+```text
+Idempotency-Key is required for POST /v1/jobs. Maximum length is 128 bytes after UTF-8
+validation. The key is scoped to the authenticated tenant. The canonical request hash excludes
+the key itself. A matching retry returns the original HTTP status and response body. A mismatch
+returns 409 with a stable error code. The record is retained for the documented replay window.
+```
+
+Input validation belongs before the database transaction, but the final request hash and
+response must be decided inside the transaction that inserts the durable key. The key cannot be
+reserved in Redis alone because Redis loss would permit a duplicate job.
+
+## `docs/api/event-stream.md`
+
+```text
+The SSE event id is jobId:sequence. The stream sends retry advice but does not promise that a
+client receives exactly one network packet. Clients must tolerate duplicate ids. The server
+must send events in sequence order for one authorized job, and a reconnect must replay from the
+last accepted sequence. If a gap is detected, the client requests a full JSON resync.
+```
+
+SSE framing, TCP delivery, and Redis delivery are all at-least-once boundaries. The monotonic
+cursor is the small piece of state that makes them compose safely.
+
+## `docs/testing/transaction-fixtures.md`
+
+```ts
+export async function runConcurrent<T>(first: () => Promise<T>, second: () => Promise<T>): Promise<[T, T]> {
+  const barrier = makeBarrier(2);
+  return Promise.all([
+    (async () => { await barrier.arrive(); return first(); })(),
+    (async () => { await barrier.arrive(); return second(); })(),
+  ]) as Promise<[T, T]>;
+}
+
+export async function assertSingleJob(pool: Pool, tenantId: string, key: string): Promise<void> {
+  const rows = await pool.query(`SELECT count(*)::int AS count FROM jobs j JOIN idempotency_keys i ON i.response_json->>'id' = j.id WHERE j.tenant_id = $1 AND i.key = $2`, [tenantId, key]);
+  expect(rows.rows[0].count).toBe(1);
+}
+```
+
+Race fixtures should use barriers and real database constraints. Sleeping for a guessed number
+of milliseconds is not a deterministic concurrency test and can pass while still leaving the
+unique-key race unprotected.
+
+## `docs/decisions/minimal-incident-fix.md`
+
+```text
+In scope: tenant-scoped idempotency reservation and winner re-read; lock-and-append state
+transitions; lease check in completion; subscribe-before-replay plus a catch-up read; monotonic
+browser reducer; focused race tests.
+
+Out of scope: replacing Redis, migrating all jobs to a new lease table, changing event schemas,
+rewriting the dashboard transport, or building a general workflow engine.
+```
+
+The incident fix should be reviewable as a small set of application, repository, route, and test
+changes. Follow-ups can be tracked separately after the invariants are protected.
+
+## `apps/api/src/infra/postgres/advisory-locks.ts`
+
+```ts
+export async function lockTenantKey(client: PoolClient, tenantId: string, key: string): Promise<void> {
+  // This lock is an optional optimization for hot keys. The unique constraint
+  // remains the correctness mechanism and must still be present.
+  await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`${tenantId}:${key}`]);
+}
+
+export async function lockJob(client: PoolClient, tenantId: string, jobId: string): Promise<void> {
+  await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`${tenantId}:${jobId}`]);
+}
+```
+
+An advisory lock can reduce duplicate work before a row exists, but it must not replace the
+unique index or row lock. Hash collisions are possible, and a process crash releases the lock
+without rolling back a committed idempotency response. Use it only as a performance aid around
+the durable transaction.
+
+## `apps/api/src/application/event-command.ts`
+
+```ts
+export async function transitionJob(input: TransitionInput, deps: Deps): Promise<Result<Job, DomainError>> {
+  return inTransaction(deps.pool, async (client) => {
+    const current = await deps.jobs.lock(client, input.tenantId, input.jobId);
+    if (!current) return { ok: false, error: { kind: "not-found" } };
+    if (terminal.has(current.state)) return { ok: false, error: { kind: "conflict", message: "job is terminal" } };
+    if (!assertTransition(current.state, input.nextState)) {
+      return { ok: false, error: { kind: "conflict", message: "invalid transition" } };
+    }
+    const eventSequence = current.nextEventSequence;
+    const updated = await deps.jobs.applyTransition(client, current, input.nextState);
+    const event = deps.events.build(input, updated, eventSequence);
+    await deps.events.append(client, event);
+    await deps.outbox.append(client, event);
+    return { ok: true, value: updated };
+  });
+}
+```
+
+The event sequence is captured from the locked current row and is included in the event before
+the transaction commits. It is not recomputed from `version` after another query. If a domain
+command returns a conflict, it emits no event and does not increment the projection.
+
+## `apps/api/src/infra/postgres/outbox-repository.ts` additional queries
+
+```ts
+export async function unpublished(pool: Pool, limit: number): Promise<OutboxRow[]> {
+  const result = await pool.query<OutboxRow>(
+    `SELECT id, event_id AS "eventId", tenant_id AS "tenantId", job_id AS "jobId",
+            sequence, payload
+       FROM outbox
+      WHERE published_at IS NULL
+      ORDER BY id
+      LIMIT $1`,
+    [limit],
+  );
+  return result.rows;
+}
+
+export async function markPublished(pool: Pool, id: number): Promise<void> {
+  await pool.query(`UPDATE outbox SET published_at = clock_timestamp() WHERE id = $1 AND published_at IS NULL`, [id]);
+}
+```
+
+The conditional marker makes duplicate publisher workers harmless, but the external stream
+write is still allowed to happen more than once. Consumers deduplicate by durable sequence and
+do not treat a duplicate message as a state transition.
+
+## `packages/events/src/terminal-state.ts`
+
+```ts
+export const terminalStates = ["succeeded", "failed", "cancelled"] as const;
+export type TerminalState = (typeof terminalStates)[number];
+
+export function isTerminal(state: string): state is TerminalState {
+  return (terminalStates as readonly string[]).includes(state);
+}
+
+export function canApplyToProjection(current: { state: string; version: number }, event: JobEvent): boolean {
+  if (event.sequence <= current.version) return false;
+  if (isTerminal(current.state)) return false;
+  return event.sequence === current.version + 1;
+}
+```
+
+Terminality is a domain property, not a string comparison scattered across route handlers. Keep
+the same helper in the projector and browser package, or encode the rule in a shared contract so
+that a delayed event cannot be accepted in one consumer and rejected in another.
+
+## `docs/operations/incident-checklist.md`
+
+```text
+When the dashboard shows a terminal job as active:
+
+* capture the tenant, job id, current projection version, and durable event sequences;
+* check for duplicate idempotency rows and duplicate outbox deliveries;
+* compare each event's tenant/job/sequence with the projection;
+* inspect lease ownership at the time of the terminal event;
+* do not delete an event, manually rewrite the browser state, or raise a retry limit first;
+* after the durable fix, replay the authorized stream and verify the browser reducer.
+```
+
+The durable sequence list is the primary forensic record. Wall-clock timestamps and delivery
+order can explain the symptom but cannot establish which state transition was authoritative.
+
+## `apps/api/src/application/idempotency-retry.ts`
+
+```ts
+export async function createWithWinnerRecovery(input: CreateInput, deps: Deps): Promise<Job> {
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      return await deps.create(input);
+    } catch (error) {
+      if (!isUniqueViolation(error) || attempt === 2) throw error;
+      const winner = await deps.idempotency.read(input.tenantId, input.idempotencyKey);
+      if (!winner) continue;
+      if (winner.requestHash !== hash(input)) throw new ConflictError("idempotency key reused with different request");
+      return winner.response;
+    }
+  }
+  throw new Error("unreachable");
+}
+```
+
+The recovery path is shown to make the race explicit. A production implementation may instead
+reserve with `ON CONFLICT`, but every path after a unique conflict must compare the durable
+winner before returning. It must not generate a new job id outside the transaction and then
+assume the failed insert rolled back another request.
+
+## `apps/api/src/infra/postgres/row-mappers.ts`
+
+```ts
+export function mapJob(row: Record<string, unknown>): Job {
+  return {
+    id: String(row.id),
+    tenantId: String(row.tenant_id),
+    state: row.state as JobState,
+    version: Number(row.version),
+    nextEventSequence: Number(row.next_event_sequence),
+    leaseId: row.lease_id === null ? null : String(row.lease_id),
+    createdAt: new Date(String(row.created_at)),
+    updatedAt: new Date(String(row.updated_at)),
+  };
+}
+
+export function mapEvent(row: Record<string, unknown>): JobEvent {
+  return jobEventSchema.parse({
+    eventId: row.event_id,
+    tenantId: row.tenant_id,
+    jobId: row.job_id,
+    sequence: Number(row.sequence),
+    occurredAt: new Date(String(row.occurred_at)).toISOString(),
+    type: row.type,
+    state: row.state,
+    payload: row.payload,
+  });
+}
+```
+
+Mapping code is deliberately explicit about numeric sequence values. PostgreSQL drivers can
+return `bigint` columns as strings, and comparing a string sequence lexicographically can make
+sequence 10 appear older than sequence 2. The same normalized type is used by the projector,
+SSE route, and browser contract.
+
+## `docs/operations/replay-validation.sql`
+
+```sql
+SELECT j.tenant_id,
+       j.id AS job_id,
+       j.state AS projection_state,
+       j.version AS projection_version,
+       coalesce(max(e.sequence), 0) AS event_version,
+       count(e.sequence) AS event_count,
+       count(e.sequence) = max(e.sequence) AS has_no_simple_gap
+  FROM jobs j
+  LEFT JOIN job_events e
+    ON e.tenant_id = j.tenant_id AND e.job_id = j.id
+ WHERE j.tenant_id = $1 AND j.id = $2
+ GROUP BY j.tenant_id, j.id, j.state, j.version;
+```
+
+This diagnostic query is tenant-scoped and uses a qualified join. It is not a replacement for a
+transactional repair command: a concurrent transition can change the result between checks.
+Use it to collect evidence before replaying an authorized stream.
+
+## `docs/architecture/commit-boundary.txt`
+
+```text
+The commit boundary for a state transition includes:
+
+  locked current job row
+      | validate state and ownership
+      v
+  updated job projection + allocated sequence
+      | append event and outbox payload
+      v
+  one PostgreSQL COMMIT
+
+Redis delivery and object-store visibility occur after this boundary. A process may crash on
+either side; recovery must be safe in both cases. No event is published from a stale in-memory
+job object after the transaction has released its lock.
+```
+
+Keeping this boundary visible in the code review is more valuable than adding a broad retry
+framework. The worker and API may share repository helpers, but they must not split the job
+update and event append across independent connections.
+
+## Task
+
+## Task
+
+Diagnose the incident and propose a minimal, production-quality refactor. Trace the relevant
+interleavings through the API transaction, worker transaction, outbox publisher, SSE replay,
+and browser reducer. Identify every invariant that the current excerpts violate. Then provide
+an implementation-oriented answer with the smallest set of file changes needed to ensure that:
+
+1. concurrent identical `POST /v1/jobs` requests with one tenant and one idempotency key create
+   exactly one job and return the same response;
+2. a terminal job cannot be reopened by a delayed or duplicated event in either the durable
+   projection or the browser;
+3. event sequence allocation and the job projection remain atomic, including worker progress and
+   completion;
+4. a worker that loses its lease cannot publish a successful completion;
+5. SSE replay and live delivery do not produce a visible regression or a permanent gap.
+
+Include concrete TypeScript/SQL patches or focused pseudocode for the critical methods, and add
+tests for the two races described above. Call out any behavior that should be handled as a
+separate follow-up instead of being smuggled into the minimal fix. Keep the response focused on
+this repository and task; do not invent a new messaging platform.

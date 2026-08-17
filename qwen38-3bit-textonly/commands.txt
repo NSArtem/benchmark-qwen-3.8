@@ -1,0 +1,60 @@
+# Commands used for the Qwen3.8 27B 3-bit TextOnly experiment
+
+# Project/runtime checks (uv is the only Python/package runner)
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python --version
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python -c 'import importlib.metadata as m; ...'
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync mlx_lm --help
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync mlx_lm.generate --help
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync mlx_lm.server --help
+
+# Read-only system checks; iogpu.wired_limit_mb remained at its default
+sysctl iogpu.wired_limit_mb
+sysctl vm.swapusage
+vm_stat
+df -h .
+
+# Prompt preparation. The tokenizer applies the model chat template with
+# add_generation_prompt=true and enable_thinking=false.
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-textonly/harness/prepare_prompts.py \
+  --source coding_prompt.md \
+  --supplement qwen38-3bit-textonly/harness/supplemental_context.md \
+  --output-dir qwen38-3bit-textonly
+
+# Supported mlx-lm public-API sanity run
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-textonly/harness/benchmark.py \
+  --name short \
+  --result-dir qwen38-3bit-textonly/harness \
+  --prompt-file qwen38-3bit-textonly/harness/short-prompt.txt \
+  --context-target short --max-tokens 256 --minimum-output-tokens 32 \
+  --timeout-seconds 1800 --memory-interval 2
+
+# Reference CLI sanity path (interactive input was the same short prompt, followed by q)
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync mlx_lm.chat \
+  --model lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly --temp 0 --seed 0 -m 128
+
+# Baseline commands (run one at a time after the sanity gate)
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-textonly/harness/benchmark.py \
+  --name 16k --result-dir qwen38-3bit-textonly/baseline \
+  --prompt-file qwen38-3bit-textonly/prompts/16k.txt \
+  --context-target '~16K' --max-tokens 256 --minimum-output-tokens 128 \
+  --timeout-seconds 7200 --memory-interval 2
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-textonly/harness/benchmark.py \
+  --name 24k --result-dir qwen38-3bit-textonly/baseline \
+  --prompt-file qwen38-3bit-textonly/prompts/24k.txt \
+  --context-target '~24K' --max-tokens 256 --minimum-output-tokens 128 \
+  --timeout-seconds 7200 --memory-interval 2
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-textonly/harness/benchmark.py \
+  --name 32k --result-dir qwen38-3bit-textonly/baseline \
+  --prompt-file qwen38-3bit-textonly/prompts/32k.txt \
+  --context-target '~32K' --max-tokens 256 --minimum-output-tokens 128 \
+  --timeout-seconds 7200 --memory-interval 2
+
+# Direct CLI cross-check actually run after the API-path 16K case (then the
+# stopping rule prevented the planned 24K/32K commands above from running):
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync mlx_lm.generate \
+  --model lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly --prompt - \
+  --max-tokens 256 --temp 0 --seed 0 \
+  --chat-template-config '{"enable_thinking":false}' --verbose True \
+  < qwen38-3bit-textonly/prompts/16k.txt
+
+# No MTP or prefix-cache benchmark command was run after the failed baseline gate.

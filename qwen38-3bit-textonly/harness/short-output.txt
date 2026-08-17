@@ -1,0 +1,7 @@
+As a Game Master, I’ve learned that Old School Renaissance (OSR) dungeons thrive on specific design philosophies that prioritize player agency and mechanical clarity over narrative hand-holding. Here are three core principles:
+
+1. **The "Sandbox" Structure**: Avoid linear, corridor-style layouts that force players down a single path. Instead, design interconnected rooms, hidden passages, and multiple entry/exit points. This allows players to choose their own approach—whether they want to sneak, fight, or negotiate—making their decisions matter more than the DM’s script.
+
+2. **Clarity and Consistency**: OSR games often have fewer rules than modern systems, so every rule that *does* exist must be crystal clear. If a monster has a special ability, it should be explicitly stated in its stat block. If a trap has a specific trigger, describe it precisely. Ambiguity leads to table arguments; clarity leads to smooth play.
+
+3. **Player-Driven Consequences**: The dungeon should be a reactive environment, not a pre-written story. If players choose to ignore a warning sign, the consequence (e.g., a trap triggering) should be immediate and logical. If they find a secret door, the reward should be meaningful. The world
