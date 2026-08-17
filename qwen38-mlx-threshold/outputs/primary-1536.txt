@@ -1,0 +1,11 @@
+</think>
+
+# Incident Diagnosis & Minimal Production Fix
+
+## Root Cause Analysis
+
+The incident — "a completed render occasionally returns to running in the dashboard, and a second retry sometimes creates a second render" — is caused by **three compounding violations** of the stated invariants, all triggered by the same race window: *API request times out after commit, worker finishes nearly simultaneously*.
+
+### Violation 1: Idempotent job creation is not atomic
+
+`POST /v1/jobs` with an idempotency key does **not** guarantee exactly-one-job under concurrent retries. The current implementation (in `job-service

@@ -1,0 +1,10 @@
+</think>
+
+# Incident Diagnosis & Minimal Production-Quality Refactor
+
+## 1. Incident Summary
+
+**Symptom:** A tenant submitted a render job with idempotency key `ik-abc123`. Due to a client retry (network timeout), two concurrent `POST /v1/jobs` requests arrived at the API within 50ms of each other. Both requests succeeded, creating **two distinct job rows** in PostgreSQL with different `job_id` values. The dashboard then displayed two separate job entries for what should have been a single logical job.
+
+**Root Cause Chain:**
+1. **API layer

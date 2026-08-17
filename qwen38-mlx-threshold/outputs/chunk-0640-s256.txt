@@ -1,0 +1,9 @@
+# Incident Diagnosis & Minimal Refactor
+
+## 1. Incident Diagnosis
+
+The current implementation violates several core invariants due to race conditions and non-atomic operations:
+
+1.  **Idempotency Failure (API):** `POST /v1/jobs` does not check for existing idempotency keys before insertion. Concurrent identical requests create duplicate jobs.
+2.  **Terminal State Regression (API/Worker):** State transitions are not monotonic. A delayed `completed` event from a stale worker can overwrite a `cancelled` state, reopening a terminal job.
+3.  **Non-Atomic Outbox (

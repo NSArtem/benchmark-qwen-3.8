@@ -1,0 +1,10 @@
+# Incident Report: Job State Regression & Duplicate Creation
+
+## 1. Diagnosis
+
+The current implementation violates several critical invariants due to a lack of atomicity between state changes and event persistence, and a failure to enforce idempotency and lease validation.
+
+**Key Violations Identified:**
+
+1.  **Idempotency Failure (Invariant 1):** `POST /api/jobs` does not check for existing jobs with the same `idempotency_key` and `tenant_id`. Concurrent requests create duplicate jobs.
+2.  **Non-Atomic Event/State Update (Invariant 3):** The worker updates

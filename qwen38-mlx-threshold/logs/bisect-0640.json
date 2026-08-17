@@ -1,0 +1,102 @@
+{
+  "actual_prompt_tokens": 640,
+  "callback_prefill_seconds": 0.17456620799930533,
+  "callback_prefill_tps": 3666.2307518448633,
+  "failure_reason": null,
+  "finish_reason": "length",
+  "first_16_token_ids": [
+    27,
+    27,
+    39,
+    1803,
+    46183,
+    28,
+    39,
+    1803,
+    46183,
+    28,
+    39,
+    1803,
+    46183,
+    28,
+    39,
+    1803
+  ],
+  "first_token_id": 27,
+  "first_token_text": "<",
+  "first_token_top_logprobs": [
+    {
+      "logprob": -4.3125,
+      "token_id": 27
+    },
+    {
+      "logprob": -5.125,
+      "token_id": 95882
+    },
+    {
+      "logprob": -5.375,
+      "token_id": 18
+    },
+    {
+      "logprob": -5.875,
+      "token_id": 96702
+    },
+    {
+      "logprob": -5.9375,
+      "token_id": 1891
+    },
+    {
+      "logprob": -6.0,
+      "token_id": 2381
+    },
+    {
+      "logprob": -6.03125,
+      "token_id": 95872
+    },
+    {
+      "logprob": -6.0625,
+      "token_id": 107813
+    },
+    {
+      "logprob": -6.125,
+      "token_id": 12126
+    },
+    {
+      "logprob": -6.15625,
+      "token_id": 184845
+    }
+  ],
+  "generated_tokens": 128,
+  "generation_tps": 11.284954595508061,
+  "log_file": "qwen38-mlx-threshold/logs/bisect-0640.log",
+  "max_output_tokens": 128,
+  "mlx_after_load": {
+    "active_bytes": 11771722760,
+    "cache_bytes": 10564,
+    "peak_bytes": 11771722760
+  },
+  "mlx_after_run": {
+    "active_bytes": 11772230666,
+    "cache_bytes": 246308466,
+    "peak_bytes": 13206624848
+  },
+  "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+  "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+  "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+  "notes": "midpoint between coherent 512 and broken 768",
+  "output_classification": null,
+  "output_file": "qwen38-mlx-threshold/outputs/bisect-0640.txt",
+  "peak_memory_gb": 13.206624848,
+  "prefill_step_size": 2048,
+  "prefill_step_source": "mlx_lm.generate_step_default",
+  "prompt_tps": 84.11449283244872,
+  "repeat_index": null,
+  "response_count": 128,
+  "success": true,
+  "swap_after_mb": 2006.69,
+  "swap_before_mb": 1949.31,
+  "swap_delta_mb": 57.38000000000011,
+  "target_prompt_tokens": 640,
+  "test_id": "bisect-0640",
+  "wall_seconds": 24.17159575000551
+}

@@ -1,0 +1,2712 @@
+{
+  "classification_policy": "Manual review of every persisted output; no generous interpretation of repetition or token soup.",
+  "last_updated_test": "boundary-0768-r2",
+  "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+  "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+  "tests": [
+    {
+      "actual_prompt_tokens": 33,
+      "callback_prefill_seconds": 0.026513042001170106,
+      "callback_prefill_tps": 1244.6704530752677,
+      "classification_reason": "No generated output; runtime failed before completion.",
+      "failure_reason": "RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).",
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        1065303040,
+        1333804032,
+        1065303040,
+        1333804032,
+        1065303936,
+        1333804032,
+        1065303040,
+        1333804032,
+        1065303040,
+        1333804032,
+        1065303040,
+        1333804928,
+        1065303040,
+        1333804928,
+        1065303936,
+        1333804928
+      ],
+      "first_token_id": 1065303040,
+      "first_token_text": null,
+      "first_token_top_logprobs": [
+        {
+          "logprob": 0.0,
+          "token_id": 0
+        },
+        {
+          "logprob": 0.0,
+          "token_id": 1
+        },
+        {
+          "logprob": 0.0,
+          "token_id": 2
+        },
+        {
+          "logprob": 0.0,
+          "token_id": 3
+        },
+        {
+          "logprob": 0.0,
+          "token_id": 4
+        },
+        {
+          "logprob": 0.0,
+          "token_id": 5
+        },
+        {
+          "logprob": 0.0,
+          "token_id": 6
+        },
+        {
+          "logprob": 0.0,
+          "token_id": 7
+        },
+        {
+          "logprob": 0.0,
+          "token_id": 8
+        },
+        {
+          "logprob": 0.0,
+          "token_id": 9
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 98.19522794273057,
+      "log_file": "qwen38-mlx-threshold/logs/alt-short-sanity.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 13454457864,
+        "cache_bytes": 0,
+        "peak_bytes": 13454457864
+      },
+      "mlx_after_run": {
+        "active_bytes": 13627178134,
+        "cache_bytes": 1155074,
+        "peak_bytes": 13671623848
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "rapid-mlx/Qwen3.8-27B-mixed-3.5bpw-MLX",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--rapid-mlx--Qwen3.8-27B-mixed-3.5bpw-MLX/snapshots/d8b68e21eab505332d4a456dacec6d4125c96d73",
+      "notes": "single allowed alternate-quant short sanity",
+      "output_classification": null,
+      "output_file": "qwen38-mlx-threshold/outputs/alt-short-sanity.txt",
+      "output_sha256": "cb5285b34080738d510107dec7b6e8394aa425efe7a30fdafca780be709c2f44",
+      "peak_memory_gb": 13.671623848,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 469.0142602174123,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": false,
+      "swap_after_mb": 1930.94,
+      "swap_before_mb": 1842.94,
+      "swap_delta_mb": 88.0,
+      "target_prompt_tokens": 33,
+      "test_id": "alt-short-sanity",
+      "wall_seconds": 10.653653249995841
+    },
+    {
+      "actual_prompt_tokens": 640,
+      "callback_prefill_seconds": 0.17456620799930533,
+      "callback_prefill_tps": 3666.2307518448633,
+      "classification_reason": "Repeated HABitat token soup.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        27,
+        27,
+        39,
+        1803,
+        46183,
+        28,
+        39,
+        1803,
+        46183,
+        28,
+        39,
+        1803,
+        46183,
+        28,
+        39,
+        1803
+      ],
+      "first_token_id": 27,
+      "first_token_text": "<",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -4.3125,
+          "token_id": 27
+        },
+        {
+          "logprob": -5.125,
+          "token_id": 95882
+        },
+        {
+          "logprob": -5.375,
+          "token_id": 18
+        },
+        {
+          "logprob": -5.875,
+          "token_id": 96702
+        },
+        {
+          "logprob": -5.9375,
+          "token_id": 1891
+        },
+        {
+          "logprob": -6.0,
+          "token_id": 2381
+        },
+        {
+          "logprob": -6.03125,
+          "token_id": 95872
+        },
+        {
+          "logprob": -6.0625,
+          "token_id": 107813
+        },
+        {
+          "logprob": -6.125,
+          "token_id": 12126
+        },
+        {
+          "logprob": -6.15625,
+          "token_id": 184845
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.284954595508061,
+      "log_file": "qwen38-mlx-threshold/logs/bisect-0640.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 246308466,
+        "peak_bytes": 13206624848
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "midpoint between coherent 512 and broken 768",
+      "output_classification": "BROKEN",
+      "output_file": "qwen38-mlx-threshold/outputs/bisect-0640.txt",
+      "output_sha256": "b0f2e54521204a672f29d22f6d8c10982eb8cbb7aa3433a04f0345e2420a94f1",
+      "peak_memory_gb": 13.206624848,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 84.11449283244872,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 2006.69,
+      "swap_before_mb": 1949.31,
+      "swap_delta_mb": 57.38000000000011,
+      "target_prompt_tokens": 640,
+      "test_id": "bisect-0640",
+      "wall_seconds": 24.17159575000551
+    },
+    {
+      "actual_prompt_tokens": 768,
+      "callback_prefill_seconds": 0.17144133299734676,
+      "callback_prefill_tps": 4479.666522494232,
+      "classification_reason": "Repeated unrelated Italian token.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        161227,
+        1481,
+        271,
+        1036,
+        152914,
+        271,
+        1036,
+        152914,
+        271,
+        1036,
+        152914,
+        271,
+        1036,
+        152914,
+        271,
+        1036
+      ],
+      "first_token_id": 161227,
+      "first_token_text": " assol",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -4.1875,
+          "token_id": 161227
+        },
+        {
+          "logprob": -5.25,
+          "token_id": 95037
+        },
+        {
+          "logprob": -5.6875,
+          "token_id": 64063
+        },
+        {
+          "logprob": -5.75,
+          "token_id": 37305
+        },
+        {
+          "logprob": -5.8125,
+          "token_id": 161620
+        },
+        {
+          "logprob": -6.0625,
+          "token_id": 178120
+        },
+        {
+          "logprob": -6.125,
+          "token_id": 87495
+        },
+        {
+          "logprob": -6.125,
+          "token_id": 149985
+        },
+        {
+          "logprob": -6.25,
+          "token_id": 60634
+        },
+        {
+          "logprob": -6.25,
+          "token_id": 158758
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.276673792872613,
+      "log_file": "qwen38-mlx-threshold/logs/bisect-0768.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772247050,
+        "cache_bytes": 263086194,
+        "peak_bytes": 13379395664
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "midpoint between coherent 512 and broken 1023",
+      "output_classification": "BROKEN",
+      "output_file": "qwen38-mlx-threshold/outputs/bisect-0768.txt",
+      "output_sha256": "e3f8abf204dc639a08e86af80b68c168542092b9e0107c80ef89f5c878f6809f",
+      "peak_memory_gb": 13.379395664,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 83.99057676651574,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 2013.31,
+      "swap_before_mb": 1751.56,
+      "swap_delta_mb": 261.75,
+      "target_prompt_tokens": 768,
+      "test_id": "bisect-0768",
+      "wall_seconds": 25.828601291999803
+    },
+    {
+      "actual_prompt_tokens": 512,
+      "callback_prefill_seconds": 0.1726771660032682,
+      "callback_prefill_tps": 2965.070668291542,
+      "classification_reason": "Useful coding-agent diagnosis.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        332,
+        16,
+        13,
+        17775,
+        314,
+        279,
+        717,
+        332,
+        271,
+        760,
+        9640,
+        16067,
+        264,
+        4098,
+        1785,
+        29607
+      ],
+      "first_token_id": 332,
+      "first_token_text": "**",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -1.625,
+          "token_id": 332
+        },
+        {
+          "logprob": -1.75,
+          "token_id": 550
+        },
+        {
+          "logprob": -1.875,
+          "token_id": 2
+        },
+        {
+          "logprob": -2.3125,
+          "token_id": 1919
+        },
+        {
+          "logprob": -2.5625,
+          "token_id": 760
+        },
+        {
+          "logprob": -2.5625,
+          "token_id": 13962
+        },
+        {
+          "logprob": -3.8125,
+          "token_id": 1206
+        },
+        {
+          "logprob": -4.1875,
+          "token_id": 2523
+        },
+        {
+          "logprob": -4.3125,
+          "token_id": 16
+        },
+        {
+          "logprob": -4.3125,
+          "token_id": 1596
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.331735217182942,
+      "log_file": "qwen38-mlx-threshold/logs/boundary-0512-r1.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772247050,
+        "cache_bytes": 246307942,
+        "peak_bytes": 13086332020
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "boundary repeat; expected coherent",
+      "output_classification": "COHERENT",
+      "output_file": "qwen38-mlx-threshold/outputs/boundary-0512-r1.txt",
+      "output_sha256": "5b358824fe32463b427f5bd4b7c8b34c9a27825e52ec5aa4e5351a974392093f",
+      "peak_memory_gb": 13.08633202,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 81.34255839237062,
+      "repeat_index": 1,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1958.69,
+      "swap_before_mb": 1990.69,
+      "swap_delta_mb": -32.0,
+      "target_prompt_tokens": 512,
+      "test_id": "boundary-0512-r1",
+      "wall_seconds": 22.698694584003533
+    },
+    {
+      "actual_prompt_tokens": 512,
+      "callback_prefill_seconds": 0.17683937499532476,
+      "callback_prefill_tps": 2895.2827955512516,
+      "classification_reason": "Useful coding-agent diagnosis; differs from repeat 1.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        2,
+        66413,
+        91094,
+        594,
+        72553,
+        8288,
+        5444,
+        271,
+        550,
+        220,
+        16,
+        13,
+        66413,
+        91094,
+        25,
+        733
+      ],
+      "first_token_id": 2,
+      "first_token_text": "#",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -0.125,
+          "token_id": 2
+        },
+        {
+          "logprob": -3.0,
+          "token_id": 550
+        },
+        {
+          "logprob": -4.0,
+          "token_id": 1919
+        },
+        {
+          "logprob": -4.75,
+          "token_id": 332
+        },
+        {
+          "logprob": -5.125,
+          "token_id": 1206
+        },
+        {
+          "logprob": -5.125,
+          "token_id": 71093
+        },
+        {
+          "logprob": -5.25,
+          "token_id": 27775
+        },
+        {
+          "logprob": -5.75,
+          "token_id": 21018
+        },
+        {
+          "logprob": -6.25,
+          "token_id": 13962
+        },
+        {
+          "logprob": -6.375,
+          "token_id": 760
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.332337161701554,
+      "log_file": "qwen38-mlx-threshold/logs/boundary-0512-r2.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772247050,
+        "cache_bytes": 246307942,
+        "peak_bytes": 13086332020
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "boundary repeat; expected coherent",
+      "output_classification": "COHERENT",
+      "output_file": "qwen38-mlx-threshold/outputs/boundary-0512-r2.txt",
+      "output_sha256": "cb606d73c5f6f28922164d98e9b7d28397fc8f6d02087f3fe1f5b8fc57617652",
+      "peak_memory_gb": 13.08633202,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 75.53271680206457,
+      "repeat_index": 2,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1934.69,
+      "swap_before_mb": 1934.69,
+      "swap_delta_mb": 0.0,
+      "target_prompt_tokens": 512,
+      "test_id": "boundary-0512-r2",
+      "wall_seconds": 23.17291429099714
+    },
+    {
+      "actual_prompt_tokens": 640,
+      "callback_prefill_seconds": 0.17371245799586177,
+      "callback_prefill_tps": 3684.2492897961656,
+      "classification_reason": "Coherent prose, but it drifts to an unrelated order-domain scenario.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        332,
+        12646,
+        25,
+        66413,
+        8001,
+        594,
+        93526,
+        6880,
+        364,
+        6991,
+        2937,
+        1510,
+        4136,
+        12,
+        17,
+        15
+      ],
+      "first_token_id": 332,
+      "first_token_text": "**",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -1.5,
+          "token_id": 332
+        },
+        {
+          "logprob": -1.75,
+          "token_id": 2
+        },
+        {
+          "logprob": -2.0,
+          "token_id": 13962
+        },
+        {
+          "logprob": -2.5,
+          "token_id": 8160
+        },
+        {
+          "logprob": -2.6875,
+          "token_id": 550
+        },
+        {
+          "logprob": -2.75,
+          "token_id": 1919
+        },
+        {
+          "logprob": -3.5,
+          "token_id": 1206
+        },
+        {
+          "logprob": -3.625,
+          "token_id": 760
+        },
+        {
+          "logprob": -3.9375,
+          "token_id": 27775
+        },
+        {
+          "logprob": -4.6875,
+          "token_id": 12646
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.32276173658554,
+      "log_file": "qwen38-mlx-threshold/logs/boundary-0640-r1.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 246310502,
+        "peak_bytes": 13234362996
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "boundary repeat; expected broken",
+      "output_classification": "COHERENT",
+      "output_file": "qwen38-mlx-threshold/outputs/boundary-0640-r1.txt",
+      "output_sha256": "66c2b0b78b203118b6ed1847526a5820737b60d09860e28a935150c29283729e",
+      "peak_memory_gb": 13.234362996,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 82.5398021666903,
+      "repeat_index": 1,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1894.69,
+      "swap_before_mb": 1910.69,
+      "swap_delta_mb": -16.0,
+      "target_prompt_tokens": 640,
+      "test_id": "boundary-0640-r1",
+      "wall_seconds": 24.189365250000264
+    },
+    {
+      "actual_prompt_tokens": 640,
+      "callback_prefill_seconds": 0.17571283299912466,
+      "callback_prefill_tps": 3642.3065354776236,
+      "classification_reason": "Useful diagnosis after an invalid leading </think> token.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        248069,
+        271,
+        2,
+        66413,
+        91094,
+        594,
+        72553,
+        23288,
+        27325,
+        10417,
+        8288,
+        5444,
+        271,
+        550,
+        220,
+        16
+      ],
+      "first_token_id": 248069,
+      "first_token_text": "</think>",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -0.375,
+          "token_id": 248069
+        },
+        {
+          "logprob": -2.375,
+          "token_id": 248046
+        },
+        {
+          "logprob": -3.0625,
+          "token_id": 332
+        },
+        {
+          "logprob": -3.3125,
+          "token_id": 760
+        },
+        {
+          "logprob": -4.875,
+          "token_id": 16
+        },
+        {
+          "logprob": -4.875,
+          "token_id": 1596
+        },
+        {
+          "logprob": -5.0,
+          "token_id": 9764
+        },
+        {
+          "logprob": -5.1875,
+          "token_id": 1919
+        },
+        {
+          "logprob": -5.75,
+          "token_id": 7
+        },
+        {
+          "logprob": -5.8125,
+          "token_id": 12
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.314623696996316,
+      "log_file": "qwen38-mlx-threshold/logs/boundary-0640-r2.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 246406758,
+        "peak_bytes": 13234362996
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "boundary repeat; expected broken",
+      "output_classification": "DEGRADED",
+      "output_file": "qwen38-mlx-threshold/outputs/boundary-0640-r2.txt",
+      "output_sha256": "2888561dcf3aeb06d5ed6a94a0929d53b06b1bb65a978f6c8ec634a3f68cb0d6",
+      "peak_memory_gb": 13.234362996,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 76.74125610634881,
+      "repeat_index": 2,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1878.69,
+      "swap_before_mb": 1894.69,
+      "swap_delta_mb": -16.0,
+      "target_prompt_tokens": 640,
+      "test_id": "boundary-0640-r2",
+      "wall_seconds": 24.78417237499525
+    },
+    {
+      "actual_prompt_tokens": 768,
+      "callback_prefill_seconds": 0.17226291699626017,
+      "callback_prefill_tps": 4458.301376707056,
+      "classification_reason": "Repeated f token.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        69,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21,
+        21
+      ],
+      "first_token_id": 69,
+      "first_token_text": "f",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -2.375,
+          "token_id": 69
+        },
+        {
+          "logprob": -2.8125,
+          "token_id": 66
+        },
+        {
+          "logprob": -2.9375,
+          "token_id": 65
+        },
+        {
+          "logprob": -3.1875,
+          "token_id": 74
+        },
+        {
+          "logprob": -3.375,
+          "token_id": 71
+        },
+        {
+          "logprob": -3.5625,
+          "token_id": 325
+        },
+        {
+          "logprob": -4.0625,
+          "token_id": 70
+        },
+        {
+          "logprob": -4.0625,
+          "token_id": 269
+        },
+        {
+          "logprob": -4.0625,
+          "token_id": 332
+        },
+        {
+          "logprob": -4.3125,
+          "token_id": 85
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.313433754646994,
+      "log_file": "qwen38-mlx-threshold/logs/boundary-0768-r1.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772247050,
+        "cache_bytes": 263086182,
+        "peak_bytes": 13379395664
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "higher boundary repeat after mixed 640 point",
+      "output_classification": "BROKEN",
+      "output_file": "qwen38-mlx-threshold/outputs/boundary-0768-r1.txt",
+      "output_sha256": "cf8fca5214bf1e96a0e1e22e53ac610120a262a02dc55e09dbafb1decc184afb",
+      "peak_memory_gb": 13.379395664,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 88.74380372924374,
+      "repeat_index": 1,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1898.88,
+      "swap_before_mb": 1906.94,
+      "swap_delta_mb": -8.059999999999945,
+      "target_prompt_tokens": 768,
+      "test_id": "boundary-0768-r1",
+      "wall_seconds": 25.10030441699928
+    },
+    {
+      "actual_prompt_tokens": 768,
+      "callback_prefill_seconds": 0.1734452919990872,
+      "callback_prefill_tps": 4427.909176134004,
+      "classification_reason": "Unrelated CJK/token soup.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        96147,
+        100719,
+        4960,
+        198,
+        12,
+        2972,
+        109212,
+        96620,
+        332,
+        4960,
+        95814,
+        96880,
+        96465,
+        96125,
+        97561,
+        96304
+      ],
+      "first_token_id": 96147,
+      "first_token_text": "\u88ab",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -2.4375,
+          "token_id": 96147
+        },
+        {
+          "logprob": -3.6875,
+          "token_id": 96540
+        },
+        {
+          "logprob": -3.75,
+          "token_id": 9616
+        },
+        {
+          "logprob": -4.3125,
+          "token_id": 99073
+        },
+        {
+          "logprob": -4.4375,
+          "token_id": 96983
+        },
+        {
+          "logprob": -5.0,
+          "token_id": 95954
+        },
+        {
+          "logprob": -5.125,
+          "token_id": 62
+        },
+        {
+          "logprob": -5.4375,
+          "token_id": 97352
+        },
+        {
+          "logprob": -5.4375,
+          "token_id": 103938
+        },
+        {
+          "logprob": -5.5,
+          "token_id": 95948
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.277198739756317,
+      "log_file": "qwen38-mlx-threshold/logs/boundary-0768-r2.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772247050,
+        "cache_bytes": 263086194,
+        "peak_bytes": 13379395664
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "higher boundary repeat after mixed 640 point",
+      "output_classification": "BROKEN",
+      "output_file": "qwen38-mlx-threshold/outputs/boundary-0768-r2.txt",
+      "output_sha256": "7bf31a7aa19913ec64f470c23ee12fb5bfef4698dfabb0f3a556df3e6c9d0fd0",
+      "peak_memory_gb": 13.379395664,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 90.34645305759986,
+      "repeat_index": 2,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1834.81,
+      "swap_before_mb": 1882.88,
+      "swap_delta_mb": -48.070000000000164,
+      "target_prompt_tokens": 768,
+      "test_id": "boundary-0768-r2",
+      "wall_seconds": 24.909132250002585
+    },
+    {
+      "actual_prompt_tokens": 512,
+      "callback_prefill_seconds": 0.17085199999564793,
+      "callback_prefill_tps": 2996.745721519456,
+      "classification_reason": "Useful diagnosis with normal prose.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        332,
+        37947,
+        1653,
+        20858,
+        332,
+        271,
+        760,
+        1785,
+        369,
+        20738,
+        4016,
+        310,
+        264,
+        10286,
+        314,
+        6741
+      ],
+      "first_token_id": 332,
+      "first_token_text": "**",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -1.375,
+          "token_id": 332
+        },
+        {
+          "logprob": -1.5,
+          "token_id": 2
+        },
+        {
+          "logprob": -2.25,
+          "token_id": 13962
+        },
+        {
+          "logprob": -2.3125,
+          "token_id": 550
+        },
+        {
+          "logprob": -2.6875,
+          "token_id": 1919
+        },
+        {
+          "logprob": -3.0625,
+          "token_id": 1206
+        },
+        {
+          "logprob": -3.125,
+          "token_id": 8160
+        },
+        {
+          "logprob": -3.3125,
+          "token_id": 27775
+        },
+        {
+          "logprob": -3.6875,
+          "token_id": 760
+        },
+        {
+          "logprob": -4.3125,
+          "token_id": 12646
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.340181673479464,
+      "log_file": "qwen38-mlx-threshold/logs/chunk-0512-s1024.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772247050,
+        "cache_bytes": 246340710,
+        "peak_bytes": 13072651398
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "same 512 boundary prompt; prefill chunk hypothesis",
+      "output_classification": "COHERENT",
+      "output_file": "qwen38-mlx-threshold/outputs/chunk-0512-s1024.txt",
+      "output_sha256": "d1ace9ce5be660b2dfaf1961231a2224d206bb6338071cbddc0817ade59bbb4c",
+      "peak_memory_gb": 13.072651398,
+      "prefill_step_size": 1024,
+      "prefill_step_source": "explicit",
+      "prompt_tps": 81.05640560125735,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1838.69,
+      "swap_before_mb": 1846.69,
+      "swap_delta_mb": -8.0,
+      "target_prompt_tokens": 512,
+      "test_id": "chunk-0512-s1024",
+      "wall_seconds": 22.727584790998662
+    },
+    {
+      "actual_prompt_tokens": 512,
+      "callback_prefill_seconds": 3.421501332995831,
+      "callback_prefill_tps": 149.64191159665518,
+      "classification_reason": "Useful coding-agent diagnosis.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        2,
+        66413,
+        91094,
+        594,
+        72553,
+        8288,
+        5444,
+        271,
+        550,
+        220,
+        16,
+        13,
+        66413,
+        91094,
+        25,
+        733
+      ],
+      "first_token_id": 2,
+      "first_token_text": "#",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -0.125,
+          "token_id": 2
+        },
+        {
+          "logprob": -3.0,
+          "token_id": 550
+        },
+        {
+          "logprob": -4.5,
+          "token_id": 1919
+        },
+        {
+          "logprob": -5.0,
+          "token_id": 332
+        },
+        {
+          "logprob": -5.0,
+          "token_id": 71093
+        },
+        {
+          "logprob": -5.125,
+          "token_id": 1206
+        },
+        {
+          "logprob": -5.125,
+          "token_id": 27775
+        },
+        {
+          "logprob": -5.875,
+          "token_id": 21018
+        },
+        {
+          "logprob": -6.5,
+          "token_id": 760
+        },
+        {
+          "logprob": -6.5,
+          "token_id": 13962
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.331942295277576,
+      "log_file": "qwen38-mlx-threshold/logs/chunk-0512-s256.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772247050,
+        "cache_bytes": 246307942,
+        "peak_bytes": 12638329974
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "same 512 boundary prompt; prefill chunk hypothesis",
+      "output_classification": "COHERENT",
+      "output_file": "qwen38-mlx-threshold/outputs/chunk-0512-s256.txt",
+      "output_sha256": "f6167401d06a7e454dff2e810804d9ec0a06a7cbe67bec324274d41bf2c3c125",
+      "peak_memory_gb": 12.638329974,
+      "prefill_step_size": 256,
+      "prefill_step_source": "explicit",
+      "prompt_tps": 76.60063916881138,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1798.69,
+      "swap_before_mb": 1806.69,
+      "swap_delta_mb": -8.0,
+      "target_prompt_tokens": 512,
+      "test_id": "chunk-0512-s256",
+      "wall_seconds": 23.099198125004477
+    },
+    {
+      "actual_prompt_tokens": 512,
+      "callback_prefill_seconds": 0.17368795799848158,
+      "callback_prefill_tps": 2947.8151847721997,
+      "classification_reason": "Repeated # token.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        2,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653
+      ],
+      "first_token_id": 2,
+      "first_token_text": "#",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -1.625,
+          "token_id": 2
+        },
+        {
+          "logprob": -1.625,
+          "token_id": 550
+        },
+        {
+          "logprob": -2.125,
+          "token_id": 332
+        },
+        {
+          "logprob": -2.5625,
+          "token_id": 1919
+        },
+        {
+          "logprob": -3.0,
+          "token_id": 760
+        },
+        {
+          "logprob": -3.25,
+          "token_id": 13962
+        },
+        {
+          "logprob": -3.6875,
+          "token_id": 40
+        },
+        {
+          "logprob": -3.8125,
+          "token_id": 271
+        },
+        {
+          "logprob": -4.0,
+          "token_id": 9419
+        },
+        {
+          "logprob": -4.25,
+          "token_id": 1206
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.333033074357678,
+      "log_file": "qwen38-mlx-threshold/logs/chunk-0512-s512.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772247050,
+        "cache_bytes": 246307942,
+        "peak_bytes": 13069968526
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "same 512 boundary prompt; prefill chunk hypothesis",
+      "output_classification": "BROKEN",
+      "output_file": "qwen38-mlx-threshold/outputs/chunk-0512-s512.txt",
+      "output_sha256": "aaba515b8a20148de2dc941507e5b866e1d8fb456b4997f242ff685a4139acfa",
+      "peak_memory_gb": 13.069968526,
+      "prefill_step_size": 512,
+      "prefill_step_source": "explicit",
+      "prompt_tps": 77.83970000404169,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1806.69,
+      "swap_before_mb": 1838.69,
+      "swap_delta_mb": -32.0,
+      "target_prompt_tokens": 512,
+      "test_id": "chunk-0512-s512",
+      "wall_seconds": 23.00855816600233
+    },
+    {
+      "actual_prompt_tokens": 640,
+      "callback_prefill_seconds": 0.17798112500167917,
+      "callback_prefill_tps": 3595.8869233687665,
+      "classification_reason": "Useful diagnosis after an invalid leading </think> token.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        248069,
+        271,
+        2,
+        66413,
+        91094,
+        594,
+        72553,
+        23288,
+        27325,
+        10417,
+        8288,
+        5444,
+        271,
+        550,
+        220,
+        16
+      ],
+      "first_token_id": 248069,
+      "first_token_text": "</think>",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -0.5,
+          "token_id": 248069
+        },
+        {
+          "logprob": -2.125,
+          "token_id": 332
+        },
+        {
+          "logprob": -2.5,
+          "token_id": 248046
+        },
+        {
+          "logprob": -3.0625,
+          "token_id": 760
+        },
+        {
+          "logprob": -4.1875,
+          "token_id": 16
+        },
+        {
+          "logprob": -4.5,
+          "token_id": 9764
+        },
+        {
+          "logprob": -4.5625,
+          "token_id": 12
+        },
+        {
+          "logprob": -4.6875,
+          "token_id": 1596
+        },
+        {
+          "logprob": -4.75,
+          "token_id": 7
+        },
+        {
+          "logprob": -4.75,
+          "token_id": 40
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.323137599858134,
+      "log_file": "qwen38-mlx-threshold/logs/chunk-0640-s1024.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 246308454,
+        "peak_bytes": 13234362996
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "same 640 boundary prompt; prefill chunk hypothesis",
+      "output_classification": "DEGRADED",
+      "output_file": "qwen38-mlx-threshold/outputs/chunk-0640-s1024.txt",
+      "output_sha256": "960cf6277ca676c090d0e6e3e2fab6f70a333f56919eb0e304cc8dcf4031397d",
+      "peak_memory_gb": 13.234362996,
+      "prefill_step_size": 1024,
+      "prefill_step_source": "explicit",
+      "prompt_tps": 77.27287833349969,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1790.69,
+      "swap_before_mb": 1798.69,
+      "swap_delta_mb": -8.0,
+      "target_prompt_tokens": 640,
+      "test_id": "chunk-0640-s1024",
+      "wall_seconds": 24.63138854099816
+    },
+    {
+      "actual_prompt_tokens": 640,
+      "callback_prefill_seconds": 5.057559625005524,
+      "callback_prefill_tps": 126.5432436694804,
+      "classification_reason": "Useful incident diagnosis.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        2,
+        66413,
+        91094,
+        594,
+        72553,
+        8288,
+        5444,
+        271,
+        550,
+        220,
+        16,
+        13,
+        66413,
+        91094,
+        271,
+        760
+      ],
+      "first_token_id": 2,
+      "first_token_text": "#",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -0.25,
+          "token_id": 2
+        },
+        {
+          "logprob": -2.625,
+          "token_id": 550
+        },
+        {
+          "logprob": -3.25,
+          "token_id": 1919
+        },
+        {
+          "logprob": -3.875,
+          "token_id": 1206
+        },
+        {
+          "logprob": -4.0,
+          "token_id": 332
+        },
+        {
+          "logprob": -4.0,
+          "token_id": 71093
+        },
+        {
+          "logprob": -4.5,
+          "token_id": 27775
+        },
+        {
+          "logprob": -5.25,
+          "token_id": 21018
+        },
+        {
+          "logprob": -5.875,
+          "token_id": 8160
+        },
+        {
+          "logprob": -5.875,
+          "token_id": 13962
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.319140271545557,
+      "log_file": "qwen38-mlx-threshold/logs/chunk-0640-s256.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 246308454,
+        "peak_bytes": 12639854214
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "same 640 boundary prompt; prefill chunk hypothesis",
+      "output_classification": "COHERENT",
+      "output_file": "qwen38-mlx-threshold/outputs/chunk-0640-s256.txt",
+      "output_sha256": "921291b7eca4f81fb5d97a3116ea0f2add4a5dfb9c303e208b15c895e8274e81",
+      "peak_memory_gb": 12.639854214,
+      "prefill_step_size": 256,
+      "prefill_step_source": "explicit",
+      "prompt_tps": 76.97818872636039,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1758.62,
+      "swap_before_mb": 1782.69,
+      "swap_delta_mb": -24.070000000000164,
+      "target_prompt_tokens": 640,
+      "test_id": "chunk-0640-s256",
+      "wall_seconds": 24.73053741700278
+    },
+    {
+      "actual_prompt_tokens": 640,
+      "callback_prefill_seconds": 1.8242941249991418,
+      "callback_prefill_tps": 350.8206221956128,
+      "classification_reason": "Useful incident diagnosis.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        2,
+        66413,
+        8001,
+        25,
+        11669,
+        3130,
+        45887,
+        594,
+        68659,
+        33152,
+        271,
+        550,
+        220,
+        16,
+        13,
+        91094
+      ],
+      "first_token_id": 2,
+      "first_token_text": "#",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -0.25,
+          "token_id": 2
+        },
+        {
+          "logprob": -3.125,
+          "token_id": 550
+        },
+        {
+          "logprob": -3.125,
+          "token_id": 1919
+        },
+        {
+          "logprob": -3.375,
+          "token_id": 71093
+        },
+        {
+          "logprob": -3.625,
+          "token_id": 1206
+        },
+        {
+          "logprob": -4.0,
+          "token_id": 332
+        },
+        {
+          "logprob": -4.625,
+          "token_id": 27775
+        },
+        {
+          "logprob": -5.75,
+          "token_id": 8160
+        },
+        {
+          "logprob": -5.75,
+          "token_id": 13962
+        },
+        {
+          "logprob": -6.375,
+          "token_id": 40
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.293399977064015,
+      "log_file": "qwen38-mlx-threshold/logs/chunk-0640-s512.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 246308454,
+        "peak_bytes": 13085595252
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "same 640 boundary prompt; prefill chunk hypothesis",
+      "output_classification": "COHERENT",
+      "output_file": "qwen38-mlx-threshold/outputs/chunk-0640-s512.txt",
+      "output_sha256": "aecfd9b97543e13f5375561c9d6703b7cf941c40c14e23ec191092f6f8121b38",
+      "peak_memory_gb": 13.085595252,
+      "prefill_step_size": 512,
+      "prefill_step_source": "explicit",
+      "prompt_tps": 77.01907035422784,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1782.69,
+      "swap_before_mb": 1790.69,
+      "swap_delta_mb": -8.0,
+      "target_prompt_tokens": 640,
+      "test_id": "chunk-0640-s512",
+      "wall_seconds": 24.756960334001633
+    },
+    {
+      "actual_prompt_tokens": 512,
+      "callback_prefill_seconds": 0.17365324999991572,
+      "callback_prefill_tps": 2948.4043632943726,
+      "classification_reason": "First token # is followed by the same token repeated 15 times.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        2,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653,
+        653
+      ],
+      "first_token_id": 2,
+      "first_token_text": "#",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -1.625,
+          "token_id": 2
+        },
+        {
+          "logprob": -1.625,
+          "token_id": 550
+        },
+        {
+          "logprob": -2.125,
+          "token_id": 332
+        },
+        {
+          "logprob": -2.5625,
+          "token_id": 1919
+        },
+        {
+          "logprob": -3.0,
+          "token_id": 760
+        },
+        {
+          "logprob": -3.25,
+          "token_id": 13962
+        },
+        {
+          "logprob": -3.6875,
+          "token_id": 40
+        },
+        {
+          "logprob": -3.8125,
+          "token_id": 271
+        },
+        {
+          "logprob": -4.0,
+          "token_id": 9419
+        },
+        {
+          "logprob": -4.25,
+          "token_id": 1206
+        }
+      ],
+      "generated_tokens": 16,
+      "generation_tps": 11.763079454993191,
+      "log_file": "qwen38-mlx-threshold/logs/firsttoken-0512.log",
+      "max_output_tokens": 16,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 246324326,
+        "peak_bytes": 13069968526
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "explicit first-token diagnostic; last consistently coherent length",
+      "output_classification": "BROKEN",
+      "output_file": "qwen38-mlx-threshold/outputs/firsttoken-0512.txt",
+      "output_sha256": "15d014b7f35725e06870e50d73881485ae7cb72a80dbbdb40fc297beb59b9e1a",
+      "peak_memory_gb": 13.069968526,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 78.72669615240558,
+      "repeat_index": null,
+      "response_count": 16,
+      "success": true,
+      "swap_after_mb": 1874.94,
+      "swap_before_mb": 1726.62,
+      "swap_delta_mb": 148.32000000000016,
+      "target_prompt_tokens": 512,
+      "test_id": "firsttoken-0512",
+      "wall_seconds": 13.001368707999063
+    },
+    {
+      "actual_prompt_tokens": 640,
+      "callback_prefill_seconds": 0.17410150000068825,
+      "callback_prefill_tps": 3676.016576522718,
+      "classification_reason": "First token is </think>; the remaining short diagnostic tokens start a useful answer.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        248069,
+        271,
+        2,
+        66413,
+        91094,
+        594,
+        72553,
+        23288,
+        27325,
+        10417,
+        8288,
+        5444,
+        271,
+        550,
+        220,
+        16
+      ],
+      "first_token_id": 248069,
+      "first_token_text": "</think>",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -0.375,
+          "token_id": 248069
+        },
+        {
+          "logprob": -2.375,
+          "token_id": 248046
+        },
+        {
+          "logprob": -3.0625,
+          "token_id": 332
+        },
+        {
+          "logprob": -3.3125,
+          "token_id": 760
+        },
+        {
+          "logprob": -4.875,
+          "token_id": 16
+        },
+        {
+          "logprob": -4.875,
+          "token_id": 1596
+        },
+        {
+          "logprob": -5.0,
+          "token_id": 9764
+        },
+        {
+          "logprob": -5.1875,
+          "token_id": 1919
+        },
+        {
+          "logprob": -5.75,
+          "token_id": 7
+        },
+        {
+          "logprob": -5.8125,
+          "token_id": 12
+        }
+      ],
+      "generated_tokens": 16,
+      "generation_tps": 11.76582046026972,
+      "log_file": "qwen38-mlx-threshold/logs/firsttoken-0640.log",
+      "max_output_tokens": 16,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 246308454,
+        "peak_bytes": 13234362996
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": "explicit first-token diagnostic; first observed broken boundary length",
+      "output_classification": "DEGRADED",
+      "output_file": "qwen38-mlx-threshold/outputs/firsttoken-0640.txt",
+      "output_sha256": "5237ce7e54a261809c646a3450d948ac40f21967c3bd504029ff5985afe30fe5",
+      "peak_memory_gb": 13.234362996,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 77.07660597198434,
+      "repeat_index": null,
+      "response_count": 16,
+      "success": true,
+      "swap_after_mb": 1866.94,
+      "swap_before_mb": 1866.94,
+      "swap_delta_mb": 0.0,
+      "target_prompt_tokens": 640,
+      "test_id": "firsttoken-0640",
+      "wall_seconds": 14.791178333005519
+    },
+    {
+      "actual_prompt_tokens": 512,
+      "callback_prefill_seconds": 0.17484758300270187,
+      "callback_prefill_tps": 2928.264670333408,
+      "classification_reason": "Useful answer with normal prose and code-oriented diagnosis.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        332,
+        16,
+        13,
+        17775,
+        314,
+        279,
+        717,
+        332,
+        271,
+        760,
+        9640,
+        16067,
+        264,
+        4098,
+        1785,
+        29607
+      ],
+      "first_token_id": 332,
+      "first_token_text": "**",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -1.625,
+          "token_id": 332
+        },
+        {
+          "logprob": -1.75,
+          "token_id": 550
+        },
+        {
+          "logprob": -1.875,
+          "token_id": 2
+        },
+        {
+          "logprob": -2.3125,
+          "token_id": 1919
+        },
+        {
+          "logprob": -2.5625,
+          "token_id": 760
+        },
+        {
+          "logprob": -2.5625,
+          "token_id": 13962
+        },
+        {
+          "logprob": -3.8125,
+          "token_id": 1206
+        },
+        {
+          "logprob": -4.1875,
+          "token_id": 2523
+        },
+        {
+          "logprob": -4.3125,
+          "token_id": 16
+        },
+        {
+          "logprob": -4.3125,
+          "token_id": 1596
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.103437939605564,
+      "log_file": "qwen38-mlx-threshold/logs/primary-0512.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772247050,
+        "cache_bytes": 246307954,
+        "peak_bytes": 13086332020
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": null,
+      "output_classification": "COHERENT",
+      "output_file": "qwen38-mlx-threshold/outputs/primary-0512.txt",
+      "output_sha256": "5b358824fe32463b427f5bd4b7c8b34c9a27825e52ec5aa4e5351a974392093f",
+      "peak_memory_gb": 13.08633202,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 81.6479332922701,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1263.5,
+      "swap_before_mb": 956.81,
+      "swap_delta_mb": 306.69000000000005,
+      "target_prompt_tokens": 512,
+      "test_id": "primary-0512",
+      "wall_seconds": 26.34783837499708
+    },
+    {
+      "actual_prompt_tokens": 1023,
+      "callback_prefill_seconds": 0.18264137500227662,
+      "callback_prefill_tps": 5601.140486306831,
+      "classification_reason": "Replacement-character token followed by repeated </think>.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        244,
+        198,
+        248069,
+        198,
+        248069,
+        198,
+        248069,
+        198,
+        248069,
+        198,
+        248069,
+        198,
+        248069,
+        198,
+        248069,
+        198
+      ],
+      "first_token_id": 244,
+      "first_token_text": "\ufffd",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -1.75,
+          "token_id": 244
+        },
+        {
+          "logprob": -5.3125,
+          "token_id": 23381
+        },
+        {
+          "logprob": -5.3125,
+          "token_id": 48830
+        },
+        {
+          "logprob": -5.9375,
+          "token_id": 103530
+        },
+        {
+          "logprob": -6.0,
+          "token_id": 96430
+        },
+        {
+          "logprob": -6.1875,
+          "token_id": 96510
+        },
+        {
+          "logprob": -6.1875,
+          "token_id": 101723
+        },
+        {
+          "logprob": -6.25,
+          "token_id": 5027
+        },
+        {
+          "logprob": -6.25,
+          "token_id": 198525
+        },
+        {
+          "logprob": -6.3125,
+          "token_id": 99070
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.1597167069944,
+      "log_file": "qwen38-mlx-threshold/logs/primary-1024.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 353129210,
+        "peak_bytes": 13808102458
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": null,
+      "output_classification": "BROKEN",
+      "output_file": "qwen38-mlx-threshold/outputs/primary-1024.txt",
+      "output_sha256": "a51baba1252a8df2689b89d9023ac48bb48adbbf3c508c4eeff629acf1a75b34",
+      "peak_memory_gb": 13.808102458,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 82.56039670530886,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1808.75,
+      "swap_before_mb": 1199.5,
+      "swap_delta_mb": 609.25,
+      "target_prompt_tokens": 1024,
+      "test_id": "primary-1024",
+      "wall_seconds": 29.13280654099799
+    },
+    {
+      "actual_prompt_tokens": 1537,
+      "callback_prefill_seconds": 0.21705095800280105,
+      "callback_prefill_tps": 7081.286413765402,
+      "classification_reason": "Useful diagnosis, but begins with an invalid </think> token.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        248069,
+        271,
+        2,
+        66413,
+        91094,
+        594,
+        72553,
+        23288,
+        19114,
+        271,
+        550,
+        18284,
+        42874,
+        17775,
+        271,
+        760
+      ],
+      "first_token_id": 248069,
+      "first_token_text": "</think>",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -1.0,
+          "token_id": 248069
+        },
+        {
+          "logprob": -1.5,
+          "token_id": 248046
+        },
+        {
+          "logprob": -2.3125,
+          "token_id": 9764
+        },
+        {
+          "logprob": -2.5625,
+          "token_id": 760
+        },
+        {
+          "logprob": -3.1875,
+          "token_id": 332
+        },
+        {
+          "logprob": -4.125,
+          "token_id": 40
+        },
+        {
+          "logprob": -4.9375,
+          "token_id": 248058
+        },
+        {
+          "logprob": -5.25,
+          "token_id": 21018
+        },
+        {
+          "logprob": -5.4375,
+          "token_id": 12
+        },
+        {
+          "logprob": -5.5,
+          "token_id": 1919
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.126075577487322,
+      "log_file": "qwen38-mlx-threshold/logs/primary-1536.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772247050,
+        "cache_bytes": 316333174,
+        "peak_bytes": 14283134006
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": null,
+      "output_classification": "DEGRADED",
+      "output_file": "qwen38-mlx-threshold/outputs/primary-1536.txt",
+      "output_sha256": "24d7a6b0f7b3f85422e155920980d631e04ded145d3a2cdbb73aede6ec2d99d5",
+      "peak_memory_gb": 14.283134006,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 75.37984874883298,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1902.38,
+      "swap_before_mb": 1680.75,
+      "swap_delta_mb": 221.6300000000001,
+      "target_prompt_tokens": 1536,
+      "test_id": "primary-1536",
+      "wall_seconds": 37.22781745799875
+    },
+    {
+      "actual_prompt_tokens": 2048,
+      "callback_prefill_seconds": 0.17761924999649636,
+      "callback_prefill_tps": 11530.281768673147,
+      "classification_reason": "Single unrelated CJK token followed by repeated blank output.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        100250,
+        271,
+        271,
+        271,
+        271,
+        271,
+        271,
+        271,
+        271,
+        271,
+        271,
+        271,
+        271,
+        271,
+        271,
+        271
+      ],
+      "first_token_id": 100250,
+      "first_token_text": "\u8d24",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -5.1875,
+          "token_id": 100250
+        },
+        {
+          "logprob": -5.375,
+          "token_id": 242687
+        },
+        {
+          "logprob": -5.5,
+          "token_id": 95234
+        },
+        {
+          "logprob": -5.5,
+          "token_id": 97100
+        },
+        {
+          "logprob": -5.875,
+          "token_id": 27432
+        },
+        {
+          "logprob": -6.03125,
+          "token_id": 101142
+        },
+        {
+          "logprob": -6.03125,
+          "token_id": 101371
+        },
+        {
+          "logprob": -6.0625,
+          "token_id": 99715
+        },
+        {
+          "logprob": -6.09375,
+          "token_id": 25039
+        },
+        {
+          "logprob": -6.3125,
+          "token_id": 3466
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.075291668141617,
+      "log_file": "qwen38-mlx-threshold/logs/primary-2048.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772247050,
+        "cache_bytes": 349955186,
+        "peak_bytes": 14843173960
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": null,
+      "output_classification": "BROKEN",
+      "output_file": "qwen38-mlx-threshold/outputs/primary-2048.txt",
+      "output_sha256": "b633a630b2f260385a83635c49deb9414a69f13a3cac73502025d0eb2880b4ba",
+      "peak_memory_gb": 14.84317396,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 152.13493770116105,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1838.38,
+      "swap_before_mb": 1894.38,
+      "swap_delta_mb": -56.0,
+      "target_prompt_tokens": 2048,
+      "test_id": "primary-2048",
+      "wall_seconds": 30.192653917001735
+    },
+    {
+      "actual_prompt_tokens": 2560,
+      "callback_prefill_seconds": 6.3399562499980675,
+      "callback_prefill_tps": 403.78827535296955,
+      "classification_reason": "Repeated markdown asterisks with no progression.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        332,
+        271,
+        332,
+        271,
+        332,
+        271,
+        332,
+        271,
+        332,
+        271,
+        332,
+        271,
+        332,
+        271,
+        332,
+        271
+      ],
+      "first_token_id": 332,
+      "first_token_text": "**",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -2.75,
+          "token_id": 332
+        },
+        {
+          "logprob": -3.0625,
+          "token_id": 58
+        },
+        {
+          "logprob": -3.25,
+          "token_id": 1206
+        },
+        {
+          "logprob": -3.375,
+          "token_id": 951
+        },
+        {
+          "logprob": -3.4375,
+          "token_id": 1891
+        },
+        {
+          "logprob": -3.4375,
+          "token_id": 248069
+        },
+        {
+          "logprob": -3.6875,
+          "token_id": 2
+        },
+        {
+          "logprob": -4.1875,
+          "token_id": 9
+        },
+        {
+          "logprob": -4.1875,
+          "token_id": 12
+        },
+        {
+          "logprob": -4.375,
+          "token_id": 438
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.038624581882951,
+      "log_file": "qwen38-mlx-threshold/logs/primary-2560.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 383429746,
+        "peak_bytes": 14844257348
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": null,
+      "output_classification": "BROKEN",
+      "output_file": "qwen38-mlx-threshold/outputs/primary-2560.txt",
+      "output_sha256": "e81e987a24bc85448651ac64bf470a2e08c612fb4af792432a2fecd4d80617f2",
+      "peak_memory_gb": 14.844257348,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 134.88939224613026,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1917.69,
+      "swap_before_mb": 1830.38,
+      "swap_delta_mb": 87.30999999999995,
+      "target_prompt_tokens": 2560,
+      "test_id": "primary-2560",
+      "wall_seconds": 35.775556458997016
+    },
+    {
+      "actual_prompt_tokens": 3072,
+      "callback_prefill_seconds": 12.870166916996823,
+      "callback_prefill_tps": 238.69154299335483,
+      "classification_reason": "Repeated checklist fragment with no progression.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        12,
+        498,
+        87,
+        60,
+        65406,
+        2737,
+        25,
+        198,
+        12,
+        498,
+        87,
+        60,
+        220,
+        65406,
+        2737,
+        25
+      ],
+      "first_token_id": 12,
+      "first_token_text": "-",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -3.9375,
+          "token_id": 12
+        },
+        {
+          "logprob": -4.6875,
+          "token_id": 156692
+        },
+        {
+          "logprob": -5.25,
+          "token_id": 97977
+        },
+        {
+          "logprob": -5.25,
+          "token_id": 100747
+        },
+        {
+          "logprob": -5.34375,
+          "token_id": 207269
+        },
+        {
+          "logprob": -5.875,
+          "token_id": 97782
+        },
+        {
+          "logprob": -6.0625,
+          "token_id": 113386
+        },
+        {
+          "logprob": -6.09375,
+          "token_id": 14981
+        },
+        {
+          "logprob": -6.21875,
+          "token_id": 95891
+        },
+        {
+          "logprob": -6.25,
+          "token_id": 365
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.102688238827374,
+      "log_file": "qwen38-mlx-threshold/logs/primary-3072.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 416948966,
+        "peak_bytes": 14844259396
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": null,
+      "output_classification": "BROKEN",
+      "output_file": "qwen38-mlx-threshold/outputs/primary-3072.txt",
+      "output_sha256": "1b5b4178b4a6caf7d8e2891cb7c2b93038e36811847860230901cf8a87dfda1f",
+      "peak_memory_gb": 14.844259396,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 117.34683709720507,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1860.38,
+      "swap_before_mb": 1693.69,
+      "swap_delta_mb": 166.69000000000005,
+      "target_prompt_tokens": 3072,
+      "test_id": "primary-3072",
+      "wall_seconds": 43.69663570900593
+    },
+    {
+      "actual_prompt_tokens": 3578,
+      "callback_prefill_seconds": 10.850016415999562,
+      "callback_prefill_tps": 329.76908631436163,
+      "classification_reason": "Unrelated Cyrillic/meta output and no task answer.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        162547,
+        9629,
+        7026,
+        268,
+        30,
+        874,
+        13,
+        6558,
+        579,
+        1683,
+        13,
+        271,
+        50821,
+        11,
+        353,
+        1144
+      ],
+      "first_token_id": 162547,
+      "first_token_text": "\u043a\u0430\u043b\u0438",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -4.8125,
+          "token_id": 162547
+        },
+        {
+          "logprob": -5.40625,
+          "token_id": 132409
+        },
+        {
+          "logprob": -5.65625,
+          "token_id": 206423
+        },
+        {
+          "logprob": -5.84375,
+          "token_id": 221947
+        },
+        {
+          "logprob": -6.1875,
+          "token_id": 143141
+        },
+        {
+          "logprob": -6.25,
+          "token_id": 104319
+        },
+        {
+          "logprob": -6.3125,
+          "token_id": 106918
+        },
+        {
+          "logprob": -6.34375,
+          "token_id": 17053
+        },
+        {
+          "logprob": -6.46875,
+          "token_id": 95729
+        },
+        {
+          "logprob": -6.46875,
+          "token_id": 131034
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 11.052595398463268,
+      "log_file": "qwen38-mlx-threshold/logs/primary-3584.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 461369862,
+        "peak_bytes": 14844261420
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": null,
+      "output_classification": "BROKEN",
+      "output_file": "qwen38-mlx-threshold/outputs/primary-3584.txt",
+      "output_sha256": "6c90897c92fed60344dae31e849b0e6891416d40f99f087701db5667df3c7058",
+      "peak_memory_gb": 14.84426142,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 114.4667508441081,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1859.38,
+      "swap_before_mb": 1820.38,
+      "swap_delta_mb": 39.0,
+      "target_prompt_tokens": 3578,
+      "test_id": "primary-3584",
+      "wall_seconds": 48.068771874997765
+    },
+    {
+      "actual_prompt_tokens": 4096,
+      "callback_prefill_seconds": 16.846648375001678,
+      "callback_prefill_tps": 243.13441515630802,
+      "classification_reason": "Unrelated CJK token and repeated numeric punctuation.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        98114,
+        243,
+        17,
+        12,
+        17,
+        12,
+        17,
+        12,
+        17,
+        12,
+        17,
+        12,
+        17,
+        12,
+        17,
+        12
+      ],
+      "first_token_id": 98114,
+      "first_token_text": "\ufffd",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -5.25,
+          "token_id": 98114
+        },
+        {
+          "logprob": -5.375,
+          "token_id": 106632
+        },
+        {
+          "logprob": -5.53125,
+          "token_id": 7000
+        },
+        {
+          "logprob": -5.78125,
+          "token_id": 32951
+        },
+        {
+          "logprob": -5.96875,
+          "token_id": 149384
+        },
+        {
+          "logprob": -6.0,
+          "token_id": 152596
+        },
+        {
+          "logprob": -6.0,
+          "token_id": 164526
+        },
+        {
+          "logprob": -6.03125,
+          "token_id": 179588
+        },
+        {
+          "logprob": -6.15625,
+          "token_id": 11891
+        },
+        {
+          "logprob": -6.25,
+          "token_id": 95935
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 10.962983667645858,
+      "log_file": "qwen38-mlx-threshold/logs/primary-4096.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 472001270,
+        "peak_bytes": 15185050678
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": null,
+      "output_classification": "BROKEN",
+      "output_file": "qwen38-mlx-threshold/outputs/primary-4096.txt",
+      "output_sha256": "8ed9e8fdd19573f0fbdd755eebcb14294b83887a61991613c1032f53e3fc491d",
+      "peak_memory_gb": 15.185050678,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 135.22522758677476,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1930.75,
+      "swap_before_mb": 1811.38,
+      "swap_delta_mb": 119.36999999999989,
+      "target_prompt_tokens": 4096,
+      "test_id": "primary-4096",
+      "wall_seconds": 47.25465775000339
+    },
+    {
+      "actual_prompt_tokens": 4608,
+      "callback_prefill_seconds": 20.215748375005205,
+      "callback_prefill_tps": 227.94110386224145,
+      "classification_reason": "Plausible opening collapses into repeated sentence fragments.",
+      "failure_reason": null,
+      "finish_reason": "length",
+      "first_16_token_ids": [
+        760,
+        1156,
+        369,
+        9859,
+        264,
+        3296,
+        11,
+        694,
+        279,
+        3296,
+        369,
+        3799,
+        974,
+        11,
+        694,
+        279
+      ],
+      "first_token_id": 760,
+      "first_token_text": "The",
+      "first_token_top_logprobs": [
+        {
+          "logprob": -1.25,
+          "token_id": 760
+        },
+        {
+          "logprob": -1.3125,
+          "token_id": 1919
+        },
+        {
+          "logprob": -3.125,
+          "token_id": 40
+        },
+        {
+          "logprob": -3.8125,
+          "token_id": 95905
+        },
+        {
+          "logprob": -3.875,
+          "token_id": 8114
+        },
+        {
+          "logprob": -4.3125,
+          "token_id": 16
+        },
+        {
+          "logprob": -4.8125,
+          "token_id": 4350
+        },
+        {
+          "logprob": -4.9375,
+          "token_id": 325
+        },
+        {
+          "logprob": -5.0,
+          "token_id": 3702
+        },
+        {
+          "logprob": -5.0625,
+          "token_id": 31138
+        }
+      ],
+      "generated_tokens": 128,
+      "generation_tps": 10.857295594716023,
+      "log_file": "qwen38-mlx-threshold/logs/primary-4608.log",
+      "max_output_tokens": 128,
+      "mlx_after_load": {
+        "active_bytes": 11771722760,
+        "cache_bytes": 10564,
+        "peak_bytes": 11771722760
+      },
+      "mlx_after_run": {
+        "active_bytes": 11772230666,
+        "cache_bytes": 505570038,
+        "peak_bytes": 15186246710
+      },
+      "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "notes": null,
+      "output_classification": "BROKEN",
+      "output_file": "qwen38-mlx-threshold/outputs/primary-4608.txt",
+      "output_sha256": "ff535a2bccf73c5dba184d4ed58ab22650c879bc18d4f678b45c2356d5f9aef8",
+      "peak_memory_gb": 15.18624671,
+      "prefill_step_size": 2048,
+      "prefill_step_source": "mlx_lm.generate_step_default",
+      "prompt_tps": 125.67866330563439,
+      "repeat_index": null,
+      "response_count": 128,
+      "success": true,
+      "swap_after_mb": 1967.56,
+      "swap_before_mb": 1922.75,
+      "swap_delta_mb": 44.809999999999945,
+      "target_prompt_tokens": 4608,
+      "test_id": "primary-4608",
+      "wall_seconds": 53.69269366699882
+    }
+  ]
+}

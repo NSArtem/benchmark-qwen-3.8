@@ -1,0 +1,4 @@
+**Incident Summary**
+
+The system is failing due to a combination of race conditions and logical flaws in the transactional integrity of the state machine. Specifically:
+1.  **Duplicate Creation:** The `CREATE` statement in the `INSERT` logic does not handle the `ON CONFLICT` clause correctly for the unique constraint on `(tenant_id, idempot_key)`. If two requests arrive simultaneously, both may attempt to insert, and without proper `DO NOTHING` or `DO UPDATE` logic combined with a subsequent check, the second request may fail with a constraint error (returning 500) or, worse

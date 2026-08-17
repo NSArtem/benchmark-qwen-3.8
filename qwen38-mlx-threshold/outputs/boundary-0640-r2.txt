@@ -1,0 +1,7 @@
+</think>
+
+# Incident Diagnosis & Minimal Production-Quality Refactor
+
+## 1. Incident Summary
+
+**Symptom:** A tenant submitted a render job with idempotency key `ik-abc123`. Due to a client retry (network timeout), two concurrent `POST /v1/jobs` requests arrived at the API. The dashboard showed **two separate job rows** for the same logical job. Later, when the worker completed the job, the SSE stream delivered a `job.succeeded` event, but the browser reducer **reverted the job state back to `queued`** due to a stale duplicate event replay

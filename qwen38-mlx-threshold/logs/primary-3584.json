@@ -1,0 +1,102 @@
+{
+  "actual_prompt_tokens": 3578,
+  "callback_prefill_seconds": 10.850016415999562,
+  "callback_prefill_tps": 329.76908631436163,
+  "failure_reason": null,
+  "finish_reason": "length",
+  "first_16_token_ids": [
+    162547,
+    9629,
+    7026,
+    268,
+    30,
+    874,
+    13,
+    6558,
+    579,
+    1683,
+    13,
+    271,
+    50821,
+    11,
+    353,
+    1144
+  ],
+  "first_token_id": 162547,
+  "first_token_text": "\u043a\u0430\u043b\u0438",
+  "first_token_top_logprobs": [
+    {
+      "logprob": -4.8125,
+      "token_id": 162547
+    },
+    {
+      "logprob": -5.40625,
+      "token_id": 132409
+    },
+    {
+      "logprob": -5.65625,
+      "token_id": 206423
+    },
+    {
+      "logprob": -5.84375,
+      "token_id": 221947
+    },
+    {
+      "logprob": -6.1875,
+      "token_id": 143141
+    },
+    {
+      "logprob": -6.25,
+      "token_id": 104319
+    },
+    {
+      "logprob": -6.3125,
+      "token_id": 106918
+    },
+    {
+      "logprob": -6.34375,
+      "token_id": 17053
+    },
+    {
+      "logprob": -6.46875,
+      "token_id": 95729
+    },
+    {
+      "logprob": -6.46875,
+      "token_id": 131034
+    }
+  ],
+  "generated_tokens": 128,
+  "generation_tps": 11.052595398463268,
+  "log_file": "qwen38-mlx-threshold/logs/primary-3584.log",
+  "max_output_tokens": 128,
+  "mlx_after_load": {
+    "active_bytes": 11771722760,
+    "cache_bytes": 10564,
+    "peak_bytes": 11771722760
+  },
+  "mlx_after_run": {
+    "active_bytes": 11772230666,
+    "cache_bytes": 461369862,
+    "peak_bytes": 14844261420
+  },
+  "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+  "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+  "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+  "notes": null,
+  "output_classification": null,
+  "output_file": "qwen38-mlx-threshold/outputs/primary-3584.txt",
+  "peak_memory_gb": 14.84426142,
+  "prefill_step_size": 2048,
+  "prefill_step_source": "mlx_lm.generate_step_default",
+  "prompt_tps": 114.4667508441081,
+  "repeat_index": null,
+  "response_count": 128,
+  "success": true,
+  "swap_after_mb": 1859.38,
+  "swap_before_mb": 1820.38,
+  "swap_delta_mb": 39.0,
+  "target_prompt_tokens": 3578,
+  "test_id": "primary-3584",
+  "wall_seconds": 48.068771874997765
+}

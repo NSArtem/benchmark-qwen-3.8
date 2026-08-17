@@ -1,0 +1,27 @@
+test_id=boundary-0768-r2
+model=lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly
+mlx_lm_commit=254d153fdeb6f150edd4fc5a54f9828638481fa8
+model_path=/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7
+prompt_file=qwen38-mlx-threshold/prompts/0768.txt
+max_output_tokens=128
+prefill_step_size=2048
+prefill_step_source=mlx_lm.generate_step_default
+greedy=True
+enable_thinking=False
+iogpu_wired_limit=iogpu.wired_limit_mb: 0
+
+no KV quantization, activation quantization, MTP, APC, or prompt cache
+prompt_tokens=768
+model_load_seconds=3.922232
+mlx_after_load={"active_bytes": 11771722760, "cache_bytes": 10564, "peak_bytes": 11771722760}
+[WARNING] Generating with a model that requires 11225 MB which is close to the maximum recommended size of 12288 MB. This can be slow. See the documentation for possible work-arounds: https://github.com/ml-explore/mlx-lm/tree/main#large-models
+prefill_progress=0/768
+prefill_progress=767/768
+prefill_progress=768/768
+generation_finish_reason=length
+generation_tokens=128
+first_token_id=96147
+first_token_text='被'
+first_16_token_ids=[96147, 100719, 4960, 198, 12, 2972, 109212, 96620, 332, 4960, 95814, 96880, 96465, 96125, 97561, 96304]
+first_token_top_logprobs=[{"logprob": -2.4375, "token_id": 96147}, {"logprob": -3.6875, "token_id": 96540}, {"logprob": -3.75, "token_id": 9616}, {"logprob": -4.3125, "token_id": 99073}, {"logprob": -4.4375, "token_id": 96983}, {"logprob": -5.0, "token_id": 95954}, {"logprob": -5.125, "token_id": 62}, {"logprob": -5.4375, "token_id": 97352}, {"logprob": -5.4375, "token_id": 103938}, {"logprob": -5.5, "token_id": 95948}]
+{"actual_prompt_tokens": 768, "failure_reason": null, "generated_tokens": 128, "generation_tps": 11.277198739756317, "peak_memory_gb": 13.379395664, "prompt_tps": 90.34645305759986, "success": true, "test_id": "boundary-0768-r2"}
