@@ -1,0 +1,14 @@
+{
+  "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+  "runtime": "mlx-lm public load/stream_generate",
+  "prompt": {
+    "path": "qwen38-3bit-mlx-rescue/prompt-16k.txt",
+    "manifest": "qwen38-3bit-mlx-rescue/prompt-manifest.json",
+    "raw_input_tokens": 16354,
+    "final_chat_tokens": 16365,
+    "target_tokens": 16384,
+    "sha256": "1c9259d016122d12af579ca701ffdf0e102884c425b3340efeade6ae042e3f68"
+  },
+  "cases": [],
+  "decision": null
+}
