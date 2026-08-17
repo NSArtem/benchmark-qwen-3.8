@@ -1,0 +1,10 @@
+User:
+Reply with exactly: OK
+
+Assistant:
+<think>
+
+</think>
+
+OK
+

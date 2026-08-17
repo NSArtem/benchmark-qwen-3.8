@@ -1,0 +1,850 @@
+User:
+# Lantern repository context
+
+You are acting as a coding agent inside the fictional Lantern monorepo. Lantern is a small
+multi-tenant job orchestration service used by a design-rendering company. A user submits a
+render job, the API writes the job and an outbox record in PostgreSQL, a worker claims the job
+from Redis, and the worker emits lifecycle events. The web dashboard consumes a compact event
+stream over server-sent events (SSE). The repository is deliberately incomplete below: these
+are the relevant excerpts from a checkout at commit `7b91e1a`.
+
+The service is written in TypeScript with strict mode enabled. API requests may be retried by a
+client, workers may crash and restart, and the same event may be delivered more than once. The
+intended invariants are:
+
+* a job has one logical state machine: queued -> running -> succeeded or failed, with cancelled
+  allowed from queued or running;
+* state transitions are monotonic in the event sequence, and a late event must never make a
+  terminal job appear active again;
+* every mutation carrying an idempotency key returns the same result on a retry;
+* the outbox row and the corresponding state change commit atomically;
+* the dashboard may reconnect with `Last-Event-ID` and must receive a coherent replay;
+* a worker lease can expire, but only the current lease holder may publish a completion event;
+* tenant data must never be read across tenant boundaries.
+
+## Repository map
+
+```text
+apps/
+  api/src/main.ts
+  api/src/routes/jobs.ts
+  api/src/routes/events.ts
+  api/src/application/job-service.ts
+  api/src/domain/job.ts
+  api/src/infra/postgres/job-repository.ts
+  api/src/infra/postgres/outbox-repository.ts
+  api/src/infra/redis/job-queue.ts
+  api/src/infra/redis/lease-store.ts
+  worker/src/worker.ts
+  worker/src/events/outbox-publisher.ts
+  worker/src/render/render-engine.ts
+  web/src/dashboard/job-row.tsx
+packages/
+  events/src/job-events.ts
+  events/src/event-store.ts
+  queue/src/lease.ts
+  shared/src/idempotency.ts
+  shared/src/clock.ts
+  shared/src/errors.ts
+  config/src/index.ts
+db/migrations/004_job_events.sql
+db/migrations/005_job_idempotency.sql
+```
+
+## Architecture notes
+
+The API and workers run in separate processes but share the same PostgreSQL database. The
+`job_events` table is the durable ordering source. Its `tenant_id, job_id, sequence` key is
+unique, and `sequence` is allocated by the job row's `next_event_sequence` field while holding
+the job row lock. The outbox publisher sends committed event payloads to Redis Streams. The API
+SSE route reads the durable table for replay, then tails Redis for low latency. A browser can
+disconnect between those two phases, so the route uses an event id encoded as `job_id:sequence`.
+
+The current production issue is reported as: “after a flaky network retry, a completed render
+occasionally returns to running in the dashboard, and a second retry sometimes creates a second
+render.” The incident is most common when an API request times out after committing and a worker
+finishes at nearly the same time. The task at the end asks you to diagnose this from the excerpts.
+
+## `package.json`
+
+```json
+{
+  "name": "lantern",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "build": "turbo run build",
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.ts",
+    "lint": "eslint .",
+    "dev:api": "tsx apps/api/src/main.ts",
+    "dev:worker": "tsx apps/worker/src/worker.ts"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^9.4.0",
+    "@fastify/cors": "^10.0.2",
+    "@fastify/sse": "^0.1.1",
+    "fastify": "^5.2.1",
+    "ioredis": "^5.4.1",
+    "pg": "^8.13.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "vitest": "^2.1.8"
+  }
+}
+```
+
+## `packages/shared/src/clock.ts` and `errors.ts`
+
+```ts
+export interface Clock {
+  now(): Date;
+}
+
+export class SystemClock implements Clock {
+  now(): Date {
+    return new Date();
+  }
+}
+
+export class FixedClock implements Clock {
+  constructor(private readonly instant: Date) {}
+  now(): Date {
+    return new Date(this.instant);
+  }
+}
+```
+
+```ts
+export class DomainError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly statusCode = 400,
+  ) {
+    super(message);
+    this.name = "DomainError";
+  }
+}
+
+export class NotFoundError extends DomainError {
+  constructor(resource: string) {
+    super(`${resource} was not found`, "not_found", 404);
+  }
+}
+
+export class ConflictError extends DomainError {
+  constructor(message: string, code = "conflict") {
+    super(message, code, 409);
+  }
+}
+
+export class LeaseLostError extends DomainError {
+  constructor() {
+    super("worker lease is no longer owned", "lease_lost", 409);
+  }
+}
+```
+
+## `packages/shared/src/idempotency.ts`
+
+```ts
+import { createHash } from "node:crypto";
+
+export interface IdempotencyRecord {
+  tenantId: string;
+  key: string;
+  requestHash: string;
+  statusCode: number;
+  responseBody: unknown;
+  createdAt: Date;
+}
+
+export function hashRequest(body: unknown): string {
+  return createHash("sha256")
+    .update(JSON.stringify(body, Object.keys(body as object).sort()))
+    .digest("hex");
+}
+
+export function normalizeIdempotencyKey(raw: string | undefined): string | null {
+  if (!raw) return null;
+  const key = raw.trim();
+  if (key.length === 0 || key.length > 200) return null;
+  return key;
+}
+```
+
+## `packages/events/src/job-events.ts`
+
+```ts
+import { z } from "zod";
+
+export const JobState = z.enum([
+  "queued",
+  "running",
+  "succeeded",
+  "failed",
+  "cancelled",
+]);
+export type JobState = z.infer<typeof JobState>;
+
+const BaseEvent = z.object({
+  eventId: z.string(),
+  tenantId: z.string().uuid(),
+  jobId: z.string().uuid(),
+  sequence: z.number().int().positive(),
+  occurredAt: z.string().datetime(),
+});
+
+export const JobQueued = BaseEvent.extend({
+  type: z.literal("job.queued"),
+  state: z.literal("queued"),
+  payload: z.object({ inputUri: z.string(), renderer: z.string() }),
+});
+
+export const JobStarted = BaseEvent.extend({
+  type: z.literal("job.started"),
+  state: z.literal("running"),
+  payload: z.object({ workerId: z.string(), leaseId: z.string() }),
+});
+
+export const JobProgress = BaseEvent.extend({
+  type: z.literal("job.progress"),
+  state: z.literal("running"),
+  payload: z.object({ completed: z.number().int().nonnegative(), total: z.number().int().positive() }),
+});
+
+export const JobSucceeded = BaseEvent.extend({
+  type: z.literal("job.succeeded"),
+  state: z.literal("succeeded"),
+  payload: z.object({ outputUri: z.string(), checksum: z.string() }),
+});
+
+export const JobFailed = BaseEvent.extend({
+  type: z.literal("job.failed"),
+  state: z.literal("failed"),
+  payload: z.object({ errorCode: z.string(), message: z.string() }),
+});
+
+export const JobCancelled = BaseEvent.extend({
+  type: z.literal("job.cancelled"),
+  state: z.literal("cancelled"),
+  payload: z.object({ reason: z.string() }),
+});
+
+export const JobEvent = z.discriminatedUnion("type", [
+  JobQueued,
+  JobStarted,
+  JobProgress,
+  JobSucceeded,
+  JobFailed,
+  JobCancelled,
+]);
+export type JobEvent = z.infer<typeof JobEvent>;
+
+export function eventStreamId(jobId: string, sequence: number): string {
+  return `${jobId}:${sequence}`;
+}
+
+export function stateFromEvent(event: JobEvent): JobState {
+  return event.state;
+}
+```
+
+## `apps/api/src/domain/job.ts`
+
+```ts
+import { ConflictError, DomainError } from "../../../packages/shared/src/errors.js";
+import type { JobEvent, JobState } from "../../../packages/events/src/job-events.js";
+
+export interface Job {
+  id: string;
+  tenantId: string;
+  state: JobState;
+  inputUri: string;
+  renderer: string;
+  outputUri: string | null;
+  failureCode: string | null;
+  failureMessage: string | null;
+  version: number;
+  nextEventSequence: number;
+  leaseId: string | null;
+  leaseExpiresAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const terminal = new Set<JobState>(["succeeded", "failed", "cancelled"]);
+
+export function isTerminal(state: JobState): boolean {
+  return terminal.has(state);
+}
+
+export function assertTransition(current: JobState, next: JobState): void {
+  if (current === next) return;
+  if (isTerminal(current)) {
+    throw new ConflictError(`cannot transition terminal job from ${current} to ${next}`, "terminal_job");
+  }
+  const valid: Record<JobState, JobState[]> = {
+    queued: ["running", "cancelled"],
+    running: ["succeeded", "failed", "cancelled"],
+    succeeded: [],
+    failed: [],
+    cancelled: [],
+  };
+  if (!valid[current].includes(next)) {
+    throw new DomainError(`invalid job transition ${current} -> ${next}`, "invalid_transition");
+  }
+}
+
+export function applyEvent(job: Job, event: JobEvent): Job {
+  if (event.jobId !== job.id || event.tenantId !== job.tenantId) {
+    throw new DomainError("event does not belong to job", "event_scope");
+  }
+  if (event.sequence <= job.version) return job;
+  assertTransition(job.state, event.state);
+  return {
+    ...job,
+    state: event.state,
+    version: event.sequence,
+    outputUri: event.type === "job.succeeded" ? event.payload.outputUri : job.outputUri,
+    failureCode: event.type === "job.failed" ? event.payload.errorCode : job.failureCode,
+    failureMessage: event.type === "job.failed" ? event.payload.message : job.failureMessage,
+    updatedAt: new Date(event.occurredAt),
+  };
+}
+```
+
+## `packages/queue/src/lease.ts`
+
+```ts
+import { randomUUID } from "node:crypto";
+import { LeaseLostError } from "../../shared/src/errors.js";
+
+export interface Lease {
+  jobId: string;
+  workerId: string;
+  leaseId: string;
+  expiresAtMs: number;
+}
+
+export interface LeaseStore {
+  acquire(jobId: string, workerId: string, ttlMs: number): Promise<Lease | null>;
+  renew(lease: Lease, ttlMs: number): Promise<boolean>;
+  release(lease: Lease): Promise<void>;
+  assertOwned(lease: Lease): Promise<void>;
+}
+
+export function newLease(jobId: string, workerId: string, ttlMs: number, now = Date.now()): Lease {
+  return { jobId, workerId, leaseId: randomUUID(), expiresAtMs: now + ttlMs };
+}
+
+export async function withLease<T>(
+  store: LeaseStore,
+  lease: Lease,
+  work: () => Promise<T>,
+): Promise<T> {
+  await store.assertOwned(lease);
+  const result = await work();
+  await store.assertOwned(lease);
+  return result;
+}
+
+export function requireRenewed(ok: boolean): void {
+  if (!ok) throw new LeaseLostError();
+}
+```
+
+## `apps/api/src/infra/postgres/job-repository.ts`
+
+```ts
+import type { Pool, PoolClient } from "pg";
+import type { Job, JobState } from "../../domain/job.js";
+
+type DbJob = {
+  id: string;
+  tenant_id: string;
+  state: JobState;
+  input_uri: string;
+  renderer: string;
+  output_uri: string | null;
+  failure_code: string | null;
+  failure_message: string | null;
+  version: number;
+  next_event_sequence: number;
+  lease_id: string | null;
+  lease_expires_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+};
+
+function mapJob(row: DbJob): Job {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    state: row.state,
+    inputUri: row.input_uri,
+    renderer: row.renderer,
+    outputUri: row.output_uri,
+    failureCode: row.failure_code,
+    failureMessage: row.failure_message,
+    version: row.version,
+    nextEventSequence: row.next_event_sequence,
+    leaseId: row.lease_id,
+    leaseExpiresAt: row.lease_expires_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export class JobRepository {
+  constructor(private readonly pool: Pool) {}
+
+  async find(tenantId: string, jobId: string): Promise<Job | null> {
+    const result = await this.pool.query<DbJob>(
+      `SELECT * FROM jobs WHERE tenant_id = $1 AND id = $2`,
+      [tenantId, jobId],
+    );
+    return result.rows[0] ? mapJob(result.rows[0]) : null;
+  }
+
+  async lock(client: PoolClient, tenantId: string, jobId: string): Promise<Job | null> {
+    const result = await client.query<DbJob>(
+      `SELECT * FROM jobs WHERE tenant_id = $1 AND id = $2 FOR UPDATE`,
+      [tenantId, jobId],
+    );
+    return result.rows[0] ? mapJob(result.rows[0]) : null;
+  }
+
+  async insert(client: PoolClient, job: Job): Promise<void> {
+    await client.query(
+      `INSERT INTO jobs
+       (id, tenant_id, state, input_uri, renderer, output_uri, failure_code, failure_message,
+        version, next_event_sequence, lease_id, lease_expires_at, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      [job.id, job.tenantId, job.state, job.inputUri, job.renderer, job.outputUri,
+       job.failureCode, job.failureMessage, job.version, job.nextEventSequence,
+       job.leaseId, job.leaseExpiresAt, job.createdAt, job.updatedAt],
+    );
+  }
+
+  async updateLocked(client: PoolClient, job: Job): Promise<void> {
+    await client.query(
+      `UPDATE jobs SET state = $3, output_uri = $4, failure_code = $5, failure_message = $6,
+       version = $7, next_event_sequence = $8, lease_id = $9, lease_expires_at = $10,
+       updated_at = $11 WHERE tenant_id = $1 AND id = $2`,
+      [job.tenantId, job.id, job.state, job.outputUri, job.failureCode, job.failureMessage,
+       job.version, job.nextEventSequence, job.leaseId, job.leaseExpiresAt, job.updatedAt],
+    );
+  }
+
+  async claimNext(client: PoolClient, workerId: string, leaseId: string, expiresAt: Date): Promise<Job | null> {
+    const result = await client.query<DbJob>(
+      `WITH candidate AS (
+         SELECT id FROM jobs
+         WHERE state = 'queued' AND (lease_expires_at IS NULL OR lease_expires_at < now())
+         ORDER BY created_at
+         FOR UPDATE SKIP LOCKED LIMIT 1
+       )
+       UPDATE jobs j SET state = 'running', lease_id = $1, lease_expires_at = $2,
+         version = version + 1, next_event_sequence = next_event_sequence + 1,
+         updated_at = now()
+       FROM candidate WHERE j.id = candidate.id
+       RETURNING j.*`,
+      [leaseId, expiresAt],
+    );
+    return result.rows[0] ? mapJob(result.rows[0]) : null;
+  }
+
+  async markSucceeded(
+    client: PoolClient,
+    tenantId: string,
+    jobId: string,
+    leaseId: string,
+    outputUri: string,
+    checksum: string,
+  ): Promise<Job | null> {
+    const result = await client.query<DbJob>(
+      `UPDATE jobs SET state = 'succeeded', output_uri = $5, lease_id = NULL,
+         lease_expires_at = NULL, version = version + 1,
+         next_event_sequence = next_event_sequence + 1, updated_at = now()
+       WHERE tenant_id = $1 AND id = $2 AND lease_id = $3 AND state = 'running'
+       RETURNING *`,
+      [tenantId, jobId, leaseId, checksum, outputUri],
+    );
+    return result.rows[0] ? mapJob(result.rows[0]) : null;
+  }
+}
+```
+
+## `apps/api/src/infra/postgres/outbox-repository.ts`
+
+```ts
+import type { PoolClient } from "pg";
+import type { JobEvent } from "../../../../packages/events/src/job-events.js";
+
+export interface OutboxRow {
+  id: string;
+  tenantId: string;
+  jobId: string;
+  sequence: number;
+  topic: string;
+  payload: JobEvent;
+  publishedAt: Date | null;
+  createdAt: Date;
+}
+
+export class OutboxRepository {
+  async append(client: PoolClient, event: JobEvent): Promise<void> {
+    await client.query(
+      `INSERT INTO outbox (id, tenant_id, job_id, sequence, topic, payload, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
+       ON CONFLICT (tenant_id, job_id, sequence) DO NOTHING`,
+      [event.eventId, event.tenantId, event.jobId, event.sequence, "job-events",
+       JSON.stringify(event), event.occurredAt],
+    );
+  }
+
+  async pending(client: PoolClient, limit: number): Promise<OutboxRow[]> {
+    const result = await client.query<OutboxRow>(
+      `SELECT id, tenant_id AS "tenantId", job_id AS "jobId", sequence, topic,
+              payload, published_at AS "publishedAt", created_at AS "createdAt"
+       FROM outbox WHERE published_at IS NULL ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT $1`,
+      [limit],
+    );
+    return result.rows;
+  }
+
+  async markPublished(client: PoolClient, id: string): Promise<void> {
+    await client.query(`UPDATE outbox SET published_at = now() WHERE id = $1`, [id]);
+  }
+}
+```
+
+## `apps/api/src/infra/redis/job-queue.ts`
+
+```ts
+import type Redis from "ioredis";
+
+export interface QueueMessage {
+  jobId: string;
+  tenantId: string;
+  enqueuedAt: number;
+}
+
+export class JobQueue {
+  constructor(private readonly redis: Redis, private readonly stream = "lantern:jobs") {}
+
+  async enqueue(message: QueueMessage): Promise<string> {
+    return this.redis.xadd(this.stream, "MAXLEN", "~", 10000, "*", "job", JSON.stringify(message));
+  }
+
+  async read(consumer: string, group: string): Promise<[string, string[]][]> {
+    const reply = await this.redis.xreadgroup(
+      "GROUP", group, consumer, "COUNT", 1, "BLOCK", 1000, "STREAMS", this.stream, ">",
+    );
+    if (!reply) return [];
+    return (reply[0]?.[1] ?? []) as [string, string[]][];
+  }
+}
+```
+
+## `apps/api/src/application/job-service.ts`
+
+```ts
+import { randomUUID } from "node:crypto";
+import type { Pool } from "pg";
+import { ConflictError, NotFoundError } from "../../../packages/shared/src/errors.js";
+import { hashRequest, normalizeIdempotencyKey, type IdempotencyRecord } from "../../../packages/shared/src/idempotency.js";
+import type { Job, JobState } from "../domain/job.js";
+import { assertTransition } from "../domain/job.js";
+import { JobRepository } from "../infra/postgres/job-repository.js";
+import { OutboxRepository } from "../infra/postgres/outbox-repository.js";
+import { JobQueue } from "../infra/redis/job-queue.js";
+import type { JobEvent } from "../../../packages/events/src/job-events.js";
+
+export interface CreateJobRequest {
+  inputUri: string;
+  renderer: "pdf" | "png" | "svg";
+}
+
+export interface ServiceResult<T> {
+  statusCode: number;
+  body: T;
+}
+
+export class JobService {
+  constructor(
+    private readonly pool: Pool,
+    private readonly jobs: JobRepository,
+    private readonly outbox: OutboxRepository,
+    private readonly queue: JobQueue,
+  ) {}
+
+  async create(
+    tenantId: string,
+    request: CreateJobRequest,
+    rawKey: string | undefined,
+  ): Promise<ServiceResult<Job>> {
+    const key = normalizeIdempotencyKey(rawKey);
+    if (rawKey && !key) throw new ConflictError("invalid idempotency key", "invalid_idempotency_key");
+    const requestHash = hashRequest(request);
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      if (key) {
+        const existing = await client.query<IdempotencyRecord>(
+          `SELECT tenant_id AS "tenantId", key, request_hash AS "requestHash",
+                  status_code AS "statusCode", response_body AS "responseBody", created_at AS "createdAt"
+           FROM idempotency_keys WHERE tenant_id = $1 AND key = $2`,
+          [tenantId, key],
+        );
+        const record = existing.rows[0];
+        if (record) {
+          if (record.requestHash !== requestHash) {
+            throw new ConflictError("idempotency key was used with a different request", "idempotency_conflict");
+          }
+          await client.query("COMMIT");
+          return { statusCode: record.statusCode, body: record.responseBody as Job };
+        }
+      }
+
+      const now = new Date();
+      const job: Job = {
+        id: randomUUID(), tenantId, state: "queued", inputUri: request.inputUri,
+        renderer: request.renderer, outputUri: null, failureCode: null, failureMessage: null,
+        version: 0, nextEventSequence: 2, leaseId: null, leaseExpiresAt: null,
+        createdAt: now, updatedAt: now,
+      };
+      await this.jobs.insert(client, job);
+      const event: JobEvent = {
+        eventId: randomUUID(), tenantId, jobId: job.id, sequence: 1,
+        occurredAt: now.toISOString(), type: "job.queued", state: "queued",
+        payload: { inputUri: job.inputUri, renderer: job.renderer },
+      };
+      await this.outbox.append(client, event);
+      if (key) {
+        await client.query(
+          `INSERT INTO idempotency_keys (tenant_id, key, request_hash, status_code, response_body)
+           VALUES ($1, $2, $3, $4, $5::jsonb)`,
+          [tenantId, key, requestHash, 202, JSON.stringify(job)],
+        );
+      }
+      await client.query("COMMIT");
+      await this.queue.enqueue({ jobId: job.id, tenantId, enqueuedAt: now.getTime() });
+      return { statusCode: 202, body: job };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async cancel(tenantId: string, jobId: string, reason: string): Promise<Job> {
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const job = await this.jobs.lock(client, tenantId, jobId);
+      if (!job) throw new NotFoundError("job");
+      assertTransition(job.state, "cancelled");
+      const next: Job = {
+        ...job, state: "cancelled", version: job.version + 1,
+        nextEventSequence: job.nextEventSequence + 1, leaseId: null, leaseExpiresAt: null,
+        updatedAt: new Date(),
+      };
+      await this.jobs.updateLocked(client, next);
+      await this.outbox.append(client, {
+        eventId: randomUUID(), tenantId, jobId, sequence: next.version,
+        occurredAt: next.updatedAt.toISOString(), type: "job.cancelled", state: "cancelled",
+        payload: { reason },
+      });
+      await client.query("COMMIT");
+      return next;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+}
+```
+
+## `apps/api/src/routes/jobs.ts`
+
+```ts
+import type { FastifyInstance } from "fastify";
+import { z } from "zod";
+import { JobService } from "../application/job-service.js";
+import { NotFoundError } from "../../../packages/shared/src/errors.js";
+
+const CreateBody = z.object({ inputUri: z.string().url(), renderer: z.enum(["pdf", "png", "svg"]) });
+
+export async function registerJobRoutes(app: FastifyInstance, service: JobService): Promise<void> {
+  app.post("/v1/jobs", async (request, reply) => {
+    const tenantId = request.user.tenantId;
+    const body = CreateBody.parse(request.body);
+    const result = await service.create(tenantId, body, request.headers["idempotency-key"]);
+    return reply.code(result.statusCode).send(result.body);
+  });
+
+  app.get<{ Params: { id: string } }>("/v1/jobs/:id", async (request, reply) => {
+    const job = await app.jobs.find(request.user.tenantId, request.params.id);
+    if (!job) throw new NotFoundError("job");
+    return reply.send(job);
+  });
+
+  app.post<{ Params: { id: string } }>("/v1/jobs/:id/cancel", async (request, reply) => {
+    const job = await service.cancel(request.user.tenantId, request.params.id, "user_request");
+    return reply.send(job);
+  });
+}
+```
+
+## `apps/api/src/routes/events.ts`
+
+```ts
+import type { FastifyInstance } from "fastify";
+import { eventStreamId, JobEvent } from "../../../packages/events/src/job-events.js";
+
+function parseLastEventId(value: string | undefined): number {
+  if (!value) return 0;
+  const sequence = Number(value.split(":").at(-1));
+  return Number.isSafeInteger(sequence) && sequence >= 0 ? sequence : 0;
+}
+
+export async function registerEventRoutes(app: FastifyInstance): Promise<void> {
+  app.get<{ Params: { id: string } }>("/v1/jobs/:id/events", async (request, reply) => {
+    const tenantId = request.user.tenantId;
+    const jobId = request.params.id;
+    const after = parseLastEventId(request.headers["last-event-id"]);
+    reply.raw.setHeader("Content-Type", "text/event-stream");
+    reply.raw.setHeader("Cache-Control", "no-cache");
+    reply.raw.setHeader("Connection", "keep-alive");
+
+    const replay = await app.eventStore.listAfter(tenantId, jobId, after);
+    for (const row of replay) {
+      const event = JobEvent.parse(row.payload);
+      reply.raw.write(`id: ${eventStreamId(jobId, event.sequence)}
+`);
+      reply.raw.write(`event: ${event.type}
+`);
+      reply.raw.write(`data: ${JSON.stringify(event)}
+
+`);
+    }
+
+    const unsubscribe = app.eventBus.subscribe({ tenantId, jobId }, (event) => {
+      reply.raw.write(`id: ${eventStreamId(jobId, event.sequence)}
+`);
+      reply.raw.write(`event: ${event.type}
+`);
+      reply.raw.write(`data: ${JSON.stringify(event)}
+
+`);
+    });
+    request.raw.on("close", unsubscribe);
+  });
+}
+```
+
+## API contract notes
+
+The public `POST /v1/jobs` contract returns `202` and the complete job representation. The
+client treats the response body as durable: it stores the returned job id and uses that id for
+subsequent polling. It is therefore not acceptable for an idempotent retry to return a fresh
+job with a different id, even if both requests have the same request body. A request hash must
+include all fields that influence creation, but must not include headers such as tracing ids.
+
+The event table is intended to be append-only. There is no trigger today preventing an event
+with sequence 18 from being inserted before sequence 17, because workers and a future repair
+tool can both write it. Consumers should tolerate a gap while replaying, but an SSE connection
+should not silently claim that a gap is complete. The web UI currently assumes every live
+notification is newer than its local state.
+
+The worker's `claimNext` SQL is a legacy optimization from before the lease store was added.
+The Redis lease implementation above is now used by a separate worker pool in another branch,
+but this checkout still uses the `jobs.lease_id` column as its authoritative completion guard.
+Do not blindly combine both lease designs in the minimal patch; decide which authority is
+needed and explain how the other one should be retired or integrated.
+
+## Request traces and edge cases
+
+```text
+request A: BEGIN
+request A: SELECT idempotency_keys WHERE (tenant-a, render-42) -> no rows
+request B: BEGIN
+request B: SELECT idempotency_keys WHERE (tenant-a, render-42) -> no rows
+request A: INSERT jobs(job-A), INSERT outbox(seq 1), INSERT idempotency(render-42)
+request A: COMMIT; queue XADD(job-A); socket closes before HTTP response
+request B: INSERT jobs(job-B), INSERT outbox(seq 1), INSERT idempotency(render-42)
+request B: COMMIT; queue XADD(job-B); response 202 job-B
+```
+
+The trace above is produced by a test double whose `INSERT idempotency` does not model the
+primary-key conflict. In PostgreSQL one insert would block and then fail with `23505`, so a
+blind retry of the whole serializable transaction can accidentally create a second job unless
+the retry path re-reads the idempotency row and compares the request hash. Also note that a
+replayed key with a changed body must return a conflict, not the original response.
+
+```text
+worker W1: UPDATE jobs SET state=running, lease_id=L1, version=10 WHERE state=queued
+worker W1: COMMIT; render continues for 40 seconds
+worker W2: UPDATE jobs SET state=running, lease_id=L2, version=11 WHERE lease expired
+worker W2: COMMIT; render succeeds; INSERT job.succeeded(seq 12); COMMIT
+worker W1: UPDATE jobs SET state=succeeded, lease_id=NULL, version=12 WHERE lease_id=L1
+           -> zero rows, but old code logs and continues in one error path
+browser: receives seq 12 succeeded, then delayed seq 10 started
+```
+
+The correct result is one terminal projection and one terminal event. A stale worker may be
+allowed to finish its expensive local render, but it must not mutate the job or publish a
+success event after losing ownership. A failed conditional update is a normal domain result,
+not a reason to emit an event using the stale `version` it read earlier.
+
+The SSE route also has a boundary race: it queries rows through sequence 12, then subscribes
+to Redis, while a publisher sends sequence 13 between those operations. A robust route either
+subscribes before taking a replay watermark and filters duplicates, or performs a second durable
+read after subscribing. The fix must retain tenant and job predicates on every read and should
+not rely on a client-supplied `Last-Event-ID` job id to select authorization scope.
+
+## Task
+
+## Task
+
+Diagnose the incident and propose a minimal, production-quality refactor. Trace the relevant
+interleavings through the API transaction, worker transaction, outbox publisher, SSE replay,
+and browser reducer. Identify every invariant that the current excerpts violate. Then provide
+an implementation-oriented answer with the smallest set of file changes needed to ensure that:
+
+1. concurrent identical `POST /v1/jobs` requests with one tenant and one idempotency key create
+   exactly one job and return the same response;
+2. a terminal job cannot be reopened by a delayed or duplicated event in either the durable
+   projection or the browser;
+3. event sequence allocation and the job projection remain atomic, including worker progress and
+   completion;
+4. a worker that loses its lease cannot publish a successful completion;
+5. SSE replay and live delivery do not produce a visible regression or a permanent gap.
+
+Include concrete TypeScript/SQL patches or focused pseudocode for the critical methods, and add
+tests for the two races described above. Call out any behavior that should be handled as a
+separate follow-up instead of being smuggled into the minimal fix. Keep the response focused on
+this repository and task; do not invent a new messaging platform.
+
+Assistant:
+<think>
+
+</think>
+
+# Diagnosis
+
+The incident ("completed render returns to running; second retry creates a second render") is caused by three independent defects that compound under the described interleavings:
+
+## 1. Idempotency race → duplicate job (root cause of "second render")
+
+In `JobService.create`, the idempotency check is a plain `SELECT` inside a transaction with **no row lock and no unique-constraint fallback**. Two concurrent requests with the same key both see "no rows", both insert a job, and both insert an idempotency row. The `idempotency_keys` table has a unique
+
