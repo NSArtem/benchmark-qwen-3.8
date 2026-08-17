@@ -1,0 +1,32 @@
+case=control-normal-short
+model=lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly
+prompt_file=qwen38-3bit-mlx-rescue/control-short-prompt.txt
+max_tokens=128
+prefill_step_size=None
+cache_limit=None
+quantize_activations=False
+kv_bits=None
+kv_group_size=64
+quantized_kv_start=0
+wired_limit_check=iogpu.wired_limit_mb: 0
+
+memory policy: telemetry only; no low-memory or swap watchdog
+Downloading bytes:           |  0.00B            
+Reconstructing (incomplete total...): |          |  0.00B /  0.00B            [A
+
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s][A[AFetching 9 files: 100%|##########| 9/9 [00:00<00:00, 2211.41it/s]
+Download complete: :           |  0.00B            
+Reconstruction complete: |          |  0.00B /  0.00B                         [ADownload complete: :           |  0.00B            
+Reconstruction complete: |          |  0.00B /  0.00B            
+model_load_seconds=4.374499
+mlx_after_load={"active_bytes": 11771722760, "cache_bytes": 10564, "peak_bytes": 11771722760}
+prompt_tokens=33
+[WARNING] Generating with a model that requires 11225 MB which is close to the maximum recommended size of 12288 MB. This can be slow. See the documentation for possible work-arounds: https://github.com/ml-explore/mlx-lm/tree/main#large-models
+prefill_progress=0/33
+prefill_progress=32/33
+prefill_progress=33/33
+first_response_after_seconds=1.633497
+generation_finish_reason=length
+generation_tokens=128
+emitted_tokens=127
+{"case": "control-normal-short", "completed_without_exception": true, "decode_tps": 11.396891335059276, "failure_reason": null, "generation_tokens": 128, "mlx_peak_bytes": 12108265294, "prefill_tps": 52.34030905088192, "prompt_tokens": 33, "swap_delta_mb": 0.0}

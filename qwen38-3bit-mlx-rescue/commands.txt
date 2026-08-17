@@ -27,14 +27,21 @@ UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-ml
 # Stage 5 — exactly one cache + best prefill combination, if both alone fail
 UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-mlx-rescue/harness/run_case.py --name cache0-prefill512-16k --cache-limit 0 --prefill-step-size 512
 
-# Stage 6 — short activation-quantization sanity, then 16K only if coherent
-UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync mlx_lm.generate --model lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly --prompt "Explain briefly why a keyed dictionary lookup is usually O(1)." --max-tokens 128 --temp 0 --seed 0 --chat-template-config '{"enable_thinking":false}' --quantize-activations --verbose True
-UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-mlx-rescue/harness/run_case.py --name activations-16k --quantize-activations
+# Stage 6 — short activation-quantization sanity; 16K was skipped because load rejected it
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-mlx-rescue/harness/run_case.py --name activations-short --prompt-file qwen38-3bit-mlx-rescue/activation-short-prompt.txt --quantize-activations
 
-# Stage 7 — one final activation + best prefill combination only if justified
-UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-mlx-rescue/harness/run_case.py --name activations-prefill512-16k --quantize-activations --prefill-step-size 512 --cache-limit 0
+# Stage 7 — not run: the Stage 6 model-load sanity rejected activation quantization.
 
-# Stage 8 — controlled KV8 is allowed only after all preceding attempts fail.
-# The control prompt and exact 8K case are to be prepared only then; no KV4,
-# group-size sweep, or max-kv-size shortcut is permitted.
+# Stage 8 — controlled KV8 (larger realistic controls were already malformed,
+# so the final coherent control used the existing known-good short prompt).
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-mlx-rescue/harness/prepare_control_prompt.py
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-mlx-rescue/harness/run_case.py --name control-normal-8k --prompt-file qwen38-3bit-mlx-rescue/prompt-8k-control.txt
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-mlx-rescue/harness/prepare_control_prompt.py --target 4096 --output qwen38-3bit-mlx-rescue/prompt-4k-control.txt --manifest qwen38-3bit-mlx-rescue/prompt-4k-control-manifest.json
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-mlx-rescue/harness/run_case.py --name control-normal-4k --prompt-file qwen38-3bit-mlx-rescue/prompt-4k-control.txt
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-mlx-rescue/harness/run_case.py --name control-normal-short --prompt-file qwen38-3bit-mlx-rescue/control-short-prompt.txt
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-mlx-rescue/harness/run_case.py --name control-kv8-short --prompt-file qwen38-3bit-mlx-rescue/control-short-prompt.txt --kv-bits 8 --quantized-kv-start 0
+UV_CACHE_DIR=/private/tmp/qwen38-uv-cache uv run --no-sync python qwen38-3bit-mlx-rescue/harness/run_case.py --name kv8-prefill256-16k --prompt-file qwen38-3bit-mlx-rescue/prompt-16k.txt --prefill-step-size 256 --kv-bits 8 --quantized-kv-start 0
 
+# Activation 16K and any further MLX combinations were not run after the
+# activation incompatibility and final KV8+256 failure. No KV4, group-size
+# sweep, quantized-start sweep, max-kv-size shortcut, or GGUF experiment.

@@ -1,0 +1,82 @@
+case=prefill512-16k
+model=lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly
+prompt_file=qwen38-3bit-mlx-rescue/prompt-16k.txt
+max_tokens=128
+prefill_step_size=512
+cache_limit=None
+quantize_activations=False
+kv_bits=None
+kv_group_size=64
+quantized_kv_start=0
+wired_limit_check=iogpu.wired_limit_mb: 0
+
+memory policy: telemetry only; no low-memory or swap watchdog
+Downloading bytes:           |  0.00B            
+Reconstructing (incomplete total...): |          |  0.00B /  0.00B            [A
+
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s][A[AFetching 9 files: 100%|##########| 9/9 [00:00<00:00, 3442.97it/s]
+Download complete: :           |  0.00B            
+Reconstruction complete: |          |  0.00B /  0.00B                         [ADownload complete: :           |  0.00B            
+Reconstruction complete: |          |  0.00B /  0.00B            
+model_load_seconds=4.258830
+mlx_after_load={"active_bytes": 11771722760, "cache_bytes": 10564, "peak_bytes": 11771722760}
+prompt_tokens=16365
+[WARNING] Generating with a model that requires 11225 MB which is close to the maximum recommended size of 12288 MB. This can be slow. See the documentation for possible work-arounds: https://github.com/ml-explore/mlx-lm/tree/main#large-models
+prefill_progress=0/16365
+prefill_progress=512/16365
+prefill_progress=1024/16365
+prefill_progress=1536/16365
+prefill_progress=2048/16365
+prefill_progress=2560/16365
+prefill_progress=3072/16365
+prefill_progress=3584/16365
+prefill_progress=4096/16365
+prefill_progress=4608/16365
+prefill_progress=5120/16365
+prefill_progress=5632/16365
+prefill_progress=6144/16365
+prefill_progress=6656/16365
+prefill_progress=7168/16365
+prefill_progress=7680/16365
+prefill_progress=8192/16365
+prefill_progress=8704/16365
+prefill_progress=9216/16365
+prefill_progress=9728/16365
+prefill_progress=10240/16365
+prefill_progress=10752/16365
+prefill_progress=11264/16365
+prefill_progress=11776/16365
+prefill_progress=12288/16365
+prefill_progress=12800/16365
+prefill_progress=13312/16365
+prefill_progress=13824/16365
+prefill_progress=14336/16365
+prefill_progress=14848/16365
+prefill_progress=15360/16365
+prefill_progress=15872/16365
+prefill_progress=16364/16365
+prefill_progress=16365/16365
+first_response_after_seconds=187.199183
+benchmark_exception=Metal OOM / insufficient memory: RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
+Traceback (most recent call last):
+  File "/Users/artem/projects/benchmark-qwen-3.8/qwen38-3bit-mlx-rescue/harness/run_case.py", line 363, in run_case
+    for current in stream_generate(
+                   ~~~~~~~~~~~~~~~^
+        model,
+        ^^^^^^
+    ...<3 lines>...
+        **generation_kwargs,
+        ^^^^^^^^^^^^^^^^^^^^
+    ):
+    ^
+  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx_lm/generate.py", line 714, in stream_generate
+    with wired_limit(model, [generation_stream]):
+         ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 148, in __exit__
+    next(self.gen)
+    ~~~~^^^^^^^^^^
+  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx_lm/generate.py", line 263, in wired_limit
+    mx.synchronize(s)
+    ~~~~~~~~~~~~~~^^^
+RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
+{"case": "prefill512-16k", "completed_without_exception": false, "decode_tps": 7.032566122213943, "failure_reason": "Metal OOM / insufficient memory: RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).", "generation_tokens": 128, "mlx_peak_bytes": 14727808106, "prefill_tps": 87.93899024785495, "prompt_tokens": 16365, "swap_delta_mb": -56.0}
