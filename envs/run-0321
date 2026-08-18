@@ -1,0 +1,4 @@
+#!/bin/zsh
+
+repo_root="${0:A:h}/.."
+exec uv run --project "$repo_root/envs/mlx-0.32.1" "$@"

@@ -1,0 +1,8 @@
+[project]
+name = "qwen38-mlx-0320"
+version = "0.1.0"
+requires-python = "==3.14.*"
+dependencies = [
+    "mlx==0.32.0",
+    "mlx-lm @ git+https://github.com/ml-explore/mlx-lm.git@254d153fdeb6f150edd4fc5a54f9828638481fa8",
+]

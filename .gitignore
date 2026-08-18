@@ -8,6 +8,7 @@ __pycache__/
 # Local environment and dependency cache
 .venv/
 .uv-cache/
+envs/**/.venv/
 
 # Local archive used during experimentation
 archive.zip
