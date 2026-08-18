@@ -176,3 +176,21 @@ conversion result, not an inference or quality result. The untracked output is
 at `/private/tmp/qwen38-g128-mlx`; the per-chunk ledger is
 `research/conversion/g128-progress.jsonl` and header analysis is under
 `research/quant-size-g128/`.
+
+## Phase 7 — source-backed g128 correctness gate
+
+The converted affine 3-bit group-128 model passed all required fresh-process
+no-wired greedy tests with 256 generated tokens. The materialized model size
+was 10.180602 GiB in each run, consistent with the 10.180022 GiB tensor
+payload estimate.
+
+| Case | Prompt tokens | Classification | TTFT (s) | Prompt tok/s | Decode tok/s | Peak GiB | After-completion active+cache GiB |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| short control | 33 | COHERENT | 1.066 | 30.972 | 11.947 | 10.505 | 10.418 |
+| alignment | 768 | COHERENT | 10.122 | 75.876 | 11.882 | 11.678 | 10.444 |
+| Lantern coding | 4,096 | COHERENT | 51.272 | 79.888 | 11.614 | 13.360 | 10.685 |
+
+No run touched the wired limit, raised a Metal exception, or triggered a
+recorded safety stop. This establishes correctness through 4K, not a long-
+context recommendation; Phase 8 must measure the candidate's context
+envelope adaptively.

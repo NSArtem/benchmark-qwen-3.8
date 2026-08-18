@@ -1,0 +1,9 @@
+# Incident Diagnosis & Refactor Plan
+
+## 1. Diagnosis: Invariant Violations in Current Excerpts
+
+Based on the repository map and the described invariants, the current implementation at commit `7b91e1a` suffers from several critical race conditions and atomicity failures:
+
+1.  **Idempotency Race (API):** `POST /v1/jobs` likely checks for an existing idempotency key *before* inserting the job. Two concurrent requests with the same key both see "no existing job," both insert, and return two different job IDs. The idempotency key is not enforced atomically at the database level.
+2.  **Non-Atomic State/Event Commit (API/Worker):** The job state change and the outbox event insertion are likely in separate transactions or lack a strict ordering guarantee. If the job state commits but the outbox insert fails (or vice versa), the system is inconsistent.
+3.  **Monotonicity Violation (SSE/Projection):** The event store or projection likely appends events without checking the current `last_sequence` of the job. A late-arriving `JobStarted` event after a `JobSucceeded` event will incorrectly

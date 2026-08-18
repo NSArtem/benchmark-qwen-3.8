@@ -1,13 +1,13 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 7 g128 short gate passed.
+Last updated: 2026-08-18, Phase 7 g128 correctness complete.
 
 ## Current phase
 
-Phase 0 through Phase 6 are complete, and the g128 short correctness gate has
-passed. The bounded text-only affine 3-bit g128 conversion succeeded and passed
-header/index verification. The ~768 and 4K g128 gates remain. No MLX inference
-workload is running. Process inspection was
+Phase 0 through Phase 6 are complete, and all three Phase 7 g128 correctness
+gates have passed. The bounded text-only affine 3-bit g128 conversion
+succeeded and passed header/index verification. Phase 8 adaptive context
+scaling is next. No MLX inference workload is running. Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -134,6 +134,17 @@ observe through their command sessions.
   tok/s; decode 11.947 tok/s; peak 10.505 GiB; after-completion active+cache
   10.418 GiB. No exception or safety stop. Raw output, token IDs, and
   telemetry are under `research/g128-correctness/`.
+- `P7-G128-768`: the same candidate produced a coherent 256-token diagnosis
+  from the exact 768-token alignment prompt. TTFT 10.122 s; prompt 75.876
+  tok/s; decode 11.882 tok/s; peak 11.678 GiB; after-completion active+cache
+  10.444 GiB. The model materialized at 10.180602 GiB; no exception or safety
+  stop. Raw output, token IDs, and telemetry are saved beside the short case.
+- `P7-G128-4096`: the candidate produced a coherent 256-token diagnosis from
+  the 4,096-token realistic Lantern coding prompt. TTFT 51.272 s; prompt
+  79.888 tok/s; decode 11.614 tok/s; peak 13.360 GiB; after-completion
+  active+cache 10.685 GiB. The model materialized at 10.180602 GiB; no
+  exception or safety stop. Raw output, token IDs, and telemetry are saved
+  beside the other g128 gates.
 - `P7-HARNESS-FIXES`: the first g128 launch stopped before useful generation
   because the cold harness imported the runtime from the wrong script path;
   the next attempt exposed a tuple-vs-`GenerationResponse` collector mismatch.
@@ -191,6 +202,13 @@ observe through their command sessions.
   measured materialized model size is 10.1806 GiB, consistent with the exact
   10.1800 GiB tensor-payload estimate. The remaining correctness gates must
   establish whether this survives coding prompts and longer context.
+- The source-backed g128 candidate is also coherent at 768 tokens, with a
+  measured 11.678 GiB cold peak. This is below the g64 12.459 GiB peak from
+  the adjacent 769-token alignment evidence.
+- The source-backed g128 candidate is coherent through the required 4K coding
+  gate. Its 4K peak is 0.782 GiB below the measured g64 4K peak, matching the
+  expected model-storage saving within allocator/runtime differences. Long
+  context remains unmeasured for this candidate.
 
 ## Current best configuration
 
@@ -225,10 +243,10 @@ not a comfortable recommendation.
 
 ## Next action
 
-Run the remaining Phase 7 fresh-process g128 gates at the existing 768-token
-alignment prompt and the 4,096-token Lantern coding prompt, generating 256
-greedy tokens each. Compare correctness and memory with the g64 baseline; do
-not run long-context g128 until both pass.
+Re-read `AGENTS.md`, `TASK.md`, and this file, then enter Phase 8. Run an
+adaptive g128 ladder starting at ~8K with 128-token cold probes; continue to
+~12K and ~16K only while output remains coherent, OS memory remains stable,
+and peak memory stays materially below the known 17+ GiB danger envelope.
 
 ## Safety notes
 

@@ -1,0 +1,7 @@
+# Diagnosis
+
+The reported incident—completed renders reverting to "running" and duplicate renders appearing—is caused by a fundamental architectural flaw in how the system handles idempotency and state consistency.
+
+**Root Cause 1: Idempotency is not atomic with the mutation.**
+In `apps/api/src/routes/jobs.ts` (implied by the repository map and standard patterns), the idempotency check and the job creation/update are likely separate operations. If a client sends `POST /v1/jobs` with `Idempotency-Key: abc123`, the API checks if `abc123` exists in the `job_idempotency` table. If not, it proceeds to create the job. However, if the network is flaky, the client may not receive the response. The client retries with the same key.
+*   **The Bug:** The current implementation likely checks the idempotency key *before* the transaction commits. If the first request commits the job but the response is lost, the second request sees the idempotency key as "new" (because the first transaction's commit of the idempotency record might be delayed, or the check happens in a separate transaction that
