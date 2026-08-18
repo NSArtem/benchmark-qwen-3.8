@@ -1,13 +1,12 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 6 source verified before conversion.
+Last updated: 2026-08-18, Phase 6 g128 conversion verified.
 
 ## Current phase
 
-Phase 0 through Phase 5 feasibility review are complete. Phase 6 bounded
-text-only g128 conversion is in progress. The converter self-test passed and
-the exact 55.6 GB source snapshot is now verified; conversion has not started.
-No MLX inference workload is running. Process inspection was
+Phase 0 through Phase 6 are complete. The bounded text-only affine 3-bit g128
+conversion succeeded and passed header/index verification. Phase 7 correctness
+validation is next. No MLX inference workload is running. Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -118,6 +117,16 @@ observe through their command sessions.
   tensors, 851 retained text tensors, and 55,563,006,776 bytes on disk. The
   cache is 52G and 194 GiB remains free. No output model or inference process
   was started.
+- `P6-G128-CONVERT`: one fresh-process bounded conversion processed 65 chunks
+  (non-layer plus 64 transformer layers) in 24.920 s. It produced affine
+  3-bit g128 output with 1,847 tensors across 19 shards. Tensor payload is
+  exactly 10,930,715,648 bytes (10.180022 GiB), with 10,930,954,231 bytes on
+  disk including safetensor headers. The index parameter count matches the
+  baseline. Header-only verification found no missing/corrupt shard map.
+  Maximum converter MLX peak was 3.330 GiB; maximum active+cache was 0.508
+  GiB; maximum process RSS was 3.436 GiB. The completion memory-pressure
+  snapshot reported 92% system-wide free memory. Output remains untracked at
+  `/private/tmp/qwen38-g128-mlx`; no model weights are committed.
 
 ## Key measurements
 
@@ -163,6 +172,9 @@ observe through their command sessions.
 - The exact high-precision source is now available locally, so the g128 branch
   is no longer source-blocked; its next gate is bounded conversion memory and
   output integrity.
+- The source-backed streaming path is empirically memory-safe for conversion
+  on this machine. This says nothing yet about g128 inference correctness or
+  long-context behavior.
 
 ## Current best configuration
 
@@ -197,10 +209,11 @@ not a comfortable recommendation.
 
 ## Next action
 
-Re-read `AGENTS.md`, `TASK.md`, and this file, then start one fresh-process
-bounded conversion into a new untracked output directory. Capture per-layer
-MLX active/cache/peak metrics and OS snapshots. Stop on the first Metal OOM or
-severe memory-pressure signal; never fall back to the stock converter.
+Re-read `AGENTS.md`, `TASK.md`, and this file, then enter Phase 7. In fresh
+processes, use the no-wired runtime to test the converted g128 at a short
+control, ~768 tokens, and the 4K realistic coding prompt, generating 256
+tokens each. Compare correctness and model-load memory with the g64 baseline;
+do not run long-context g128 until all three gates pass.
 
 ## Safety notes
 
@@ -208,6 +221,8 @@ severe memory-pressure signal; never fall back to the stock converter.
   self-test, and source verification were completed before conversion.
 - Source weights are cached but must not be committed. The output directory
   must remain untracked and must not be committed.
+- Conversion succeeded without Metal OOM or severe memory pressure; inference
+  validation must still stop at the first broken/degraded result.
 - Do not run the pinned stock converter. Do not commit source or converted
   model weights.
 - Do not use the older 0.32.0 environment.

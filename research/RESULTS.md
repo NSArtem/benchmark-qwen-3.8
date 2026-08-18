@@ -160,3 +160,19 @@ retained text tensors. The source shard bytes sum to 55,563,006,776 (51.747
 GiB); the source index metadata reports 55,562,855,904 bytes of tensor payload.
 The source cache occupies 52G and 194 GiB remains free. No conversion output
 has been created yet.
+
+The bounded conversion then succeeded in one fresh process in 24.920 seconds.
+It processed the non-layer chunk plus all 64 transformer-layer chunks and
+created affine 3-bit g128 output with 1,847 tensors in 19 shards. The exact
+tensor payload is 10,930,715,648 bytes (10.180022 GiB), matching the header
+estimate; physical shard files total 10,930,954,231 bytes after safetensor
+headers. The output index has the baseline 26,895,993,856 trainable-parameter
+count and the header verifier reports `parameter_count_match: true`.
+
+Conversion memory was substantially below the inference memory envelope:
+maximum MLX peak 3.330 GiB, maximum active+cache 0.508 GiB, maximum process RSS
+3.436 GiB, and 92% system-wide free memory at completion. This is a measured
+conversion result, not an inference or quality result. The untracked output is
+at `/private/tmp/qwen38-g128-mlx`; the per-chunk ledger is
+`research/conversion/g128-progress.jsonl` and header analysis is under
+`research/quant-size-g128/`.
