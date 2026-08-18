@@ -21,8 +21,92 @@ Measured fact: the source-backed affine 3-bit/group-128 checkpoint now lives at
 keys, 19 shards, zero missing/extra keys, and 10,930,715,648 bytes of tensor
 payload (10.180022 GiB), matching `metadata.total_size`.
 
+## Phase 3
+
+### P3-G64-4K-rerun
+
+Measured fact: the corrected current persistent incremental protocol completed
+an initial 4,096-token prompt and two deliberately different 31-token
+follow-ups with 128/64/64 generated tokens. All outputs were locally coherent,
+distinct, and had no >=90% previous-answer prefix replay. Initial TTFT was
+56.982 s; follow-up TTFTs were 0.822 and 0.819 s; decode was 10.903, 10.999,
+and 10.984 tok/s. Peak was 14.142 GiB and after-turn active+cache was
+11.463/11.433/11.448 GiB.
+
+The cache diagnostic facts were uniform 48 `ArraysCache` plus 16 `KVCache`
+layers. KV offsets advanced coherently across turns (4097 after initial prompt,
+4224 after the initial 128 generated tokens, then 4256/4319 and 4351/4414 for
+the two follow-ups). This is a local Mode-A pass only; exact-token and
+full-transcript fresh oracle comparisons remain required.
+
+### P3-G64-6K
+
+Measured fact: a fresh 6,144-token g64 persistent session completed 128/64/64
+tokens with no >=90% prefix replay. Initial TTFT was 92.750 s at 66.316
+tok/s prompt throughput; follow-up TTFTs were 0.845 and 0.863 s; follow-up
+decode was 10.475 and 10.592 tok/s. Peak was 14.455 GiB and after-turn
+active+cache was 11.585/11.554/11.570 GiB. Uniform cache offsets advanced
+6145 → 6272 → 6367 → 6462 across the session.
+
+### P3-G64-7K
+
+Measured fact: a fresh 7,168-token g64 persistent session completed 128/64/64
+tokens with no prefix replay. Initial TTFT was 96.049 s at 74.710 tok/s;
+follow-up TTFTs were 0.852 and 0.884 s; follow-up decode was 10.515 and
+10.514 tok/s. Peak was 14.456 GiB and after-turn active+cache was
+11.647/11.617/11.632 GiB. Uniform cache offsets advanced 7169 → 7296 → 7391 →
+7486.
+
+### P3-G64-8K
+
+Measured fact: the new strong two-follow-up 8,191-token Mode-A session was
+locally coherent with no replay; its follow-ups ended at 43 and 53 tokens.
+Initial TTFT was 113.848 s, follow-up TTFTs were 0.861 and 0.857 s, and peak
+was 14.766 GiB. This does not exercise the old 64-token replay condition.
+
+### P3-G64-8K-old-followups-repeat
+
+Measured fact: the exact old four-turn query protocol reproduced the old
+artifact's four generated-token hashes exactly. Turn 2 had 64 tokens and hash
+`cb7ec89a619202c1a75d78f8b67140100a66b9ec3bfcd36af3ea3be66b0a32ce`, equal to
+turn 1's first 64 IDs. It is `BROKEN` despite grammatical text. Mode-A KV
+offsets advanced 8192 → 8319 → 8353 → 8416 and did not reset or clamp.
+The cause is not localized until the fresh B/C oracles are run.
+
+### P3-G64-4K-oracles
+
+Measured fact: turn 1 generated exactly the same tokens in persistent Mode A,
+exact-token fresh Mode B, and full-transcript fresh Mode C. At turns 2–3, A
+differed from B and B differed from C. At turn 2 the A/B prompt streams both
+represent 4,255 tokens and end at the same KV offset (4,256), but all 48
+`ArraysCache` recurrent-layer state signatures differ; the 16 `KVCache`
+attention-layer signatures match. This is `BOTH`: a recurrent cache-state
+divergence plus a separate incremental/full-transcript framing difference.
+
+### P3-G64-8K-oracles-rerun
+
+Measured fact: the old 8K turn-1 output is exactly `A=B=C`. At turn 2,
+persistent A and exact-token B both reproduce the stale first 64 turn-1 tokens,
+while full-transcript C is coherent and different, so the old replay is an
+`INCREMENTAL_PROTOCOL_BUG`. A/B recurrent cache signatures already differ in
+all 48 `ArraysCache` layers; by turn 3 all 48 recurrent and 16 KV signatures
+differ, and by turn 4 the generated output also diverges. The combined
+session evidence is `BOTH`, not a trusted warm-chat result.
+
 ## Classification convention
 
 Every important result must retain raw output and token IDs. A grammatical
 answer that exactly replays a prior answer to a different query is `BROKEN`.
 Oracle relationships are recorded separately from superficial text labels.
+
+## Phase 5–6 decision
+
+Official upstream history confirms that Qwen3.5/Qwen3.8-style hybrid caches
+need message-boundary-aware handling because recurrent `ArraysCache` state is
+not trimmable. The relevant server-side checkpoint work was superseded by
+merged batch refactoring, but it is not a direct fix for this project's
+single-sequence persistent `generate_step` protocol. A safe local fallback was
+therefore implemented: `NoWiredTranscriptChat` stores logical messages,
+renders the entire transcript each turn, and creates a fresh cache per turn.
+The existing `chat` CLI command now aliases this safe mode; the old persistent
+class remains only for diagnostics and is not called correct.
