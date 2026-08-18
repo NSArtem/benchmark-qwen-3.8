@@ -1,0 +1,611 @@
+{
+  "cache_limit_bytes_or_mode": "default",
+  "cache_limit_previous_bytes": null,
+  "cache_summary": {
+    "count": 64,
+    "entries": [
+      {
+        "index": 0,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 1,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 2,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 3,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 4,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 5,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 6,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 7,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 8,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 9,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 10,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 11,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 12,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 13,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 14,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 15,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 16,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 17,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 18,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 19,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 20,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 21,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 22,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 23,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 24,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 25,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 26,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 27,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 28,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 29,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 30,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 31,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 32,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 33,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 34,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 35,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 36,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 37,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 38,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 39,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 40,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 41,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 42,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 43,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 44,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 45,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 46,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 47,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 48,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 49,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 50,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 51,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 52,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 53,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 54,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 55,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 56,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 57,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 58,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 59,
+        "nbytes": 0,
+        "type": "KVCache"
+      },
+      {
+        "index": 60,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 61,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 62,
+        "nbytes": 0,
+        "state_type": "list",
+        "type": "ArraysCache"
+      },
+      {
+        "index": 63,
+        "nbytes": 0,
+        "type": "KVCache"
+      }
+    ],
+    "type_counts": {
+      "ArraysCache": 48,
+      "KVCache": 16
+    }
+  },
+  "device_info": {
+    "architecture": "applegpu_g15s",
+    "device_name": "Apple M3 Pro",
+    "max_buffer_length": 9663676416,
+    "max_buffer_length_gib": 9.0,
+    "max_recommended_working_set_size": 12884918272,
+    "max_recommended_working_set_size_gib": 12.000015258789062,
+    "memory_size": 19327352832,
+    "memory_size_gib": 18.0,
+    "resource_limit": 499000
+  },
+  "environment": "mlx-0.32.1",
+  "exception_message": "[METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).",
+  "exception_type": "RuntimeError",
+  "execution_path": "manual-wired",
+  "first_token_id": null,
+  "first_token_text": null,
+  "log_file": "qwen38-mlx0321-oom/logs/manual-prefill-wired-recommended.log",
+  "memory_snapshots": [
+    {
+      "active_bytes": 8,
+      "active_gib": 7.450580596923828e-09,
+      "active_plus_cache_bytes": 8,
+      "active_plus_cache_gib": 7.450580596923828e-09,
+      "cache_bytes": 0,
+      "cache_gib": 0.0,
+      "elapsed_seconds": 0.0008600419969297945,
+      "label": "process_start",
+      "peak_bytes": 0,
+      "peak_gib": 0.0,
+      "rss_max_bytes": 99565568,
+      "synchronized": true,
+      "timestamp": 1787058603.781448
+    },
+    {
+      "active_bytes": 11771722760,
+      "active_gib": 10.963271148502827,
+      "active_plus_cache_bytes": 11771733324,
+      "active_plus_cache_gib": 10.963280986994505,
+      "cache_bytes": 10564,
+      "cache_gib": 9.838491678237915e-06,
+      "elapsed_seconds": 3.9178114169990295,
+      "label": "after_model_load",
+      "peak_bytes": 11771722760,
+      "peak_gib": 10.963271148502827,
+      "rss_max_bytes": 7044857856,
+      "synchronized": true,
+      "timestamp": 1787058607.698438
+    },
+    {
+      "active_bytes": 11771722760,
+      "active_gib": 10.963271148502827,
+      "active_plus_cache_bytes": 11771733324,
+      "active_plus_cache_gib": 10.963280986994505,
+      "cache_bytes": 10564,
+      "cache_gib": 9.838491678237915e-06,
+      "elapsed_seconds": 3.9216211249986372,
+      "label": "after_model_materialization_eval",
+      "peak_bytes": 11771722760,
+      "peak_gib": 10.963271148502827,
+      "rss_max_bytes": 7044857856,
+      "synchronized": true,
+      "timestamp": 1787058607.7022479
+    },
+    {
+      "active_bytes": 11771722760,
+      "active_gib": 10.963271148502827,
+      "active_plus_cache_bytes": 11771733324,
+      "active_plus_cache_gib": 10.963280986994505,
+      "cache_bytes": 10564,
+      "cache_gib": 9.838491678237915e-06,
+      "elapsed_seconds": 3.9390781249967404,
+      "label": "after_prompt_tokenization",
+      "peak_bytes": 11771722760,
+      "peak_gib": 10.963271148502827,
+      "rss_max_bytes": 7044857856,
+      "synchronized": true,
+      "timestamp": 1787058607.719706
+    },
+    {
+      "active_bytes": 11771722760,
+      "active_gib": 10.963271148502827,
+      "active_plus_cache_bytes": 11771733324,
+      "active_plus_cache_gib": 10.963280986994505,
+      "cache_bytes": 10564,
+      "cache_gib": 9.838491678237915e-06,
+      "elapsed_seconds": 4.884216916998412,
+      "label": "after_wired_limit_set",
+      "peak_bytes": 11771722760,
+      "peak_gib": 10.963271148502827,
+      "rss_max_bytes": 7044857856,
+      "synchronized": true,
+      "timestamp": 1787058608.664853
+    },
+    {
+      "active_bytes": 11771722760,
+      "active_gib": 10.963271148502827,
+      "active_plus_cache_bytes": 11771733324,
+      "active_plus_cache_gib": 10.963280986994505,
+      "cache_bytes": 10564,
+      "cache_gib": 9.838491678237915e-06,
+      "elapsed_seconds": 4.884641749998991,
+      "label": "S1_after_make_prompt_cache",
+      "peak_bytes": 11771722760,
+      "peak_gib": 10.963271148502827,
+      "rss_max_bytes": 7044857856,
+      "synchronized": true,
+      "timestamp": 1787058608.665279
+    },
+    {
+      "active_bytes": 11771725828,
+      "active_gib": 10.963274005800486,
+      "active_plus_cache_bytes": 11771736392,
+      "active_plus_cache_gib": 10.963283844292164,
+      "cache_bytes": 10564,
+      "cache_gib": 9.838491678237915e-06,
+      "elapsed_seconds": 4.884755041999597,
+      "label": "S2_before_prefill_model_call",
+      "peak_bytes": 11771725828,
+      "peak_gib": 10.963274005800486,
+      "rss_max_bytes": 7044857856,
+      "synchronized": true,
+      "timestamp": 1787058608.6653922
+    },
+    {
+      "active_bytes": 11771726950,
+      "active_gib": 10.963275050744414,
+      "active_plus_cache_bytes": 11771737002,
+      "active_plus_cache_gib": 10.963284412398934,
+      "cache_bytes": 10052,
+      "cache_gib": 9.36165452003479e-06,
+      "elapsed_seconds": 4.888212166999438,
+      "label": "S3_after_graph_construction_before_eval",
+      "peak_bytes": 11771726950,
+      "peak_gib": 10.963275050744414,
+      "rss_max_bytes": 7044857856,
+      "synchronized": false,
+      "timestamp": 1787058608.668849
+    },
+    {
+      "active_bytes": 11771726950,
+      "active_gib": 10.963275050744414,
+      "active_plus_cache_bytes": 11771737002,
+      "active_plus_cache_gib": 10.963284412398934,
+      "cache_bytes": 10052,
+      "cache_gib": 9.36165452003479e-06,
+      "elapsed_seconds": 4.888217166997492,
+      "label": "S4_immediately_before_cache_state_eval",
+      "peak_bytes": 11771726950,
+      "peak_gib": 10.963275050744414,
+      "rss_max_bytes": 7044857856,
+      "synchronized": false,
+      "timestamp": 1787058608.668854
+    },
+    {
+      "active_bytes": 12236802666,
+      "active_gib": 11.396410563960671,
+      "active_plus_cache_bytes": 12854354600,
+      "active_plus_cache_gib": 11.97155062109232,
+      "cache_bytes": 617551934,
+      "cache_gib": 0.5751400571316481,
+      "elapsed_seconds": 9.243575332999171,
+      "label": "exception",
+      "peak_bytes": 12854354600,
+      "peak_gib": 11.97155062109232,
+      "rss_max_bytes": 7044857856,
+      "synchronized": false,
+      "timestamp": 1787058613.024256
+    }
+  ],
+  "mlx_lm_git_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+  "mlx_lm_metadata_version": "0.31.3",
+  "mlx_version": "0.32.1",
+  "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+  "model_nbytes": 11771132928,
+  "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+  "output_file": null,
+  "prefill_step_size": 2048,
+  "prompt_file": "qwen38-mlx0321-oom/snapshots/prompt-0768.txt",
+  "prompt_first_16_token_ids": [
+    248045,
+    846,
+    198,
+    2,
+    65214,
+    12182,
+    2193,
+    271,
+    2523,
+    513,
+    14912,
+    430,
+    264,
+    10505,
+    8057,
+    4613
+  ],
+  "prompt_last_16_token_ids": [
+    524,
+    16525,
+    264,
+    491,
+    28560,
+    5171,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271
+  ],
+  "prompt_sha256": "e43371c867d970f5001796f970c080914a17c4bd34fcb21a15115619c3333767",
+  "prompt_tokens": 768,
+  "python_executable": "/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.1/.venv/bin/python3",
+  "python_version": "3.14.7",
+  "raw_prompt_tokens": 757,
+  "raw_text_length": 3344,
+  "result": "OOM",
+  "rss_max_bytes": 7044857856,
+  "test_id": "manual-prefill-wired-recommended",
+  "traceback": "Traceback (most recent call last):\n  File \"/Users/artem/projects/benchmark-qwen-3.8/qwen38-mlx0321-oom/harness/oom_diagnostic.py\", line 337, in run_case\n    mx.eval([entry.state for entry in prompt_cache])\n    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).\n",
+  "wall_seconds": 9.243956832997355,
+  "wired_limit_bytes": 12884918272,
+  "wired_limit_gib": 12.000015258789062,
+  "wired_limit_mode": "max_recommended_working_set_size",
+  "wired_limit_previous_bytes": 0
+}

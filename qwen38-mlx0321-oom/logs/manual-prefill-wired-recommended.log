@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/Users/artem/projects/benchmark-qwen-3.8/qwen38-mlx0321-oom/harness/oom_diagnostic.py", line 337, in run_case
+    mx.eval([entry.state for entry in prompt_cache])
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
+{"exception_type": "RuntimeError", "first_token_id": null, "memory_snapshots": 10, "result": "OOM", "test_id": "manual-prefill-wired-recommended"}
