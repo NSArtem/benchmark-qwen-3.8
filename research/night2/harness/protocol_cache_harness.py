@@ -863,6 +863,7 @@ def orchestrate(args: argparse.Namespace) -> int:
     }
     plan_path = output_dir / "conversation-plan.json"
     write_json(plan_path, plan)
+    args.conversation_file = str(plan_path)
 
     mode_a_dir = output_dir / "mode-a"
     mode_a_result = mode_a_dir / "mode-a.json"
