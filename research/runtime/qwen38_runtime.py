@@ -139,6 +139,10 @@ class ChatTurn:
     generated_tokens: int
     generation_tps: Optional[float]
     peak_memory_gb: Optional[float]
+    ttft_seconds: Optional[float]
+    generation_seconds: Optional[float]
+    total_seconds: float
+    token_ids: list[int]
 
 
 class NoWiredChat:
@@ -185,30 +189,41 @@ class NoWiredChat:
             enable_thinking=self.enable_thinking,
         )
         sampler = make_sampler(temperature, top_p)
-        responses = list(
-            stream_generate_no_wired(
-                self.model,
-                self.tokenizer,
-                prompt,
-                max_tokens=max_tokens,
-                sampler=sampler,
-                prompt_cache=self.prompt_cache,
-                prefill_step_size=prefill_step_size,
-                kv_bits=kv_bits,
-                kv_group_size=kv_group_size,
-                quantized_kv_start=quantized_kv_start,
-            )
-        )
-        if not responses:
-            return ChatTurn("", len(prompt), None, 0, None, None)
-        last = responses[-1]
+        started = time.perf_counter()
+        first_token_time: Optional[float] = None
+        completed_responses = []
+        token_ids: list[int] = []
+        for response in stream_generate_no_wired(
+            self.model,
+            self.tokenizer,
+            prompt,
+            max_tokens=max_tokens,
+            sampler=sampler,
+            prompt_cache=self.prompt_cache,
+            prefill_step_size=prefill_step_size,
+            kv_bits=kv_bits,
+            kv_group_size=kv_group_size,
+            quantized_kv_start=quantized_kv_start,
+        ):
+            if first_token_time is None:
+                first_token_time = time.perf_counter()
+            completed_responses.append(response)
+            token_ids.append(int(response.token))
+        completed = time.perf_counter()
+        if not completed_responses:
+            return ChatTurn("", len(prompt), None, 0, None, None, None, None, completed - started, [])
+        last = completed_responses[-1]
         return ChatTurn(
-            text="".join(response.text for response in responses),
+            text="".join(response.text for response in completed_responses),
             prompt_tokens=last.prompt_tokens,
             prompt_tps=last.prompt_tps,
             generated_tokens=last.generation_tokens,
             generation_tps=last.generation_tps,
             peak_memory_gb=last.peak_memory,
+            ttft_seconds=(first_token_time - started if first_token_time is not None else None),
+            generation_seconds=(completed - first_token_time if first_token_time is not None else None),
+            total_seconds=completed - started,
+            token_ids=token_ids,
         )
 
 
@@ -337,7 +352,14 @@ def _main_chat(args: argparse.Namespace) -> None:
             prefill_step_size=args.prefill_step_size,
         )
         print(turn.text, flush=True)
-        print(json.dumps(turn.__dict__, sort_keys=True), file=sys.stderr, flush=True)
+        print(
+            json.dumps(
+                {key: value for key, value in turn.__dict__.items() if key != "token_ids"},
+                sort_keys=True,
+            ),
+            file=sys.stderr,
+            flush=True,
+        )
 
 
 def main() -> None:
