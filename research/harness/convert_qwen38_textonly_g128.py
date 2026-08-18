@@ -505,7 +505,9 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
         quantization["bits"] = MIXED_LOW_BITS
         quantization.update(
             {
-                key: quant_params(key, args.quant_recipe, num_layers)
+                # mlx-lm's class_predicate receives module paths, not the
+                # serialized `.weight` tensor paths used by qkeys.
+                key.removesuffix(".weight"): quant_params(key, args.quant_recipe, num_layers)
                 for key in sorted(qkeys)
             }
         )
