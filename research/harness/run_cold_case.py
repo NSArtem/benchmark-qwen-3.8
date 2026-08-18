@@ -148,6 +148,9 @@ def main() -> None:
     parser.add_argument("--quant-mode", default="affine")
     parser.add_argument("--quant-bits", type=int, default=3)
     parser.add_argument("--quant-group-size", type=int, default=64)
+    parser.add_argument("--kv-bits", type=int, default=None)
+    parser.add_argument("--kv-group-size", type=int, default=64)
+    parser.add_argument("--quantized-kv-start", type=int, default=0)
     parser.add_argument("--max-tokens", type=int, default=128)
     parser.add_argument("--prefill-step-size", type=int, default=2048)
     args = parser.parse_args()
@@ -184,6 +187,9 @@ def main() -> None:
             "bits": args.quant_bits,
             "group_size": args.quant_group_size,
         },
+        "kv_bits": args.kv_bits,
+        "kv_group_size": args.kv_group_size,
+        "quantized_kv_start": args.quantized_kv_start,
         "prompt_path": str(prompt_path),
         "prompt_sha256": hashlib.sha256(prompt_bytes).hexdigest(),
         "target_prompt_tokens": target_prompt_tokens,
@@ -242,6 +248,9 @@ def main() -> None:
             max_tokens=args.max_tokens,
             prefill_step_size=args.prefill_step_size,
             prompt_progress_callback=callback,
+            kv_bits=args.kv_bits,
+            kv_group_size=args.kv_group_size,
+            quantized_kv_start=args.quantized_kv_start,
         )
         result["memory_snapshots"].append(snapshot("before_generate_step", started))
         generated: list[int] = []
