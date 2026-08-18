@@ -1,0 +1,8 @@
+# Diagnosis
+
+The reported incident—completed renders reverting to "running" and duplicate jobs appearing on retry—stems from a combination of **non-atomic sequence allocation**, **missing idempotency enforcement in the worker**, and **stateful client reducers that do not respect monotonic ordering**.
+
+### Root Causes
+
+1.  **Non-Atomic Sequence Allocation (The "Ghost" Event):**
+    In `apps/worker/src/worker.ts`, the `processMessage` function commits the `job.started` event (transitioning the job to `running`) in a separate transaction from the `markSucceeded` call.

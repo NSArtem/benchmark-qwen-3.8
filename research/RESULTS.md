@@ -194,3 +194,23 @@ No run touched the wired limit, raised a Metal exception, or triggered a
 recorded safety stop. This establishes correctness through 4K, not a long-
 context recommendation; Phase 8 must measure the candidate's context
 envelope adaptively.
+
+## Phase 8 — g128 context envelope
+
+The adaptive cold ladder used the same realistic Lantern prompt family and
+the no-wired runtime. All probes generated 128 greedy tokens in fresh
+processes.
+
+| Case | Actual prompt tokens | Classification | TTFT (s) | Prompt tok/s | Decode tok/s | Peak GiB | After-completion active+cache GiB | OS free after |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| ~8K | 8,191 | COHERENT | 103.864 | 78.863 | 11.204 | 13.983 | 11.392 | 30% |
+| ~12K | 12,288 | COHERENT | 158.238 | 77.655 | 10.830 | 14.609 | 11.227 | 28% |
+| ~16K real coding prompt | 16,727 | COHERENT | 219.611 | 76.167 | 10.641 | 15.236 | 11.397 | 27% |
+
+The 16,727-token result is the largest fresh-process g128 probe and is
+materially below the existing 17.200 GB-decimal g64 real-prompt result. It
+remained coherent without Metal OOM, but its cold TTFT and increased swap
+make it a maximum cold-context result rather than a measured warm-chat
+recommendation. 20K/24K/32K probes were deliberately not started because
+the practical objective was already answered at a safer measured point and
+the additional synthetic exposure had low decision value.

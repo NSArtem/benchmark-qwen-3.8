@@ -1,13 +1,14 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 7 g128 correctness complete.
+Last updated: 2026-08-18, Phase 8 g128 16K probe passed.
 
 ## Current phase
 
-Phase 0 through Phase 6 are complete, and all three Phase 7 g128 correctness
-gates have passed. The bounded text-only affine 3-bit g128 conversion
-succeeded and passed header/index verification. Phase 8 adaptive context
-scaling is next. No MLX inference workload is running. Process inspection was
+Phase 0 through Phase 6 are complete, all three Phase 7 g128 correctness gates
+have passed, and the Phase 8 8K, 12K, and ~16K probes passed. The bounded
+text-only affine 3-bit g128 conversion succeeded and passed header/index
+verification. The measured g128 cold maximum is now 16,727 prompt tokens.
+No MLX inference workload is running. Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -150,6 +151,22 @@ observe through their command sessions.
   the next attempt exposed a tuple-vs-`GenerationResponse` collector mismatch.
   Both were corrected without changing model/runtime behavior. Neither is a
   model-quality or memory result.
+- `P8-G128-8192`: a fresh-process 8,191-token realistic coding prompt and 128
+  greedy output tokens were COHERENT. TTFT 103.864 s; prompt 78.863 tok/s;
+  decode 11.204 tok/s; peak 13.983 GiB; after-completion active+cache
+  11.392 GiB. System-wide free memory was 30% after the run; swap used was
+  139.75 MB; no exception or safety stop.
+- `P8-G128-12288`: a fresh-process 12,288-token realistic coding prompt and
+  128 greedy output tokens were COHERENT. TTFT 158.238 s; prompt 77.655
+  tok/s; decode 10.830 tok/s; peak 14.609 GiB; after-completion active+cache
+  11.227 GiB. System-wide free memory was 28% after the run; swap used was
+  139.75 MB; no exception or safety stop.
+- `P8-G128-16767`: the existing real Lantern coding prompt produced a
+  coherent 128-token response at an actual 16,727 prompt tokens (the runner's
+  16,767 target label is retained for provenance). TTFT 219.611 s; prompt
+  76.167 tok/s; decode 10.641 tok/s; peak 15.236 GiB; after-completion
+  active+cache 11.397 GiB. System-wide free memory was 27% after the run and
+  swap used was 326.19 MB. No exception or safety stop.
 
 ## Key measurements
 
@@ -209,6 +226,16 @@ observe through their command sessions.
   gate. Its 4K peak is 0.782 GiB below the measured g64 4K peak, matching the
   expected model-storage saving within allocator/runtime differences. Long
   context remains unmeasured for this candidate.
+- The g128 8K peak is 0.783 GiB below the measured g64 8,191-token peak
+  (14.766 GiB), matching the storage delta. The first long-context probe did
+  not show correctness degradation or an allocation failure.
+- The g128 12K peak is 0.783 GiB below the measured g64 12,288-token peak
+  (15.392 GiB), with coherent output and no allocation failure. The 16K probe
+  is the remaining adaptive context gate; larger probes are not automatic.
+- The g128 16,727-token peak was 15.236 GiB, materially below the existing
+  g64 real-prompt result of 17.200 GB decimal. It remained coherent, but the
+  long cold TTFT (219.6 s) and increased swap make this a maximum cold probe,
+  not yet a warm interactive recommendation.
 
 ## Current best configuration
 
@@ -243,10 +270,11 @@ not a comfortable recommendation.
 
 ## Next action
 
-Re-read `AGENTS.md`, `TASK.md`, and this file, then enter Phase 8. Run an
-adaptive g128 ladder starting at ~8K with 128-token cold probes; continue to
-~12K and ~16K only while output remains coherent, OS memory remains stable,
-and peak memory stays materially below the known 17+ GiB danger envelope.
+Phase 8's planned ladder is complete. Do not automatically start 20K/24K:
+the 16,727-token result already establishes a materially safer cold envelope,
+while larger synthetic probes would add memory exposure without improving the
+interactive recommendation. Re-read the governing files before Phase 9 KV8
+work.
 
 ## Safety notes
 
