@@ -1,11 +1,12 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 4 after P4-QUANT-SIZES.
+Last updated: 2026-08-18, Phase 5 gate before source download.
 
 ## Current phase
 
-Phase 0 through Phase 4 are complete. Phase 5 conversion-feasibility review is
-next. No heavy workload is running. Process inspection was
+Phase 0 through Phase 5 feasibility review are complete. The Phase 5 decision
+is `STREAMING_CONVERSION_REQUIRED`; Phase 6 bounded text-only g128 conversion
+is next. No heavy workload is running. Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -95,6 +96,16 @@ observe through their command sessions.
   The current index's 26,895,993,856 parameter count is reconciled after
   excluding 4,608 saved `A_log`/`dt_bias` buffer elements. No weight arrays
   were loaded.
+- `P5-CONVERT-FEAS`: exact baseline model-card provenance is
+  `Qwen/Qwen3.8-27B`; no suitable high-precision source is local. Read-only
+  source metadata reports 18 safetensor shards totaling 55,563,006,776 bytes.
+  Disk passes with 246 GiB free and a 106G HF cache. The pinned whole-model
+  converter is rejected as unbounded for an 18 GB conversion. An official
+  upstream chunked-conversion commit (`a0803664761e2c9c52ecbcb2bb012aff3e8eef06`)
+  was inspected; it requires a local adaptation for the source’s
+  `model.language_model.layers` paths and for stripping 333 vision plus MTP
+  tensors. Decision: `STREAMING_CONVERSION_REQUIRED`. Gate details are in
+  `research/conversion/phase5-gate.md`.
 
 ## Key measurements
 
@@ -132,6 +143,9 @@ observe through their command sessions.
   repeat. The adjacent-length peak differences were immaterial.
 - The known forced-wired OOM snapshot reached about 11.958 GiB active+cache in
   the direct test; the default path passed at the same prompt.
+- A bounded, layer-oriented converter should keep peak memory tied to one
+  Qwen3.8 layer plus output buffers, but this is an implementation hypothesis
+  until a source-backed conversion run measures it.
 
 ## Current best configuration
 
@@ -166,16 +180,17 @@ not a comfortable recommendation.
 
 ## Next action
 
-Re-read `AGENTS.md`, `TASK.md`, and this file, then enter Phase 5. Identify the
-exact source/base model from local metadata, inspect disk/cache headroom, and
-review the pinned conversion path for bounded-memory feasibility. Do not
-download source weights or start conversion until the source and disk gate is
-explicitly recorded.
+Re-read `AGENTS.md`, `TASK.md`, and this file, then enter Phase 6. Adapt and
+static-test a bounded text-only converter, download the exact source only after
+the recorded disk gate, and stop before conversion if the implementation
+cannot prove layer-bounded behavior.
 
 ## Safety notes
 
-- No system wired-memory setting was modified.
-- No model weights, source downloads, or conversions have been started.
+- No system wired-memory setting was modified. The Phase 5 gate was recorded
+  before any source download; source weights and conversion remain unstarted.
+- Do not run the pinned stock converter. Do not commit source or converted
+  model weights.
 - Do not use the older 0.32.0 environment.
 - `ps`/`pgrep` process checks are unavailable in the sandbox; do not infer that
   an external process is absent beyond the failed checks.

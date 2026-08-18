@@ -112,3 +112,31 @@ same runtime family but only modest savings; mixed_2_6 g128 is the strongest
 built-in memory/quality tradeoff to investigate if valid source weights are
 available; affine 2-bit g128 saves the most but should not be treated as a
 recommendation without quality testing.
+
+## Phase 5 — conversion-feasibility review
+
+The exact baseline model card identifies `Qwen/Qwen3.8-27B` as the source and
+states that the existing text-only checkpoint was converted with mlx-lm 0.31.2.
+The source is not local. Read-only Hugging Face metadata at revision
+`1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0` reports 18 safetensor shards totaling
+55,563,006,776 bytes (about 51.74 GiB). The source index contains 333 vision
+tensors and MTP tensors in addition to the text tower; its text layer keys are
+`model.language_model.layers.N.*`.
+
+The disk gate passes: `df -h` reported 246 GiB free and the existing HF cache is
+106G. Source plus the estimated 10.180 GiB g128 output remains within the
+project’s roughly 80 GiB free-space rule without deleting caches.
+
+The pinned mlx-lm converter was inspected but rejected for this machine without
+running it. Although it begins with lazy loading, it quantizes a complete model
+graph and `save_model` flattens all model parameters before output sharding. The
+current upstream source at commit
+`13425df69fdf066ed84d8f1bbdc8182a7576740d` has the same standard structure.
+Official upstream issue #876 and chunked-conversion commit
+`a0803664761e2c9c52ecbcb2bb012aff3e8eef06` document a layer-oriented streaming
+approach. That code is not in the pinned runtime and needs Qwen3.8 text-only
+adaptation, so the Phase 5 decision is:
+
+> **STREAMING_CONVERSION_REQUIRED**
+
+No source weights were downloaded and no conversion was started at this gate.
