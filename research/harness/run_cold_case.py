@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Fresh-process direct generate_step cold probe; never uses stream_generate."""
+"""Fresh-process cold probe through the repository's no-wired runtime."""
 
 from __future__ import annotations
 
 import argparse
 import hashlib
-import importlib
 import importlib.metadata as metadata
 import json
 import platform
@@ -21,9 +20,11 @@ import mlx.core as mx
 from mlx.utils import tree_flatten
 from mlx_lm import load
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from research.runtime.qwen38_runtime import stream_generate_no_wired
+
 
 MLX_LM_COMMIT = "254d153fdeb6f150edd4fc5a54f9828638481fa8"
-generate_module = importlib.import_module("mlx_lm.generate")
 
 
 def gib(value: int | None) -> float | None:
@@ -141,22 +142,35 @@ def main() -> None:
     parser.add_argument("--prompt-file", required=True)
     parser.add_argument("--result-file", required=True)
     parser.add_argument("--output-file", required=True)
+    parser.add_argument("--experiment-id", default=None)
+    parser.add_argument("--token-file", default=None)
+    parser.add_argument("--target-prompt-tokens", type=int, default=None)
+    parser.add_argument("--quant-mode", default="affine")
+    parser.add_argument("--quant-bits", type=int, default=3)
+    parser.add_argument("--quant-group-size", type=int, default=64)
     parser.add_argument("--max-tokens", type=int, default=128)
     parser.add_argument("--prefill-step-size", type=int, default=2048)
     args = parser.parse_args()
 
     started = time.perf_counter()
+    print(
+        "[qwen38-runtime] mlx-lm wired_limit wrapper disabled; "
+        "MLX wired state untouched",
+        file=sys.stderr,
+        flush=True,
+    )
     prompt_path = Path(args.prompt_file)
-    token_path = prompt_path.with_suffix(".tokens.json")
+    token_path = Path(args.token_file) if args.token_file else prompt_path.with_suffix(".tokens.json")
     output_path = Path(args.output_file)
     result_path = Path(args.result_file)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     result_path.parent.mkdir(parents=True, exist_ok=True)
     prompt_text = prompt_path.read_text(encoding="utf-8")
     prompt_bytes = prompt_path.read_bytes()
-    expected = json.loads(token_path.read_text(encoding="utf-8"))
+    expected = json.loads(token_path.read_text(encoding="utf-8")) if token_path.exists() else {}
+    target_prompt_tokens = expected.get("target_prompt_tokens", args.target_prompt_tokens)
     result: dict[str, Any] = {
-        "experiment_id": f"P1-G64-{expected['target_prompt_tokens']}",
+        "experiment_id": args.experiment_id or f"P1-G64-{target_prompt_tokens or 'custom'}",
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "git_commit": current_commit(),
         "python_version": platform.python_version(),
@@ -165,10 +179,14 @@ def main() -> None:
         "mlx_lm_metadata_version": metadata.version("mlx-lm"),
         "mlx_lm_revision": MLX_LM_COMMIT,
         "model_path": args.model_path,
-        "model_quantization": {"mode": "affine", "bits": 3, "group_size": 64},
+        "model_quantization": {
+            "mode": args.quant_mode,
+            "bits": args.quant_bits,
+            "group_size": args.quant_group_size,
+        },
         "prompt_path": str(prompt_path),
         "prompt_sha256": hashlib.sha256(prompt_bytes).hexdigest(),
-        "target_prompt_tokens": expected["target_prompt_tokens"],
+        "target_prompt_tokens": target_prompt_tokens,
         "prompt_tokens": None,
         "prefill_tokens": None,
         "generated_tokens": 0,
@@ -185,7 +203,7 @@ def main() -> None:
         "os_memory_after": None,
         "exception": None,
         "safety_stop_reason": None,
-        "wired_policy": "default/untouched; direct generate_step",
+        "wired_policy": "no-wired helper; MLX wired state untouched",
         "wired_limit_touched": False,
     }
     try:
@@ -197,8 +215,8 @@ def main() -> None:
         result["model_nbytes"] = model_bytes(model)
         result["memory_snapshots"].append(snapshot("after_model_materialization", started))
         raw_ids, chat = prompt_ids(tokenizer, prompt_text)
-        expected_ids = [int(value) for value in expected["tokens"]]
-        if chat != expected_ids:
+        expected_ids = expected.get("tokens")
+        if expected_ids is not None and chat != [int(value) for value in expected_ids]:
             raise RuntimeError("prompt tokenization differs from saved token IDs")
         result["prompt_tokens"] = len(chat)
         result["prefill_tokens"] = len(chat) - 1
@@ -217,9 +235,10 @@ def main() -> None:
                 }
             )
 
-        generator = generate_module.generate_step(
-            mx.array(chat),
+        generator = stream_generate_no_wired(
             model,
+            tokenizer,
+            mx.array(chat),
             max_tokens=args.max_tokens,
             prefill_step_size=args.prefill_step_size,
             prompt_progress_callback=callback,
@@ -227,8 +246,8 @@ def main() -> None:
         result["memory_snapshots"].append(snapshot("before_generate_step", started))
         generated: list[int] = []
         first_token_time: float | None = None
-        for token, _logprobs in generator:
-            generated.append(int(token))
+        for response in generator:
+            generated.append(int(response.token))
             if first_token_time is None:
                 first_token_time = time.perf_counter()
                 result["memory_snapshots"].append(snapshot("after_prefill_first_token", started))

@@ -1,0 +1,9 @@
+As a Game Master, I’ve seen plenty of dungeons that fail not because of bad monsters, but because of bad design. In the OSR (Old School Renaissance) spirit, we value player agency and mechanical clarity over narrative hand-holding.
+
+Here are three core principles for building a dungeon that actually works:
+
+**1. The "Key and Lock" Economy**
+Every room should have a purpose, and every purpose should have a cost. Avoid the "linear hallway" trap where players just walk from Room A to Room B. Instead, design interdependencies. If they want the treasure in Room 3, they must first solve the puzzle in Room 2. If they want to bypass the trap in Room 2, they need the key from Room 1. This creates a web of choices, forcing players to weigh risk against reward. A good OSR dungeon is a system of interlocking gears, not a straight line.
+
+**2. The "Unknown Unknown" (Player Discovery)**
+Do not tell the players what they are about to find. In modern TTRPGs, it’s common to describe a room in detail before the players enter it. In OSR, the fun is in the discovery. Describe the *sensory* experience

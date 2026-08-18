@@ -1,12 +1,13 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 6 g128 conversion verified.
+Last updated: 2026-08-18, Phase 7 g128 short gate passed.
 
 ## Current phase
 
-Phase 0 through Phase 6 are complete. The bounded text-only affine 3-bit g128
-conversion succeeded and passed header/index verification. Phase 7 correctness
-validation is next. No MLX inference workload is running. Process inspection was
+Phase 0 through Phase 6 are complete, and the g128 short correctness gate has
+passed. The bounded text-only affine 3-bit g128 conversion succeeded and passed
+header/index verification. The ~768 and 4K g128 gates remain. No MLX inference
+workload is running. Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -127,6 +128,17 @@ observe through their command sessions.
   GiB; maximum process RSS was 3.436 GiB. The completion memory-pressure
   snapshot reported 92% system-wide free memory. Output remains untracked at
   `/private/tmp/qwen38-g128-mlx`; no model weights are committed.
+- `P7-G128-SHORT`: the converted source-backed affine 3-bit g128 model loaded
+  at 10.180602 GiB active MLX memory and produced 256 greedy tokens from the
+  33-token short control. Output is COHERENT; TTFT 1.066 s; prompt 30.972
+  tok/s; decode 11.947 tok/s; peak 10.505 GiB; after-completion active+cache
+  10.418 GiB. No exception or safety stop. Raw output, token IDs, and
+  telemetry are under `research/g128-correctness/`.
+- `P7-HARNESS-FIXES`: the first g128 launch stopped before useful generation
+  because the cold harness imported the runtime from the wrong script path;
+  the next attempt exposed a tuple-vs-`GenerationResponse` collector mismatch.
+  Both were corrected without changing model/runtime behavior. Neither is a
+  model-quality or memory result.
 
 ## Key measurements
 
@@ -175,6 +187,10 @@ observe through their command sessions.
 - The source-backed streaming path is empirically memory-safe for conversion
   on this machine. This says nothing yet about g128 inference correctness or
   long-context behavior.
+- The source-backed g128 candidate is coherent on the short control and its
+  measured materialized model size is 10.1806 GiB, consistent with the exact
+  10.1800 GiB tensor-payload estimate. The remaining correctness gates must
+  establish whether this survives coding prompts and longer context.
 
 ## Current best configuration
 
@@ -209,11 +225,10 @@ not a comfortable recommendation.
 
 ## Next action
 
-Re-read `AGENTS.md`, `TASK.md`, and this file, then enter Phase 7. In fresh
-processes, use the no-wired runtime to test the converted g128 at a short
-control, ~768 tokens, and the 4K realistic coding prompt, generating 256
-tokens each. Compare correctness and model-load memory with the g64 baseline;
-do not run long-context g128 until all three gates pass.
+Run the remaining Phase 7 fresh-process g128 gates at the existing 768-token
+alignment prompt and the 4,096-token Lantern coding prompt, generating 256
+greedy tokens each. Compare correctness and memory with the g64 baseline; do
+not run long-context g128 until both pass.
 
 ## Safety notes
 
