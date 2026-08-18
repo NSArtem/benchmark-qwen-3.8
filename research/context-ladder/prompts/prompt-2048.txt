@@ -1,0 +1,237 @@
+# Lantern repository context
+
+You are acting as a coding agent inside the fictional Lantern monorepo. Lantern is a small
+multi-tenant job orchestration service used by a design-rendering company. A user submits a
+render job, the API writes the job and an outbox record in PostgreSQL, a worker claims the job
+from Redis, and the worker emits lifecycle events. The web dashboard consumes a compact event
+stream over server-sent events (SSE). The repository is deliberately incomplete below: these
+are the relevant excerpts from a checkout at commit `7b91e1a`.
+
+The service is written in TypeScript with strict mode enabled. API requests may be retried by a
+client, workers may crash and restart, and the same event may be delivered more than once. The
+intended invariants are:
+
+* a job has one logical state machine: queued -> running -> succeeded or failed, with cancelled
+  allowed from queued or running;
+* state transitions are monotonic in the event sequence, and a late event must never make a
+  terminal job appear active again;
+* every mutation carrying an idempotency key returns the same result on a retry;
+* the outbox row and the corresponding state change commit atomically;
+* the dashboard may reconnect with `Last-Event-ID` and must receive a coherent replay;
+* a worker lease can expire, but only the current lease holder may publish a completion event;
+* tenant data must never be read across tenant boundaries.
+
+## Repository map
+
+```text
+apps/
+  api/src/main.ts
+  api/src/routes/jobs.ts
+  api/src/routes/events.ts
+  api/src/application/job-service.ts
+  api/src/domain/job.ts
+  api/src/infra/postgres/job-repository.ts
+  api/src/infra/postgres/outbox-repository.ts
+  api/src/infra/redis/job-queue.ts
+  api/src/infra/redis/lease-store.ts
+  worker/src/worker.ts
+  worker/src/events/outbox-publisher.ts
+  worker/src/render/render-engine.ts
+  web/src/dashboard/job-row.tsx
+packages/
+  events/src/job-events.ts
+  events/src/event-store.ts
+  queue/src/lease.ts
+  shared/src/idempotency.ts
+  shared/src/clock.ts
+  shared/src/errors.ts
+  config/src/index.ts
+db/migrations/004_job_events.sql
+db/migrations/005_job_idempotency.sql
+```
+
+## Architecture notes
+
+The API and workers run in separate processes but share the same PostgreSQL database. The
+`job_events` table is the durable ordering source. Its `tenant_id, job_id, sequence` key is
+unique, and `sequence` is allocated by the job row's `next_event_sequence` field while holding
+the job row lock. The outbox publisher sends committed event payloads to Redis Streams. The API
+SSE route reads the durable table for replay, then tails Redis for low latency. A browser can
+disconnect between those two phases, so the route uses an event id encoded as `job_id:sequence`.
+
+The current production issue is reported as: “after a flaky network retry, a completed render
+occasionally returns to running in the dashboard, and a second retry sometimes creates a second
+render.” The incident is most common when an API request times out after committing and a worker
+finishes at nearly the same time. The task at the end asks you to diagnose this from the excerpts.
+
+## `package.json`
+
+```json
+{
+  "name": "lantern",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "build": "turbo run build",
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.ts",
+    "lint": "eslint .",
+    "dev:api": "tsx apps/api/src/main.ts",
+    "dev:worker": "tsx apps/worker/src/worker.ts"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^9.4.0",
+    "@fastify/cors": "^10.0.2",
+    "@fastify/sse": "^0.1.1",
+    "fastify": "^5.2.1",
+    "ioredis": "^5.4.1",
+    "pg": "^8.13.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "vitest": "^2.1.8"
+  }
+}
+```
+
+## `packages/shared/src/clock.ts` and `errors.ts`
+
+```ts
+export interface Clock {
+  now(): Date;
+}
+
+export class SystemClock implements Clock {
+  now(): Date {
+    return new Date();
+  }
+}
+
+export class FixedClock implements Clock {
+  constructor(private readonly instant: Date) {}
+  now(): Date {
+    return new Date(this.instant);
+  }
+}
+```
+
+```ts
+export class DomainError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly statusCode = 400,
+  ) {
+    super(message);
+    this.name = "DomainError";
+  }
+}
+
+export class NotFoundError extends DomainError {
+  constructor(resource: string) {
+    super(`${resource} was not found`, "not_found", 404);
+  }
+}
+
+export class ConflictError extends DomainError {
+  constructor(message: string, code = "conflict") {
+    super(message, code, 409);
+  }
+}
+
+export class LeaseLostError extends DomainError {
+  constructor() {
+    super("worker lease is no longer owned", "lease_lost", 409);
+  }
+}
+```
+
+## `packages/shared/src/idempotency.ts`
+
+```ts
+import { createHash } from "node:crypto";
+
+export interface IdempotencyRecord {
+  tenantId: string;
+  key: string;
+  requestHash: string;
+  statusCode: number;
+  responseBody: unknown;
+  createdAt: Date;
+}
+
+export function hashRequest(body: unknown): string {
+  return createHash("sha256")
+    .update(JSON.stringify(body, Object.keys(body as object).sort()))
+    .digest("hex");
+}
+
+export function normalizeIdempotencyKey(raw: string | undefined): string | null {
+  if (!raw) return null;
+  const key = raw.trim();
+  if (key.length === 0 || key.length > 200) return null;
+  return key;
+}
+```
+
+## `packages/events/src/job-events.ts`
+
+```ts
+import { z } from "zod";
+
+export const JobState = z.enum([
+  "queued",
+  "running",
+  "succeeded",
+  "failed",
+  "cancelled",
+]);
+export type JobState = z.infer<typeof JobState>;
+
+const BaseEvent = z.object({
+  eventId: z.string(),
+  tenantId: z.string().uuid(),
+  jobId: z.string().uuid(),
+  sequence: z.number().int().positive(),
+  occurredAt: z.string().datetime(),
+});
+
+export const JobQueued = BaseEvent.extend({
+  type: z.literal("job.queued"),
+  state: z.literal("queued"),
+  payload: z.object({ inputUri: z.string(), renderer: z.string() }),
+});
+
+export const JobStarted = BaseEvent.extend({
+  type: z.literal("job.started"),
+  state: z.literal("running"),
+  payload: z.object({ workerId: z.string(), leaseId: z.string() }),
+});
+
+export const JobProgress = BaseEvent.extend({
+  type: z.literal("job.progress"),
+  state: z.literal("running"),
+  payload: z.object({ completed: z.number().int().nonnegative
+
+## Task
+
+Diagnose the incident and propose a minimal, production-quality refactor. Trace the relevant
+interleavings through the API transaction, worker transaction, outbox publisher, SSE replay,
+and browser reducer. Identify every invariant that the current excerpts violate. Then provide
+an implementation-oriented answer with the smallest set of file changes needed to ensure that:
+
+1. concurrent identical `POST /v1/jobs` requests with one tenant and one idempotency key create
+   exactly one job and return the same response;
+2. a terminal job cannot be reopened by a delayed or duplicated event in either the durable
+   projection or the browser;
+3. event sequence allocation and the job projection remain atomic, including worker progress and
+   completion;
+4. a worker that loses its lease cannot publish a successful completion;
+5. SSE replay and live delivery do not produce a visible regression or a permanent gap.
+
+Include concrete TypeScript/SQL patches or focused pseudocode for the critical methods, and add
+tests for the two races described above. Call out any behavior that should be handled as a
+separate follow-up instead of being smuggled into the minimal fix. Keep the response focused on
+this repository and task; do not invent a new messaging platform.

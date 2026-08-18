@@ -19,13 +19,18 @@ not interchangeable with the larger coding prompt. The 16,767 row is retained
 without duplication because the task explicitly supplies it as existing
 evidence. Missing cells are intentionally blank, not estimates.
 
+Phase 1 prompt manifest: `research/context-ladder/prompt-manifest.json`.
+The exact requested 1,024 and 8,192 counts were not reachable at a character
+boundary without artificial padding; the saved natural prefixes are 1,023 and
+8,191 tokens.
+
 | Target | Actual prompt tokens | Classification | TTFT s | Prompt tok/s | Decode tok/s | Generated tokens | Active GiB | Cache GiB | Active+cache GiB | MLX peak GiB | OS memory | Exception / stability |
 | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| ~1K | — | — | — | — | — | — | — | — | — | — | — | — |
-| ~2K | — | — | — | — | — | — | — | — | — | — | — | — |
-| ~4K | — | — | — | — | — | — | — | — | — | — | — | — |
-| ~8K | — | — | — | — | — | — | — | — | — | — | — | — |
-| ~12K | — | — | — | — | — | — | — | — | — | — | — | — |
+| ~1K | 1,023 | COHERENT | 13.352 | 76.615 | 11.112 | 128 | 11.201 | 0.189 | 11.389 | 12.860 | 28% free; 41.69 MB swap after | no exception; stable |
+| ~2K | 2,048 | COHERENT | 25.671 | 79.780 | 11.002 | 128 | 11.304 | 0.095 | 11.399 | 13.824 | 26% free; 41.69 MB swap after | no exception; stable |
+| ~4K | 4,096 | COHERENT | 51.383 | 79.715 | 10.858 | 128 | 11.449 | 0.000 | 11.449 | 14.142 | 25% free; 41.69 MB swap after | no exception; stable |
+| ~8K | 8,191 | COHERENT | 104.330 | 78.511 | 10.415 | 128 | 11.634 | 0.000 | 11.634 | 14.766 | 24% free; 41.69 MB swap after | no exception; stable |
+| ~12K | 12,288 | COHERENT | 160.908 | 76.366 | 7.734 | 128 | 11.997 | 0.050 | 12.047 | 15.392 | 24% free; 235.75 MB swap after | no exception; stable |
 | ~16K | 16,767 | COHERENT (policy-summary) |  — | 63.348 | 4.118 | 256 | — | — | — | 17.200 | no OOM reported; raw OS telemetry unavailable | Existing manual run; do not duplicate solely for evidence |
 
 ## Reuse conclusions
@@ -34,5 +39,10 @@ evidence. Missing cells are intentionally blank, not estimates.
   result in the saved 0.32.1 experiment.
 - The forced stock wired-limit policy is a distinct failure mechanism from the
   default-wired direct path; it must not be used by subsequent experiments.
+- The fresh cold g64 ladder is coherent through 12,288 prompt tokens. Peak
+  memory reached 15.392 GiB there, while the separate 16,767-token policy run
+  reached 17.200 GB; this ledger therefore treats 12,288 as the largest
+  directly measured memory-safe point and does not recommend the 16.8K point
+  for routine use.
 - Older `qwen38-3bit-mlx-rescue/` and `qwen38-3bit-textonly/` reports used MLX
   0.32.0 and are not valid current-baseline rows.

@@ -1,0 +1,75 @@
+{
+  "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+  "records": [
+    {
+      "actual_prompt_tokens": 1023,
+      "chat_template": "apply_chat_template(add_generation_prompt=true, enable_thinking=false)",
+      "main_prefill_tokens": 1022,
+      "prompt_file": "research/context-ladder/prompts/prompt-1024.txt",
+      "prompt_sha256": "56f745eb7e18b0e0a9bd9a5bf760a5a2a0efbb1c6f67a37114b58a235690e8cf",
+      "raw_prompt_tokens": 1012,
+      "raw_text_length": 4443,
+      "source_cut_character": 3169,
+      "target_prompt_tokens": 1024,
+      "token_file": "research/context-ladder/prompts/prompt-1024.tokens.json"
+    },
+    {
+      "actual_prompt_tokens": 2048,
+      "chat_template": "apply_chat_template(add_generation_prompt=true, enable_thinking=false)",
+      "main_prefill_tokens": 2047,
+      "prompt_file": "research/context-ladder/prompts/prompt-2048.txt",
+      "prompt_sha256": "fcf091225af55b8b6d6c216b79dd9e4e23b8cb8b729b94130b6b31adb164261e",
+      "raw_prompt_tokens": 2037,
+      "raw_text_length": 7676,
+      "source_cut_character": 6399,
+      "target_prompt_tokens": 2048,
+      "token_file": "research/context-ladder/prompts/prompt-2048.tokens.json"
+    },
+    {
+      "actual_prompt_tokens": 4096,
+      "chat_template": "apply_chat_template(add_generation_prompt=true, enable_thinking=false)",
+      "main_prefill_tokens": 4095,
+      "prompt_file": "research/context-ladder/prompts/prompt-4096.txt",
+      "prompt_sha256": "ed38c182ce4cbef206fe381724ac6794a89146cfc79c7de7b06132a878aad5c4",
+      "raw_prompt_tokens": 4085,
+      "raw_text_length": 14776,
+      "source_cut_character": 13500,
+      "target_prompt_tokens": 4096,
+      "token_file": "research/context-ladder/prompts/prompt-4096.tokens.json"
+    },
+    {
+      "actual_prompt_tokens": 8191,
+      "chat_template": "apply_chat_template(add_generation_prompt=true, enable_thinking=false)",
+      "main_prefill_tokens": 8190,
+      "prompt_file": "research/context-ladder/prompts/prompt-8192.txt",
+      "prompt_sha256": "6880143f65b1160bdccca8ec594454473c6549be6ea7a4f0f8cfa7b90237fffb",
+      "raw_prompt_tokens": 8180,
+      "raw_text_length": 29875,
+      "source_cut_character": 28601,
+      "target_prompt_tokens": 8192,
+      "token_file": "research/context-ladder/prompts/prompt-8192.tokens.json"
+    },
+    {
+      "actual_prompt_tokens": 12288,
+      "chat_template": "apply_chat_template(add_generation_prompt=true, enable_thinking=false)",
+      "main_prefill_tokens": 12287,
+      "prompt_file": "research/context-ladder/prompts/prompt-12288.txt",
+      "prompt_sha256": "0f608e86b213e15d56f9a5bacacfcb45fd3d356b5e2467f22c3acd96a1030476",
+      "raw_prompt_tokens": 12277,
+      "raw_text_length": 44465,
+      "source_cut_character": 43189,
+      "target_prompt_tokens": 12288,
+      "token_file": "research/context-ladder/prompts/prompt-12288.tokens.json"
+    }
+  ],
+  "source": "coding_prompt.md",
+  "source_sha256": "67dcccb037993b679c5593073bbc1875ad61541827a6fc3bb6720410b8096903",
+  "source_transformation": "same compact Lantern reduction as qwen38-mlx0321-alignment",
+  "targets": [
+    1024,
+    2048,
+    4096,
+    8192,
+    12288
+  ]
+}
