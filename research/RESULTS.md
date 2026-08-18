@@ -140,3 +140,15 @@ adaptation, so the Phase 5 decision is:
 > **STREAMING_CONVERSION_REQUIRED**
 
 No source weights were downloaded and no conversion was started at this gate.
+
+## Phase 6 — bounded converter self-test
+
+`research/harness/convert_qwen38_textonly_g128.py` was compiled and run with
+the pinned MLX 0.32.1 environment before any source download. The self-test
+found exactly 498 quantizable modules in the text-only baseline, planned a
+non-layer chunk followed by 64 transformer-layer chunks, and verified the
+`model.language_model.*` to `language_model.model.*` mapping plus `lm_head`
+mapping. A full-attention norm-only chunk preserved the pinned Qwen3.5
+sanitization rule by shifting a test value from 1.0 to 2.0. The tool contains
+no wired-limit setter call. This proves only the static planning/sanitization
+path; source-backed integrity, conversion time, and peak memory remain open.

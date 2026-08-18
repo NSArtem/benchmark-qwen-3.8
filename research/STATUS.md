@@ -1,12 +1,13 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 5 gate before source download.
+Last updated: 2026-08-18, Phase 6 converter self-test before source download.
 
 ## Current phase
 
-Phase 0 through Phase 5 feasibility review are complete. The Phase 5 decision
-is `STREAMING_CONVERSION_REQUIRED`; Phase 6 bounded text-only g128 conversion
-is next. No heavy workload is running. Process inspection was
+Phase 0 through Phase 5 feasibility review are complete. Phase 6 bounded
+text-only g128 conversion is in progress. The converter self-test passed, but
+the 55.6 GB source download has not started. No heavy workload is running.
+Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -106,6 +107,11 @@ observe through their command sessions.
   `model.language_model.layers` paths and for stripping 333 vision plus MTP
   tensors. Decision: `STREAMING_CONVERSION_REQUIRED`. Gate details are in
   `research/conversion/phase5-gate.md`.
+- `P6-CONVERTER-SELFTEST`: the local bounded converter found exactly 498
+  quantizable text modules, planned the non-layer chunk plus 64 transformer
+  layer chunks, verified source-to-MLX key mapping, preserved the pinned
+  global norm shift on a full-attention chunk (`1.0` to `2.0`), and made zero
+  wired-policy calls. No source arrays were loaded. Tool commit: `c12bace`.
 
 ## Key measurements
 
@@ -146,6 +152,8 @@ observe through their command sessions.
 - A bounded, layer-oriented converter should keep peak memory tied to one
   Qwen3.8 layer plus output buffers, but this is an implementation hypothesis
   until a source-backed conversion run measures it.
+- The self-test confirms the planned layer boundaries and sanitization logic;
+  source-backed output integrity and peak memory remain unmeasured.
 
 ## Current best configuration
 
@@ -180,15 +188,16 @@ not a comfortable recommendation.
 
 ## Next action
 
-Re-read `AGENTS.md`, `TASK.md`, and this file, then enter Phase 6. Adapt and
-static-test a bounded text-only converter, download the exact source only after
-the recorded disk gate, and stop before conversion if the implementation
-cannot prove layer-bounded behavior.
+Re-read `AGENTS.md`, `TASK.md`, and this file, then download the exact pinned
+`Qwen/Qwen3.8-27B` source snapshot using the recorded disk gate. Verify the
+downloaded revision and source headers before starting the fresh-process
+bounded conversion. Do not run the stock converter.
 
 ## Safety notes
 
-- No system wired-memory setting was modified. The Phase 5 gate was recorded
-  before any source download; source weights and conversion remain unstarted.
+- No system wired-memory setting was modified. The Phase 5 gate and Phase 6
+  converter self-test were completed before any source download; source
+  weights and conversion remain unstarted.
 - Do not run the pinned stock converter. Do not commit source or converted
   model weights.
 - Do not use the older 0.32.0 environment.
