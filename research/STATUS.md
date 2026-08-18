@@ -1,15 +1,16 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 9 KV8 study complete.
+Last updated: 2026-08-18, Phase 10 mixed predicate self-test passed.
 
 ## Current phase
 
-Phase 0 through Phase 8 are complete: all three Phase 7 g128 correctness gates
+Phase 0 through Phase 9 are complete: all three Phase 7 g128 correctness gates
 passed, the Phase 8 8K/12K/~16K probes passed, and the Phase 9 original-g64
 KV8 plus g128+KV8 probes are complete. The bounded text-only affine 3-bit
 g128 conversion succeeded and passed header/index verification. KV8 is
-rejected as a practical lever. No MLX inference workload is running. Process
-inspection was
+rejected as a practical lever. Phase 10's mixed_2_6 predicate self-test passed;
+source-backed conversion and short correctness gates remain. No MLX inference
+workload is running. Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -188,6 +189,11 @@ observe through their command sessions.
   was 0.231 GiB lower but decode was about 7.0% slower; TTFT was effectively
   unchanged. System-wide free memory was 31% after the run; swap used was
   294.19 MB; no exception or safety stop.
+- `P10-MIXED-SELFTEST`: the bounded converter's pinned-recipe adaptation split
+  exactly 498 text quantization modules into 457 two-bit and 41 six-bit
+  modules at group128, matching the Phase 4 mixed_2_6 estimate. The static
+  chunk plan, Qwen sanitization, and zero wired-policy calls also passed. No
+  source arrays were loaded and no model was converted at this gate.
 
 ## Key measurements
 
@@ -299,15 +305,18 @@ not a comfortable recommendation.
 - Persistent prompt caching may reduce incremental prefill latency, but its
   usefulness and memory growth are unmeasured here.
 - Larger-group quantization may save model memory, but quality/runtime support
-  and a valid high-precision source path are unresolved.
+  and a valid high-precision source path are unresolved. The mixed_2_6
+  predicate adaptation is now statically verified; source-backed quality is
+  still unknown.
 
 ## Next action
 
 Phase 8's planned ladder is complete. Do not automatically start 20K/24K:
 the 16,727-token result already establishes a materially safer cold envelope,
 while larger synthetic probes would add memory exposure without improving the
-interactive recommendation. Re-read the governing files before the optional
-Phase 10 candidate decision.
+interactive recommendation. Run one bounded source-backed mixed_2_6 g128
+conversion, verify output headers/config, then test only short, 768, and 4K
+correctness gates. Reject quickly on any degraded/broken result.
 
 ## Safety notes
 

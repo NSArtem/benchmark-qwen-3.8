@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Bounded-memory Qwen3.8 text-only affine 3-bit g128 conversion.
+"""Bounded-memory Qwen3.8 text-only g128 conversion.
 
 This is intentionally narrower than mlx-lm's general converter.  It handles
 the exact Qwen/Qwen3.8-27B source layout and the existing text-only MLX model:
 source tensors are loaded one transformer layer at a time, sanitized with the
 pinned Qwen3.5 implementation, quantized, and flushed to small safetensor
-shards.  It must run in the canonical MLX environment.
+shards. It supports the primary affine 3-bit g128 candidate and one explicitly
+selected mixed_2_6 g128 candidate. It must run in the canonical MLX environment.
 
 No model arrays are loaded by --self-test.  The converter never changes the
 MLX wired-memory policy.
@@ -35,6 +36,8 @@ from mlx_lm.utils import _get_classes
 
 DEFAULT_GROUP_SIZE = 128
 DEFAULT_BITS = 3
+MIXED_LOW_BITS = 2
+MIXED_HIGH_BITS = 6
 DEFAULT_SHARD_BYTES = 512 * (1 << 20)
 SENTINEL_FRAGMENT = "__qwen38_chunk_sentinel__"
 LAYER_RE = re.compile(r"^model\.language_model\.layers\.(\d+)\.")
@@ -97,6 +100,43 @@ def output_key(source_key: str) -> str:
             "model.language_model", "language_model.model", 1
         )
     return f"language_model.{source_key}"
+
+
+def mixed_2_6_params(path: str, num_layers: int = 64) -> dict[str, Any]:
+    """Match pinned mlx-lm mixed_quant_predicate_builder('mixed_2_6')."""
+
+    if "lm_head" in path:
+        use_more_bits = True
+    else:
+        match = re.search(r"\.layers\.(\d+)\.", path)
+        index = int(match.group(1)) if match else 0
+        use_more_bits = (
+            index < num_layers // 8
+            or index >= 7 * num_layers // 8
+            or (index - num_layers // 8) % 3 == 2
+        )
+    high = use_more_bits and (
+        "v_proj" in path
+        or "v_a_proj" in path
+        or "v_b_proj" in path
+        or "down_proj" in path
+        or "lm_head" in path
+    )
+    return {
+        "group_size": DEFAULT_GROUP_SIZE,
+        "bits": MIXED_HIGH_BITS if high else MIXED_LOW_BITS,
+        "mode": "affine",
+    }
+
+
+def quant_params(path: str, recipe: str, num_layers: int) -> dict[str, Any]:
+    if recipe == "mixed_2_6":
+        return mixed_2_6_params(path, num_layers)
+    return {
+        "group_size": DEFAULT_GROUP_SIZE,
+        "bits": DEFAULT_BITS,
+        "mode": "affine",
+    }
 
 
 def memory_snapshot(stage: str, elapsed_seconds: float) -> dict[str, Any]:
@@ -208,6 +248,12 @@ def self_test(baseline: Path) -> dict[str, Any]:
     if abs(shifted_value - 2.0) > 0.01:
         raise AssertionError(f"global norm shift was not preserved: {shifted_value}")
 
+    mixed_counts = {2: 0, 6: 0}
+    for key in qkeys:
+        mixed_counts[mixed_2_6_params(key)["bits"]] += 1
+    if mixed_counts != {2: 457, 6: 41}:
+        raise AssertionError(f"unexpected mixed_2_6 module counts: {mixed_counts}")
+
     return {
         "model_type": config.get("model_type"),
         "architecture": config.get("architectures"),
@@ -215,6 +261,7 @@ def self_test(baseline: Path) -> dict[str, Any]:
         "text_only_quantization_keys": True,
         "chunk_plan_test": [layer for layer, _ in chunks],
         "global_norm_shift_test": shifted_value,
+        "mixed_2_6_module_counts": mixed_counts,
         "wired_limit_calls": 0,
     }
 
@@ -341,6 +388,9 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
     chunks = plan_chunks(weight_map)
     target_dtype = mx.bfloat16
     cast_predicate = getattr(model, "cast_predicate", lambda _: True)
+    text_config = config.get("text_config", config)
+    num_layers = int(text_config.get("num_hidden_layers", 64))
+    quantization_counts = {"2": 0, "3": 0, "6": 0}
     output_map: dict[str, str] = {}
     shard_weights: dict[str, Any] = {}
     shard_bytes = 0
@@ -370,14 +420,19 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
                 weight = weight.astype(target_dtype)
 
             if key in qkeys:
-                if weight.ndim < 2 or weight.shape[-1] % DEFAULT_GROUP_SIZE:
-                    raise ValueError(f"invalid g128 quantization shape for {key}: {weight.shape}")
+                params = quant_params(key, args.quant_recipe, num_layers)
+                if weight.ndim < 2 or weight.shape[-1] % params["group_size"]:
+                    raise ValueError(
+                        f"invalid g128 quantization shape for {key}: {weight.shape}"
+                    )
                 quantized, scales, biases = mx.quantize(
                     weight,
-                    group_size=DEFAULT_GROUP_SIZE,
-                    bits=DEFAULT_BITS,
+                    group_size=params["group_size"],
+                    bits=params["bits"],
+                    mode=params["mode"],
                 )
                 mx.eval(quantized, scales, biases)
+                quantization_counts[str(params["bits"])] += 1
                 outputs = {
                     key: quantized,
                     key.replace(".weight", ".scales"): scales,
@@ -446,8 +501,16 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
         "bits": DEFAULT_BITS,
         "mode": "affine",
     }
+    if args.quant_recipe == "mixed_2_6":
+        quantization["bits"] = MIXED_LOW_BITS
+        quantization.update(
+            {
+                key: quant_params(key, args.quant_recipe, num_layers)
+                for key in sorted(qkeys)
+            }
+        )
     output_config["quantization"] = quantization
-    output_config["quantization_config"] = quantization
+    output_config["quantization_config"] = copy.deepcopy(quantization)
     with (output / "config.json").open("w", encoding="utf-8") as stream:
         json.dump(dict(sorted(output_config.items())), stream, indent=4)
 
@@ -471,6 +534,8 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
         "output_gib": round(total_size / (1 << 30), 6),
         "output_tensor_count": len(output_map),
         "output_parameter_count": index["metadata"]["total_parameters"],
+        "quant_recipe": args.quant_recipe,
+        "quantization_counts": quantization_counts,
         **memory_snapshot("complete", time.monotonic() - started),
         "os": os_snapshot(),
     }
@@ -493,6 +558,12 @@ def main() -> None:
         type=int,
         default=DEFAULT_SHARD_BYTES,
         help="output shard target; default 512 MiB",
+    )
+    parser.add_argument(
+        "--quant-recipe",
+        choices=("affine_3_g128", "mixed_2_6"),
+        default="affine_3_g128",
+        help="g128 recipe; mixed_2_6 mirrors pinned mlx-lm's built-in predicate",
     )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
