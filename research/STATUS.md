@@ -1,6 +1,6 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 10 corrected mixed artifact passed integrity.
+Last updated: 2026-08-18, Phase 10 mixed candidate rejected.
 
 ## Current phase
 
@@ -11,8 +11,11 @@ g128 conversion succeeded and passed header/index verification. KV8 is
 rejected as a practical lever. Phase 10's mixed_2_6 predicate self-test and
 source-backed conversion passed; the first load attempt found and preserved a
 converter metadata-path bug before generation, and the corrected rebuild now
-passes config and header/index integrity. Short correctness gates remain. No
-MLX inference workload is running. Process inspection was
+passes config and header/index integrity. The corrected candidate loaded, but
+its first 256-token short output was manually classified BROKEN for
+pathological repetition; the one fresh repeat reproduced the identical token
+hash and loop. The candidate is rejected and no 768/4K or long-context gates
+will run. No MLX inference workload is running. Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -216,6 +219,18 @@ observe through their command sessions.
   converter peak. The corrected config has zero `.weight` suffix entries;
   all 1,847 index keys match safetensor headers. The candidate remains
   untracked at `/private/tmp/qwen38-mixed26-g128-mlx-fixed`.
+- `P10-MIXED-SHORT-FIXED`: the corrected candidate loaded at 8.9893 GiB
+  active memory and completed 256 tokens without OOM. The harness reported
+  `COHERENT`, but manual inspection found the answer repeated the same
+  sentence/pathological substring throughout, so the authoritative project
+  classification is `BROKEN`. TTFT was 1.026 s, prompt throughput 32.173
+  tok/s, decode 12.895 tok/s, peak 9.330 GiB, and system-wide free memory was
+  40% after the run. The raw output and token IDs are preserved under
+  `research/mixed26-correctness/`.
+- `P10-MIXED-SHORT-REPEAT`: the required fresh-process repeat reproduced the
+  same `05a91786aa064bdcb8bb3589938cebeff61f487270c9b2acd9c84097b124f623`
+  256-token hash and the same pathological sentence loop. It is therefore
+  `BROKEN`; no 768/4K or long-context mixed tests were justified.
 
 ## Key measurements
 
@@ -323,6 +338,8 @@ not a comfortable recommendation.
 - Original g64 + KV8 and g128 + KV8: coherent, but rejected because the
   measured 8K peak saving was only 0.231 GiB while decode slowed 5.3% and
   7.0%, respectively.
+- Corrected mixed_2_6 g128: rejected after identical pathological repetition
+  in two fresh short runs, despite successful load and stable memory.
 
 ## Current hypotheses
 
@@ -334,16 +351,18 @@ not a comfortable recommendation.
 - Larger-group quantization may save model memory, but quality/runtime support
   and a valid high-precision source path are unresolved. The mixed_2_6
   predicate is statically verified and the corrected source-backed artifact is
-  structurally valid. Source-backed quality is still unknown.
+  structurally valid, but this source-backed mixed policy is not usable on the
+  short control because it deterministically loops.
 
 ## Next action
 
 Phase 8's planned ladder is complete. Do not automatically start 20K/24K:
 the 16,727-token result already establishes a materially safer cold envelope,
 while larger synthetic probes would add memory exposure without improving the
-interactive recommendation. Load the corrected mixed artifact through the
-no-wired runtime, then test only short, 768, and 4K correctness gates. Reject
-quickly on any degraded/broken result.
+interactive recommendation. Phase 10 is closed as a negative result. Re-read
+the governing files before Phase 11/12, consolidate only measured candidates,
+and produce the final report plus exact no-wired runtime commands. Do not
+rerun the rejected mixed candidate or its skipped context gates.
 
 ## Safety notes
 
