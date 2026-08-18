@@ -1,10 +1,10 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 10 mixed candidate rejected.
+Last updated: 2026-08-18, Phase 12 final report drafted.
 
 ## Current phase
 
-Phase 0 through Phase 9 are complete: all three Phase 7 g128 correctness gates
+Phase 0 through Phase 10 are complete: all three Phase 7 g128 correctness gates
 passed, the Phase 8 8K/12K/~16K probes passed, and the Phase 9 original-g64
 KV8 plus g128+KV8 probes are complete. The bounded text-only affine 3-bit
 g128 conversion succeeded and passed header/index verification. KV8 is
@@ -277,34 +277,31 @@ observe through their command sessions.
   is no longer source-blocked; its next gate is bounded conversion memory and
   output integrity.
 - The source-backed streaming path is empirically memory-safe for conversion
-  on this machine. This says nothing yet about g128 inference correctness or
-  long-context behavior.
-- The source-backed g128 candidate is coherent on the short control and its
-  measured materialized model size is 10.1806 GiB, consistent with the exact
-  10.1800 GiB tensor-payload estimate. The remaining correctness gates must
-  establish whether this survives coding prompts and longer context.
+  on this machine. Affine g128 inference is also coherent through the tested
+  16,727-token cold probe; warm-cache behavior remains unmeasured.
+- The source-backed g128 candidate is coherent on the short control, coding
+  prompts, and longer context. Its measured materialized model size is
+  10.1806 GiB, consistent with the exact 10.1800 GiB tensor-payload estimate.
 - The source-backed g128 candidate is also coherent at 768 tokens, with a
   measured 11.678 GiB cold peak. This is below the g64 12.459 GiB peak from
   the adjacent 769-token alignment evidence.
 - The source-backed g128 candidate is coherent through the required 4K coding
   gate. Its 4K peak is 0.782 GiB below the measured g64 4K peak, matching the
-  expected model-storage saving within allocator/runtime differences. Long
-  context remains unmeasured for this candidate.
+  expected model-storage saving within allocator/runtime differences.
 - The g128 8K peak is 0.783 GiB below the measured g64 8,191-token peak
   (14.766 GiB), matching the storage delta. The first long-context probe did
   not show correctness degradation or an allocation failure.
 - The g128 12K peak is 0.783 GiB below the measured g64 12,288-token peak
-  (15.392 GiB), with coherent output and no allocation failure. The 16K probe
-  is the remaining adaptive context gate; larger probes are not automatic.
+  (15.392 GiB), and the 16,727-token adaptive probe also remained coherent
+  without allocation failure. Larger probes were intentionally not started.
 - The g128 16,727-token peak was 15.236 GiB, materially below the existing
   g64 real-prompt result of 17.200 GB decimal. It remained coherent, but the
   long cold TTFT (219.6 s) and increased swap make this a maximum cold probe,
   not yet a warm interactive recommendation.
-- The source-backed mixed_2_6 g128 artifact is structurally valid and matches
-  the 8.988921 GiB header estimate. Its source quality and inference behavior
-  are still unknown until the corrected metadata artifact passes the
-  short/768/4K gates. The first metadata-only artifact is not a valid runtime
-  candidate; use the corrected path.
+- The corrected source-backed mixed_2_6 g128 artifact is structurally valid
+  and matches the 8.988921 GiB header estimate, but two fresh short runs
+  produced an identical pathological loop. It is rejected; its skipped 768/4K
+  and long-context gates are not evidence of quality.
 - The first KV8 isolation result is coherent and has a small 4K peak saving,
   but not yet a meaningful practical improvement. Because only the 16
   full-attention layers have KVCache objects, an 8K probe is needed before
@@ -346,8 +343,9 @@ not a comfortable recommendation.
 - The 0.32.1 stock OOM is a wired-residency/accounting interaction: the
   forced recommended limit changes the cache-state evaluation allocation path,
   while default wired state can pass.
-- Persistent prompt caching may reduce incremental prefill latency, but its
-  usefulness and memory growth are unmeasured here.
+- Persistent prompt caching is measured EXCELLENT at 4K and 8K, with
+  sub-1.21-second follow-up TTFT, roughly 10.65–11.02 tok/s decode, and no
+  material cache growth.
 - Larger-group quantization may save model memory, but quality/runtime support
   and a valid high-precision source path are unresolved. The mixed_2_6
   predicate is statically verified and the corrected source-backed artifact is
@@ -359,10 +357,10 @@ not a comfortable recommendation.
 Phase 8's planned ladder is complete. Do not automatically start 20K/24K:
 the 16,727-token result already establishes a materially safer cold envelope,
 while larger synthetic probes would add memory exposure without improving the
-interactive recommendation. Phase 10 is closed as a negative result. Re-read
-the governing files before Phase 11/12, consolidate only measured candidates,
-and produce the final report plus exact no-wired runtime commands. Do not
-rerun the rejected mixed candidate or its skipped context gates.
+interactive recommendation. Phase 10 is closed as a negative result. Phase
+11/12 comparison and exact no-wired command documentation are recorded in
+`research/FINAL_REPORT.md`. Do not rerun the rejected mixed candidate or its
+skipped context gates.
 
 ## Safety notes
 

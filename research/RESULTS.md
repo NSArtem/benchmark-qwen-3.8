@@ -236,3 +236,41 @@ KV8 preserved correctness and left TTFT essentially unchanged, but its
 measured memory savings were small and its decode penalty increased with the
 tested context. It is rejected for the practical recommendation; no 12K/16K
 KV8 matrix was run.
+
+## Phase 10 — optional mixed_2_6 g128 candidate
+
+The optional second candidate was selected because Phase 4 estimated a larger
+18.00% storage saving than affine 3-bit g128. The bounded converter's static
+predicate matched the pinned recipe exactly: 457 two-bit and 41 six-bit text
+modules, all at group128. One source-backed conversion from the exact
+`Qwen/Qwen3.8-27B` revision completed without OOM in 23.527 seconds and
+produced a 9,651,780,608-byte (8.988921 GiB) payload in 17 shards. A first
+load attempt exposed a converter metadata bug: the per-module keys included
+`.weight`, while pinned mlx-lm's class predicate expects module paths. That
+artifact was not treated as an inference result.
+
+The converter was corrected and the same candidate was rebuilt once. The fixed
+artifact has the same payload and bit split, zero `.weight` metadata suffixes,
+and all 1,847 index keys match safetensor headers. It loaded in MLX 0.32.1 at
+8.9893 GiB active memory and completed two fresh 256-token short runs without
+allocation failure. Both runs produced the identical token hash
+`05a91786aa064bdcb8bb3589938cebeff61f487270c9b2acd9c84097b124f623` and a
+pathological repeated sentence loop. Although the harness's simple classifier
+said `COHERENT`, manual project classification is `BROKEN`. The candidate was
+rejected and its 768-token, 4K, and long-context gates were intentionally
+skipped.
+
+## Phase 11/12 closing comparison
+
+| Configuration | Stored model | Coherent context evidence | Representative cold result | Warm result | Decision |
+| --- | ---: | --- | --- | --- | --- |
+| affine 3-bit g64, no-wired | 10.963 GiB | fresh 12,288; policy-summary 16,767 | 4K: 51.383 s TTFT, 79.715 prompt tok/s, 10.858 decode tok/s, 14.142 GiB peak | 4K/8K follow-ups: 0.7–1.2 s TTFT, 10.65–11.02 tok/s | **best practical**; recommend 8K warm context |
+| affine 3-bit g64 + KV8 | 10.963 GiB | coherent at 4,096 and 8,191 | 8K: 104.621 s, 78.292 prompt tok/s, 9.862 decode tok/s, 14.535 GiB peak | not measured | reject: only 0.231 GiB saved, slower decode |
+| affine 3-bit g128, no-wired | 10.180 GiB | fresh 16,727; coherent through all tested gates | 4K: 51.272 s TTFT, 79.888 prompt tok/s, 11.614 decode tok/s, 13.360 GiB peak | not measured | best cold-context candidate; warm suitability unresolved |
+| affine 3-bit g128 + KV8 | 10.180 GiB | coherent at 8,191 | 8K: 104.235 s, 78.582 prompt tok/s, 10.417 decode tok/s, 13.752 GiB peak | not measured | reject: same 0.231 GiB saving, slower decode |
+| mixed_2_6 g128, no-wired | 8.989 GiB | short only; deterministic loop | short: 0.9–1.0 s TTFT, 9.330 GiB peak | not measured | **reject**: BROKEN output |
+
+The normal user-facing commands are in `research/FINAL_REPORT.md` and use
+`research/runtime/qwen38_runtime.py`; the helper directly uses pinned
+`generate_step`, preserves the persistent chat cache, prints the no-wired
+startup line, and never calls `mx.set_wired_limit()`.

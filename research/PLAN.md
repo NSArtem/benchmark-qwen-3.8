@@ -60,3 +60,16 @@ instead of rerun when their evidence satisfies the question.
 - Do not download source weights or convert until disk/source/conversion
   feasibility is measured.
 - Treat 17+ GB MLX peak as a conservative danger boundary on this 18 GB Mac.
+
+## Completion state
+
+Phases 0–9 completed with the saved baseline, no-wired helper, warm-cache
+measurements, exact quantization estimates, bounded source conversion, affine
+g128 context envelope, and KV8 decision gates. Phase 10 completed as a
+negative optional branch: the source-backed mixed_2_6 g128 artifact was fixed
+for pinned loader metadata compatibility, then rejected after identical
+pathological short-output loops in two fresh processes. Phases 11–12 are
+documentation-only: compare measured candidates, retain g64 no-wired as the
+interactive winner, document g128 as the best cold-context candidate, and
+write `research/FINAL_REPORT.md`. No further heavy inference is planned in
+this task.
