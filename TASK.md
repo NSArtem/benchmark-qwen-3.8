@@ -1,767 +1,729 @@
-# Evening Task — Maximize Practical Qwen3.8-27B MLX Context on 18 GB M3 Pro
+# Night 2 Task — Fix Qwen3.8 Persistent Chat Correctness and Validate g128 Interactive Runtime
 
 ## Mission
 
-Continue the Qwen3.8 investigation autonomously for an extended unattended run.
+Continue the Qwen3.8 MLX investigation autonomously overnight.
 
-Primary question:
+The previous run successfully produced a source-backed affine 3-bit/group-128
+checkpoint with ~0.783 GiB lower model payload and coherent cold generation
+through ~16.7K.
 
-> How far can we improve practical, correctness-safe Qwen3.8-27B context on
-> this 18 GB M3 Pro using MLX 0.32.1?
+However, post-run inspection found a serious correctness problem in the prior
+8K persistent-cache chat benchmark:
 
-The immediate baseline is the existing affine 3-bit / group-size-64 model.
+> turn 2 generated exactly the first 64 generated tokens of turn 1,
+> token-for-token, despite a different follow-up query.
 
-The long-term target is an interactive coding-agent runtime with substantially
-more usable context than the current near-memory-limit ~16K result.
+Therefore the highest-value objective is now:
 
-This task is deliberately multi-phase.
+> determine why persistent multi-turn cache can replay stale output, build a
+> correctness-safe chat protocol, and then validate the g128 model as a real
+> interactive runtime.
 
-DO NOT blindly execute every phase.
+Do not spend the night generating additional weight quants.
 
-Use the decision gates below.
-
-Re-read AGENTS.md before starting.
+Do not treat low TTFT as success unless follow-up semantics are correct.
 
 ---
 
-# Phase 0 — Recover State and Build Research Ledger
+# Phase 0 — Recover state, preserve g128, and create Night-2 ledger
 
 Start with:
 
     git status
     git log --oneline -15
 
-Inspect existing Qwen3.8 experiment directories and reports.
+Read completely:
 
-Specifically look for recent results covering:
-
-- MLX 0.32.1 OOM localization;
-- 512/513, 640/641, 768/769 alignment experiment;
-- context scaling;
-- the Lantern coding prompt;
-- any currently-running benchmark started before this task.
-
-Do not rerun an experiment merely because this TASK mentions it.
-
-If an existing artifact already answers a question with sufficient raw evidence,
-reuse it and cite the artifact in the research report.
-
-Create/update:
-
-    research/PLAN.md
+    AGENTS.md
+    TASK.md
+    research/FINAL_REPORT.md
     research/STATUS.md
-    research/RESULTS.md
-    research/results.jsonl
+    research/runtime/qwen38_runtime.py
+    research/harness/run_warm_conversation.py
 
-PLAN.md should translate this TASK into concrete commands and experiment IDs.
+Inspect raw prior warm artifacts:
 
-STATUS.md must contain:
+    research/warm-cache/
+    research/warm-cache-8k/
 
-    Current phase
-    Completed experiments
-    Key measurements
-    Current best configuration
-    Failed/rejected configurations
-    Current hypotheses
-    Next action
-    Safety notes
+Confirm programmatically that the old 8K turn-2 token sequence equals the first
+64 turn-1 tokens. Record the exact hashes and overlap.
 
-Inspect processes before launching a heavy test.
+Do not alter the raw historical files.
 
-Do not overlap large Qwen MLX workloads.
+Create:
 
-Commit the research scaffolding if appropriate.
+    research/night2/PLAN.md
+    research/night2/STATUS.md
+    research/night2/RESULTS.md
+    research/night2/results.jsonl
+
+The first STATUS entry must explicitly record that the old P3-WARM8K
+`EXCELLENT` correctness conclusion is superseded/invalid pending revalidation.
+
+## Preserve the g128 checkpoint
+
+Expected previous temporary path:
+
+    /private/tmp/qwen38-g128-mlx
+
+Choose a persistent untracked location, preferably:
+
+    ~/models/Qwen3.8-27B-3bit-g128-MLX
+
+Rules:
+
+1. If the persistent path already exists, verify it rather than overwriting.
+2. If only the temporary path exists, move or copy it to the persistent path
+   and verify config/index/shard integrity.
+3. If neither exists but the high-precision source remains local, regenerate
+   g128 with the existing bounded converter into the persistent path.
+4. If the source is also unavailable, record the blocker and continue cache
+   diagnosis with g64.
+5. Never commit model weights.
+
+Verification should include:
+
+    quantization mode/bits/group_size
+    shard count
+    tensor/index key agreement
+    payload size approximately 10.180 GiB
+
+Record the final g128 path in:
+
+    research/night2/STATUS.md
+
+Do not delete the high-precision source or unrelated caches.
 
 ---
 
-# Phase 1 — Consolidate Current Baseline
+# Phase 1 — Correct the research record
 
-The baseline configuration is:
+Do not rewrite history silently.
 
-    Qwen3.8-27B
-    current 3-bit affine group-64 checkpoint
-    MLX 0.32.1
-    mlx-lm pinned revision
-    default wired state / NO forced wired limit
+Create:
 
-Before running anything expensive, consolidate all existing baseline evidence
-into a single table.
+    research/night2/ERRATA.md
 
-Desired context points:
+Document:
 
-    ~1K
-    ~2K
+- old report claim: 8K persistent cache = EXCELLENT;
+- raw evidence: turn 2 repeats first 64 tokens of turn 1 exactly;
+- corrected interpretation: performance numbers are real, correctness result is
+  invalid;
+- 4K did not show exact replay but still requires the new oracle;
+- g128 warm behavior was never established.
+
+If useful, add a short clearly labeled erratum note to the top or bottom of the
+existing `research/FINAL_REPORT.md`, pointing to `research/night2/ERRATA.md`.
+Do not delete or alter old raw measurements.
+
+Commit this correction separately if clean.
+
+Suggested commit:
+
+    docs: correct Qwen3.8 warm-cache conclusion
+
+---
+
+# Phase 2 — Build a protocol-aware cache correctness harness
+
+The old heuristic classifier is insufficient.
+
+Build a new harness under:
+
+    research/night2/harness/
+
+It must be able to run one initial large user prompt and at least two strongly
+different follow-ups.
+
+For each turn save:
+
+    query text/hash
+    query token IDs
+    prompt-fragment token IDs
+    generated token IDs
+    generated token SHA256
+    raw text
+    first-64-token overlap with every previous answer
+    longest common prefix with previous answers
+    n-gram replay metrics
+    timing
+    memory
+    cache diagnostics
+
+Use deterministic greedy generation.
+
+The harness must implement THREE execution modes.
+
+## Mode A — current persistent incremental protocol
+
+Reproduce the current `NoWiredChat` behavior:
+
+    one persistent prompt_cache
+    each turn passes the freshly chat-templated user fragment
+
+This is the suspect path.
+
+## Mode B — exact-token concatenation fresh oracle
+
+For turn N, reconstruct in a completely fresh process the exact token sequence
+that Mode A logically claims is represented by its cache:
+
+    prior prompt fragment tokens
+    + prior generated token IDs
+    + next prompt fragment tokens
+    ...
+
+Then generate from scratch.
+
+Do not rely on decoded/re-encoded assistant text for this oracle when exact
+previous generated token IDs are available.
+
+Purpose:
+
+- if A != B, persistent cache state is not equivalent to replaying its supposed
+  token stream;
+- suspect cache/runtime implementation.
+
+## Mode C — full-transcript fresh chat oracle
+
+Maintain logical messages:
+
+    user
+    assistant
+    user
+    assistant
+    ...
+
+Serialize the full conversation with the model's actual chat template and run
+fresh generation.
+
+Purpose:
+
+- if B is wrong/replays but C responds correctly, the incremental turn
+  serialization/protocol is wrong even if cache mechanics are internally
+  consistent.
+
+Save all three outputs side-by-side.
+
+## Strong follow-up prompts
+
+Follow-ups should be intentionally distinguishable.
+
+Example structure:
+
+Turn 1:
+    diagnose the Lantern incident
+
+Turn 2:
+    answer ONLY which single database invariant should be enforced first
+
+Turn 3:
+    answer ONLY with one focused regression test and its expected failure
+
+Avoid vague prompts where repeating a diagnosis could plausibly appear relevant.
+
+## Acceptance signals
+
+A follow-up is BROKEN if any of the following occurs:
+
+- inappropriate exact replay of a prior answer;
+- >=90% prefix-token overlap with prior answer without semantic justification;
+- ignores the new task and repeats stale content;
+- token soup / pathological loop.
+
+Do not classify grammatical replay as COHERENT.
+
+---
+
+# Phase 3 — Reproduce and locate the cache failure boundary
+
+First use g64 so the historical result is directly comparable.
+
+Run sequentially, fresh process per conversation session:
+
+    ~4K initial prompt
+    ~6K initial prompt
+    ~7K initial prompt
+    ~8K initial prompt
+
+You may reuse/derive the existing Lantern prompt family.
+
+Do not run all modes for every point if early results already reveal the
+failure class. Start with Mode A, then run B/C at the first clearly failing
+length and one known-passing length.
+
+Initial output:
+
+    96 or 128 tokens
+
+Follow-ups:
+
+    48 or 64 tokens
+
+Enough output must be generated to detect replay.
+
+## Boundary questions
+
+Determine:
+
+1. Is replay reproducible at 8K?
+2. Does it begin sharply between 4K and 8K?
+3. Does it depend on exact prompt length?
+4. Does it depend on number of generated tokens in turn 1?
+5. Does it depend on prefill_step_size?
+
+Only if useful, at the first failing length test:
+
+    prefill_step_size = 2048
+    prefill_step_size = 1024
+
+Do not sweep many chunk sizes.
+
+If 8K replay does NOT reproduce, repeat once and inspect whether the previous
+harness itself constructed turn state incorrectly.
+
+## Decision gate
+
+Classify the problem as one of:
+
+A. CACHE_STATE_BUG
+    persistent Mode A differs materially from exact-token fresh Mode B
+
+B. INCREMENTAL_PROTOCOL_BUG
+    A approximately matches B, but both are wrong vs full-transcript Mode C
+
+C. BOTH
+
+D. HARNESS_BUG
+    corrected reproduction shows prior test construction was invalid
+
+E. UNRESOLVED
+
+Do not proceed as if fixed until one classification has evidence.
+
+---
+
+# Phase 4 — Inspect hybrid cache internals
+
+The model uses a hybrid cache with recurrent and attention layers.
+
+Instrument cache state around the failing and passing cases.
+
+For every layer record compact metadata, not giant tensor dumps:
+
+    layer index
+    cache class
+    offset / logical position when available
+    state tensor shapes
+    state dtypes
+    state nbytes
+    trimmable status
+    small deterministic state signatures/checksums when safe
+
+Expected rough split from prior work:
+
+    48 ArraysCache
+    16 KVCache
+
+Capture at least:
+
+    after cache creation
+    after initial prompt prefill
+    after initial generation
+    immediately before follow-up prefill
+    after follow-up prompt processing
+    after first follow-up generated token
+
+Do not copy entire multi-GiB states to CPU just to hash them.
+Use small slices/scalars/statistics where appropriate.
+
+Check whether any cache layer:
+
+- resets unexpectedly;
+- stops advancing;
+- wraps/clamps at a suspicious boundary;
+- has offsets inconsistent with other layers;
+- changes state when it should not;
+- fails to change when it should;
+- receives duplicated special/BOS/control tokens in the incremental protocol.
+
+Also inspect the exact token boundary between:
+
+    turn-1 prompt
+    generated answer
+    turn-2 fragment
+
+Print token IDs and decoded special tokens around the join.
+
+This is important: a cache may be mechanically correct while the concatenated
+turn token stream is semantically invalid.
+
+---
+
+# Phase 5 — Upstream source/issue investigation
+
+Use primary sources only.
+
+Compare pinned mlx-lm revision against current upstream for relevant files,
+including at minimum:
+
+    mlx_lm/generate.py
+    mlx_lm/chat.py
+    mlx_lm/models/cache.py (or equivalent)
+    Qwen3.5/Qwen3.8 model/cache implementation
+
+Search official MLX/mlx-lm issues and PRs for:
+
+    Qwen3.5 hybrid cache
+    Qwen3.8 cache
+    ArraysCache
+    GatedDelta / recurrent cache
+    long conversation
+    prompt_cache
+    chat cache
+    cache offset
+    repeated output / stale output
+
+Record exact issue/PR/commit references in:
+
+    research/night2/upstream.md
+
+Do not upgrade the canonical environment.
+
+If current upstream contains a plausible relevant fix:
+
+1. identify the minimal code delta;
+2. explain why it matches the observed failure;
+3. test it in an isolated local patch/helper or disposable environment;
+4. do not mutate canonical env files silently.
+
+If no upstream fix exists, say so and continue locally.
+
+---
+
+# Phase 6 — Implement a correctness-safe chat path
+
+Do not merely hide the replay with sampling.
+
+The implementation depends on Phase-3 diagnosis.
+
+Possible solution classes include:
+
+1. corrected incremental token framing;
+2. correct boundary/control-token processing between assistant and next user;
+3. cache-state fix adapted from upstream;
+4. transcript-aware cache reuse;
+5. full-transcript re-prefill fallback when safe reuse cannot be guaranteed.
+
+Prefer the smallest correctness-preserving change.
+
+Do not optimize before correctness.
+
+## Required modes
+
+The user-facing runtime should eventually expose at least:
+
+    chat-safe
+
+and, only if proven correct:
+
+    chat-fast
+
+`chat-safe` may sacrifice warm TTFT if necessary, but it must implement true
+logical conversation semantics.
+
+`chat-fast` may use persistent reuse only after passing the oracle tests.
+
+If the existing `chat` command is fixed, keep backward compatibility where
+reasonable.
+
+## Acceptance tests
+
+At minimum the fixed/recommended chat path must pass:
+
+    g64 ~4K, 3 follow-ups
+    g64 ~8K, 3 follow-ups
+
+with:
+
+- no stale replay;
+- responses relevant to each current follow-up;
+- two independent fresh session repeats at the formerly failing ~8K case;
+- protocol-aware comparison against Mode B and Mode C;
+- saved token IDs and hashes.
+
+If persistent cache reuse cannot be made correct, do NOT call it solved.
+Ship/document the safe fallback and preserve the unresolved fast-cache bug.
+
+Commit a correct runtime fix separately.
+
+Suggested commit:
+
+    fix: make Qwen3.8 multi-turn cache semantics safe
+
+---
+
+# Phase 7 — Validate g128 as an interactive model
+
+Only enter after a correctness-safe chat path exists.
+
+Use the persistent g128 model path established in Phase 0.
+
+Do NOT regenerate the quant unless needed.
+
+Run adaptive warm-conversation validation:
+
     ~4K
     ~8K
     ~12K
+
+If all are correct and stable, test:
+
     ~16K
 
-For each point, collect where available:
+Use the same strong follow-up set and correctness oracles.
 
-    actual prompt tokens
-    classification
+Measure per turn:
+
+    actual prompt/new-token counts
     TTFT
-    prompt tok/s
+    prompt tok/s where meaningful
     decode tok/s
-    generated-token count
     active memory
     cache memory
-    active + cache
-    MLX peak
-    OS-level memory
-    exception
-    system-instability observation
+    active+cache
+    peak GiB
+    OS memory pressure/swap snapshot
 
-IMPORTANT:
+Compare against g64 at matching useful points.
 
-A manual real-world run already demonstrated:
+## Recommendation gate
 
-    16767 tokens
-    63.348 prompt tok/s
-    4.118 generation tok/s
-    256 generated tokens
-    17.200 GB MLX peak
-    coherent output
-    no Metal OOM
+Determine separately:
 
-Do NOT repeat this ~16.8K run solely to duplicate evidence.
+    largest correctness-safe warm context
+    largest memory-safe warm context
+    recommended practical warm context
 
-If a context-scale experiment already ran while this task was being prepared,
-inspect its artifacts first.
+Do not automatically choose the largest.
 
-Only fill missing baseline points when useful.
-
-For new cold tests:
-
-    direct generate_step
-    default wired state
-    greedy
-    prefill_step_size = 2048
-    fresh process
-    max_tokens = 128
-
-Do not use the stock forced wired-limit wrapper.
-
-### Phase 1 decision
-
-At the end report:
-
-    largest coherent tested context
-    largest memory-safe tested context
-    empirical memory-growth curve
-    TTFT curve
-    decode curve
-
-Then continue to Phase 2.
+A 16K initial cold TTFT of several minutes may still be acceptable for a coding
+agent if subsequent turns are fast and correct, but state this tradeoff rather
+than hiding it.
 
 ---
 
-# Phase 2 — Build a Canonical No-Wired Runtime Helper
+# Phase 8 — Verify g128 quality delta vs g64
 
-We currently use ad-hoc monkey patches to disable mlx-lm's wired-limit context.
+The current evidence proves g128 is coherent; it does not quantify subtle
+quality loss from doubling group size.
 
-Create a SMALL reusable local runtime helper so later experiments cannot
-accidentally return to the problematic stock behavior.
+Build a small objective comparison that does NOT require loading g64 and g128
+simultaneously.
 
-Goals:
+Preferred method:
 
-1. preserve as much stock mlx-lm behavior as possible;
-2. override ONLY the wired-limit policy;
-3. make the override obvious in logs;
-4. keep the pinned environment unchanged.
+- use a held-out text/coding corpus already available in the repo or create a
+  small deterministic non-secret corpus;
+- calculate teacher-forced average negative log-likelihood / perplexity for
+  g64 and g128 in separate fresh processes;
+- use bounded chunks/cache so logits do not create unsafe memory spikes;
+- compare the same exact token sequence.
 
-Useful entry points may include:
+Also optionally record next-token top-1 agreement / target-token logprob on a
+small set of sampled positions.
 
-    generate_no_wired
-    chat_no_wired
+Do not use an LLM-as-judge as the only quality metric.
 
-or equivalent small Python wrappers.
+If implementing perplexity safely becomes disproportionately complex, use a
+small deterministic task suite with objectively checkable answers and explain
+the limitation.
 
-Do not monkey-patch MLX itself.
+Decision:
 
-Do not call mx.set_wired_limit().
+    g128 quality delta negligible / small / material / unresolved
 
-For generate, support:
-
-    model
-    prompt / stdin
-    max tokens
-    temperature
-    normal chat template
-    optional KV-cache arguments if the pinned API supports them
-
-For chat, preserve persistent prompt_cache behavior.
-
-Add a startup line similar to:
-
-    [qwen38-runtime] mlx-lm wired_limit wrapper disabled; MLX wired state untouched
-
-Validate with a SHORT prompt first.
-
-Then validate with a moderate realistic prompt, not ~16K.
-
-Record the exact command users should run.
-
-Do not overengineer a package.
-
-Commit the helper separately if clean.
+This phase should not endanger the machine.
 
 ---
 
-# Phase 3 — Measure Warm / Interactive Performance
+# Phase 9 — Recheck g128 performance advantage
 
-This phase matters greatly.
+Prior cold results suggest g128 may decode faster than g64 in addition to using
+less memory, especially at 8K/12K, but those were not repeated for performance
+statistics.
 
-The user observed that interactive MLX chat felt much faster than cold
-large-context generation.
+If time permits after cache correctness:
 
-Test whether persistent prompt-cache use provides a practically good
-interactive experience.
+Run controlled fresh-process repeats at:
 
-Do NOT start with 16K.
+    4K
+    8K
 
-Use a realistic coding-agent conversation.
-
-Suggested initial context:
-
-    ~4K
-
-If safe and informative, also:
-
-    ~8K
-
-Only use ~12K if memory measurements justify it.
-
-Do not use ~16K for this phase unless there is an exceptional reason.
-
-Test a scripted multi-turn conversation:
-
-    Turn 1:
-        substantial repository context / coding task
-
-    Turn 2:
-        short follow-up referring to previous answer/context
-
-    Turn 3:
-        another realistic short follow-up
-
-    Turn 4:
-        another realistic follow-up if still useful
-
-The prompt cache must persist between turns.
-
-Use the no-wired runtime.
-
-Measure separately:
-
-    initial cold TTFT
-    initial prefill tok/s
-    initial decode tok/s
-
-    turn-2 incremental TTFT
-    turn-2 newly processed tokens if measurable
-    turn-2 decode tok/s
-
-    turn-3 incremental TTFT
-    turn-3 decode tok/s
-
-    memory growth after each turn
-
-Save outputs.
-
-Determine whether the previously perceived ~high interactive generation speed
-is reproducible.
-
-Do not assume it is.
-
-### Phase 3 decision
-
-Classify interactive behavior as one of:
-
-    EXCELLENT
-    USEFUL
-    MARGINAL
-    UNUSABLE
-
-based on measured latency, decode speed, correctness and memory.
-
-Record this before moving on.
-
----
-
-# Phase 4 — Exact Quantization Size Study
-
-Do NOT convert a model yet.
-
-First determine precisely what memory we can plausibly save.
-
-Inspect the current checkpoint's architecture, tensor shapes and quantization
-configuration.
-
-Build a small analysis tool if needed.
-
-Calculate as accurately as practical the expected stored/model parameter size
 for:
 
-A. current baseline
+    g64
+    g128
 
-    affine
-    3-bit
-    group size 64
+Two measured runs per model/length are enough.
 
-B. candidate 1
+Keep:
 
-    affine
-    3-bit
-    group size 128
-
-C. uniform lower precision control
-
-    affine
-    2-bit
-    group size 128
-
-D. built-in mixed candidate
-
-    mixed_2_6
-    group size 64
-
-E. built-in mixed candidate
-
-    mixed_2_6
-    group size 128
-
-F. optionally one custom mixed candidate if clearly justified
-
-Account for:
-
-- packed quantized weights;
-- scales;
-- affine biases/zero-point equivalent metadata;
-- non-quantized tensors;
-- tensors whose dimensions prevent a proposed group size;
-- lm_head / embedding behavior;
-- model-specific quantization predicate behavior.
-
-Use actual model tensor shapes rather than simply multiplying 27B by a nominal
-bits-per-weight number.
-
-Report:
-
-    effective bits per weight
-    expected bytes
-    expected GiB
-    savings vs current
-    percentage saved
-
-Also estimate first-order context headroom implied by the Phase-1 empirical
-memory-growth curve.
-
-Do not claim quality based on size.
-
-### Candidate ranking
-
-Rank candidates by:
-
-    expected memory saving
-    likely quality risk
-    conversion complexity
-    runtime support risk
-
-Candidate 1 should normally remain 3-bit g128 unless measurements reveal a
-reason not to use it.
-
-Continue to conversion feasibility only after this analysis.
-
----
-
-# Phase 5 — Investigate Conversion Feasibility BEFORE Downloading
-
-We may need original/high-precision weights to make a valid new quant.
-
-Identify the exact source/base model of the current checkpoint using:
-
-- local config;
-- local README/model metadata if available;
-- model card metadata if network access is available.
-
-Do NOT guess.
-
-Determine whether suitable source weights are already local.
-
-Record their location if present.
-
-If not local, determine expected download size.
-
-Check:
-
-    df -h
-    available local disk
-    existing HF cache size
-
-Conservative project rule:
-
-Do not begin a ~50+ GB source-model download unless there is at least roughly
-80 GiB of genuinely free disk available after accounting for the intended
-output and temporary files.
-
-This is a project safety margin, not an MLX guarantee.
-
-Do not delete unrelated caches to manufacture free space.
-
-## Inspect conversion paths
-
-Inspect the pinned mlx-lm conversion implementation.
-
-Also inspect current upstream mlx-lm conversion/chunking work if network access
-is available, but DO NOT upgrade the canonical inference environment.
-
-Determine whether:
-
-1. stock pinned convert is realistically safe on 18 GB;
-2. an upstream streaming/chunked conversion implementation can be adapted;
-3. a small local streaming converter is necessary.
-
-Do not simply launch stock full conversion to discover its memory behavior by
-OOM.
-
-Prefer bounded-memory conversion.
-
-Important:
-
-A valid g128 candidate should be produced from appropriate high-precision
-source weights.
-
-Do not re-quantize the existing 3-bit checkpoint and silently present that as
-equivalent.
-
-### Phase 5 decision
-
-Choose one:
-
-    CONVERSION_SAFE
-    STREAMING_CONVERSION_REQUIRED
-    BLOCKED_BY_SOURCE
-    BLOCKED_BY_DISK
-    BLOCKED_BY_RUNTIME
-
-Record evidence.
-
-If blocked, skip to Phase 8 and do useful KV-cache work instead.
-
----
-
-# Phase 6 — Produce 3-bit Affine g128 Candidate
-
-Only enter this phase if Phase 5 establishes a safe path.
-
-Primary candidate:
-
-    affine
-    bits = 3
-    group_size = 128
-
-Do not change unrelated quantization parameters.
-
-Prefer original/high-precision source weights.
-
-Use a bounded-memory conversion method if standard conversion has unacceptable
-peak-memory risk.
-
-Monitor:
-
-    active
-    cache
-    peak
-    OS memory pressure
-    elapsed time
-
-Do not use system wired-memory changes.
-
-If conversion OOMs once:
-
-    record it
-    do not repeatedly retry the same implementation
-
-Fix the memory strategy first.
-
-After conversion verify:
-
-    config
-    quantization metadata
-    tensor count
-    output shard integrity
-    actual disk size
-    effective bpw if computable
-
-Do not upload the model anywhere.
-
-Do not commit model weights.
-
----
-
-# Phase 7 — Validate g128 Correctness Before Long Context
-
-Do NOT immediately run 16K.
-
-Use fresh processes.
-
-Test at minimum:
-
-    short control
-    ~768 tokens
-    ~4K realistic coding prompt
-
-Generate:
-
-    256 tokens
-
-Use:
-
-    MLX 0.32.1
-    no-wired runtime
+    same prompt
     greedy
+    same output length
+    prefill_step_size 2048
+    no KV8
+    no MTP/speculation
 
-Classify each result.
-
-Compare with g64 baseline.
-
-If g128 is BROKEN or clearly much worse:
-
-    repeat one representative test once
-    if failure reproduces, reject candidate
-    do not proceed to long-context scaling
-
-If coherent:
-
-    measure model memory after load
-    compare with exact predicted saving
-    continue.
-
----
-
-# Phase 8 — Benchmark g128 Context Envelope
-
-Only if Phase 7 passes.
-
-Do not blindly run every size.
-
-Start at:
-
-    ~8K
-
-Then:
-
-    ~12K
-    ~16K
-
-Use the same realistic prompt family/baseline methodology where possible.
-
-Measure:
+Report medians for:
 
     TTFT
     prompt tok/s
     decode tok/s
-    active + cache
-    peak
-    OS memory
-    correctness
+    peak memory
 
-If 16K is coherent and materially safer than the existing g64 baseline,
-consider larger context.
-
-Suggested adaptive ladder:
-
-    20K
-    24K
-
-Do NOT automatically run 32K.
-
-A single 32K probe is allowed only if:
-
-- 24K is coherent;
-- macOS remains stable;
-- measured memory still shows meaningful safety headroom;
-- there has been no Metal allocation failure;
-- the experiment is still providing useful information.
-
-Do not chase a number at the cost of system stability.
-
-Stop at the first clearly unsafe point.
-
-Record:
-
-    maximum coherent context
-    recommended practical context
-
-These are different concepts.
+Do not overfit tiny differences.
 
 ---
 
-# Phase 9 — KV Cache Quantization Study
+# Phase 10 — Long-context headroom: KV8 and prefill chunking
 
-KV quantization is an independent lever from weight quantization.
+Only enter after:
 
-Inspect the exact pinned mlx-lm API and Qwen3.8 cache implementation before
-testing.
+- cache correctness work is complete or clearly blocked;
+- g128 is validated at useful contexts;
+- no safety incident occurred.
 
-Do not guess flags or cache semantics.
+The goal is NOT to chase 32K.
+The goal is to learn whether 16K+ can be made safer.
 
-Determine which layers have context-growing KV state and which use recurrent
-state.
+## Step 10A — g128 + KV8 at ~16K
 
-Measure actual cache objects/shapes if useful.
-
-Test KV8 first.
-
-Preferred initial configuration, if supported by pinned API:
+Use:
 
     kv_bits = 8
     kv_group_size = 64
 
-Determine the appropriate quantized_kv_start from the actual API instead of
-blindly choosing one.
+Verify the pinned API and quantized_kv_start behavior from source first.
+Do not blindly assume start=0 is optimal; use the simplest justified setting.
 
-First test with the ORIGINAL g64 model so the effect can be isolated.
+Compare against existing normal-g128 ~16.7K result.
 
-Use:
-
-    ~4K or ~8K
-
-Compare:
+Measure:
 
     correctness
+    peak saving
+    active+cache saving
+    decode penalty
     TTFT
-    decode speed
-    active + cache
-    peak
 
-If KV8 is coherent and produces meaningful savings:
+At 8K KV8 saved ~0.231 GiB and slowed decode. At ~16K the memory saving should
+be larger if the expected KV growth dominates; measure rather than extrapolate.
 
-    test ~12K
-    then ~16K if safe
+## Step 10B — prefill_step_size control
 
-If g128 exists and passed:
+At a safe long context, compare at most:
 
-    test the combination:
-        g128 weights + KV8
+    2048
+    1024
 
-Do not perform a huge matrix.
+only if reducing prefill chunk could materially lower transient peak.
 
-The purpose is to answer:
+Do not sweep lower values unless a clear allocation problem requires it.
 
-> Does KV8 buy enough memory at long context to be worth using?
+## Step 10C — optional ~20K probe
 
-If yes, use only the most promising configuration for larger-context probing.
+A ~20K g128 probe is allowed only if ALL are true:
+
+- 16K/g128 is coherent;
+- no UI/GPU/system instability was observed/reported;
+- measured binary-GiB peak remains comfortably below the historical danger
+  envelope after unit conversion;
+- `memory_pressure`/OS telemetry is not severe;
+- the best available long-context configuration (normal or KV8) has a
+  conservative projected peak.
+
+Prefer the safer of normal g128 and g128+KV8.
+
+Generate only 96–128 tokens.
+
+Stop after ~20K unless the 24K gate below is extraordinarily safe.
+
+## Step 10D — optional ~24K gate
+
+24K is NOT an automatic task.
+
+Run a single ~24K probe only if ALL are true:
+
+- ~20K completed coherently;
+- measured ~20K peak is <= about 15.5 GiB;
+- system memory-pressure telemetry remains healthy enough;
+- no safety stop occurred;
+- a conservative extrapolation keeps 24K below about 15.8 GiB;
+- KV8 or another already-proven non-weight lever provides enough headroom.
+
+If these conditions are not met, explicitly SKIP 24K.
+
+Do not test 32K tonight.
+
+Do not turn safety thresholds into targets.
 
 ---
 
-# Phase 10 — Optional Second Weight Quant Candidate
+# Phase 11 — Do not reopen rejected quant branches
 
-Only enter if ALL are true:
-
-- g128 work is complete or clearly blocked;
-- conversion infrastructure is safe;
-- source weights are available;
-- expected savings from a second candidate are materially larger;
-- enough useful work can still be completed without compromising safety.
-
-Maximum ONE additional weight quant candidate tonight.
-
-Preferred candidate should be selected from Phase 4 evidence, probably:
+Do NOT run:
 
     mixed_2_6
+    uniform 2-bit
+    DWQ
+    MXFP4
+    NVFP4
+    new custom mixed weight recipes
 
-or a carefully justified custom mixed precision policy.
+unless every primary cache/runtime task is complete, there is substantial time
+remaining, and a new result creates a specific evidence-based reason.
 
-Do not create several quantized 27B copies merely because the command exists.
+Default action: skip all new weight quants tonight.
 
-Do not run DWQ tonight unless the entire primary investigation is complete and
-there is an exceptional evidence-based reason.
-
-Treat DWQ as a likely follow-up.
-
-For a second candidate:
-
-    short correctness
-    768
-    4K
-
-before any long-context benchmark.
-
-Reject quickly if quality is poor.
+The source-backed g128 converter is already a major success; exploit it rather
+than generating a quant zoo.
 
 ---
 
-# Phase 11 — Practical Runtime Comparison
+# Phase 12 — User-facing runtime commands
 
-At the end compare only configurations actually measured.
+Once the safe chat path is known, update/create exact commands for:
 
-Likely rows:
+1. one-shot g128 generation;
+2. correctness-safe interactive g128 chat;
+3. optional 16K+ safer variant if KV8/prefill tuning genuinely wins.
 
-    g64 baseline
-    g64 + KV8
-    g128
-    g128 + KV8
-    optional mixed candidate
+Commands must:
 
-For each report:
+- use the canonical uv environment;
+- make no-wired behavior explicit;
+- print model path and quantization;
+- print MLX version / pinned mlx-lm revision;
+- never require sysctl changes;
+- never modify installed mlx-lm files in place.
 
-    model size
-    context tested
-    recommended context
-    cold TTFT
-    cold prefill tok/s
-    decode tok/s
-    warm-turn TTFT
-    warm decode tok/s
-    memory
-    correctness
-    system stability
-
-Do not fill missing cells with guesses.
-
-A configuration should only be recommended if it is coherent and operationally
-stable.
+If fast persistent cache remains unresolved, the documented default must be the
+safe path, not the fast broken one.
 
 ---
 
-# Phase 12 — Produce User-Facing Runtime Commands
+# Result schema
 
-Create exact reproducible commands/scripts for the winning configurations.
+Append each meaningful experiment to:
 
-At minimum:
+    research/night2/results.jsonl
 
-1. one-shot generation;
-2. interactive chat;
-3. optional long-context/KV8 variant if it wins.
-
-The no-wired behavior must be explicit.
-
-Do not require modifying installed mlx-lm files.
-
-Do not require changing sysctl.
-
-Prefer small wrappers committed in the repo.
-
-Include a command to print:
-
-    MLX version
-    model path
-    quant config
-    wired-policy override status
-
-so accidental environment drift is visible.
-
----
-
-# Result Files
-
-Maintain throughout:
-
-    research/results.jsonl
-
-Each experiment record should contain where applicable:
+Fields where applicable:
 
     timestamp
     experiment_id
@@ -771,206 +733,175 @@ Each experiment record should contain where applicable:
     mlx_lm_revision
 
     model_path
-    model_quantization
+    quantization
 
+    protocol_mode
     prompt_path
     prompt_sha256
     prompt_tokens
+    incremental_prompt_tokens
 
     generated_tokens
     generated_token_hash
+    previous_turn_prefix_overlap
+    replay_detected
     classification
 
-    prefill_step_size
+    exact_token_oracle_hash
+    full_transcript_oracle_hash
+    oracle_relation
 
     ttft_seconds
     prompt_tps
     decode_tps
-    generation_seconds
     total_seconds
 
-    active_memory
-    cache_memory
-    active_plus_cache
-    peak_memory
-
+    active_gib
+    cache_gib
+    active_plus_cache_gib
+    peak_gib
     os_memory_metrics
 
-    kv_bits
-    kv_group_size
-
+    cache_layer_summary
     exception
     safety_stop_reason
 
-Never invent unavailable measurements.
+Use null when unavailable.
+Never invent measurements.
 
 ---
 
-# STATUS Discipline
+# STATUS discipline
 
-After EVERY meaningful experiment update:
+After every meaningful experiment or decision gate update:
 
-    research/STATUS.md
+    research/night2/STATUS.md
 
-Before every new phase re-read:
+Before each new major phase re-read:
 
     AGENTS.md
     TASK.md
-    research/STATUS.md
+    research/night2/STATUS.md
 
-This is mandatory for the unattended run.
+STATUS must always contain:
 
-If context becomes large or the investigation changes direction, STATUS.md is
-the canonical compressed state.
+    Current phase
+    Last completed experiment
+    Current diagnosis of the cache bug
+    Current trusted chat mode
+    Persistent g128 path
+    Best validated warm context
+    Best cold context
+    Safety state
+    Next action
 
----
-
-# Commit Discipline
-
-Prefer commits after logically complete milestones, for example:
-
-    benchmark: consolidate Qwen3.8 MLX baseline
-    tooling: add no-wired MLX runtime wrappers
-    benchmark: measure Qwen3.8 warm cache behavior
-    analysis: model Qwen3.8 quantization sizes
-    tooling: add bounded-memory MLX conversion
-    benchmark: evaluate Qwen3.8 3bit g128
-    benchmark: evaluate Qwen3.8 KV8 cache
-    docs: summarize Qwen3.8 18GB runtime findings
-
-Do not commit huge model files.
-
-Do not rewrite unrelated history.
+This is the canonical external memory for the unattended run.
 
 ---
 
-# Blocked-Branch Policy
+# Git discipline
 
-This is an unattended task.
+Commit logical milestones separately.
 
-Do not stop simply because one phase is blocked.
+Suggested commits:
 
-Examples:
+    docs: correct Qwen3.8 warm-cache conclusion
+    test: add protocol-aware Qwen3.8 cache oracle
+    debug: localize Qwen3.8 persistent cache replay
+    fix: make Qwen3.8 multi-turn cache semantics safe
+    benchmark: validate Qwen3.8 g128 warm context
+    benchmark: compare Qwen3.8 g64 and g128 quality
+    benchmark: test Qwen3.8 long-context headroom
+    docs: summarize Qwen3.8 night2 findings
 
-If source weights cannot be downloaded:
-    -> do KV8 analysis and interactive-cache benchmarks.
-
-If conversion cannot fit:
-    -> investigate/implement bounded-memory conversion.
-
-If inference worker is currently busy:
-    -> do static quant-size and source analysis.
-
-If g128 quality fails:
-    -> preserve the failure and investigate KV8 on g64.
-
-If KV8 quality fails:
-    -> preserve the failure and continue weight-quant work.
-
-Do not circumvent a safety rule to make progress.
+Do not commit model weights or HF source shards.
 
 ---
 
-# Hard Stop Rules
+# Hard stop rules
 
 Never:
 
 - change iogpu.wired_limit_mb;
-- increase system wired memory;
-- test MLX 0.32.0;
-- delete unrelated caches;
-- run two huge MLX processes concurrently;
-- repeatedly reproduce an OOM;
-- repeatedly approach known dangerous memory pressure with no new information;
+- call mx.set_wired_limit for canonical inference;
+- run MLX 0.32.0;
+- run multiple huge Qwen MLX workloads concurrently;
+- repeatedly reproduce an OOM/dangerous point;
+- delete unrelated model caches;
 - upload model weights;
-- silently upgrade the canonical environment.
+- silently upgrade canonical MLX/mlx-lm;
+- test 32K tonight;
+- call a replaying chat path correct because its TTFT is good.
 
-If a risky branch fails, preserve evidence and move on.
+If a safety gate fails, preserve evidence and move to another safe phase.
 
 ---
 
-# Final Report
+# Final report
 
 Create:
 
-    research/FINAL_REPORT.md
+    research/night2/FINAL_REPORT.md
 
-The report must answer:
+It must answer explicitly:
 
-1. What baseline results were established?
+1. Was the old 8K replay reproduced?
+2. What exact token/cache/protocol condition caused it?
+3. Was the bug in cache state, turn serialization, harness behavior, or more
+   than one layer?
+4. Did upstream already contain a relevant fix?
+5. What code/protocol change fixed it, if any?
+6. What is the trusted user-facing chat mode now?
+7. Does 4K multi-turn pass the new oracle?
+8. Does 8K multi-turn pass the new oracle?
+9. Does g128 pass warm chat at 4K/8K/12K/16K?
+10. What are warm follow-up TTFT and decode rates for g128?
+11. Is g128 quality measurably worse than g64?
+12. Is g128 actually faster than g64 in controlled repeats?
+13. What does KV8 save at ~16K, and what decode penalty does it impose?
+14. Was 20K tested? If not, why was it correctly skipped?
+15. Was 24K tested? If not, which safety gate prevented it?
+16. What is the maximum correctness-safe tested context?
+17. What is the recommended practical interactive context?
+18. What exact command should the user run tomorrow?
+19. What remains unresolved?
+20. What single next experiment has highest expected value?
 
-2. What exactly caused the known MLX 0.32.1 OOM?
+Include sections:
 
-3. How well does the canonical no-wired runtime work?
+    Measured facts
+    Corrections to prior conclusions
+    Cache diagnosis
+    g128 interactive results
+    Quality/performance comparison
+    Long-context safety
+    Recommended runtime
+    Things deliberately not done
+    Unresolved questions
 
-4. What is the measured cold context envelope for g64?
-
-5. What is the measured warm/interactive performance?
-
-6. How much memory does 3-bit g128 theoretically and actually save?
-
-7. Was g128 successfully converted?
-
-8. Is g128 coherent?
-
-9. What context does g128 reach?
-
-10. What does KV8 save?
-
-11. Does KV8 affect correctness or speed?
-
-12. What is the best tested configuration?
-
-13. What is:
-       maximum coherent context?
-       recommended practical context?
-
-14. What exact command should the user run for normal interactive use?
-
-15. What unresolved bugs remain?
-
-16. Which hypotheses were rejected?
-
-17. What should the NEXT experiment be?
-
-Include a compact comparison table.
-
-Also include a section:
-
-    "Things deliberately not done"
-
-so that skipped unsafe/low-value work is explicit.
-
-The final conclusion must distinguish:
+Clearly distinguish:
 
     measured fact
     inference
-    future hypothesis
+    hypothesis
 
-Do not claim a configuration was tested when it was only estimated.
-
----
-
-# Completion
-
-At the end:
+At the end run:
 
     git status
-    git log --oneline -15
+    git log --oneline -20
 
-Verify research artifacts exist.
+Commit appropriate small artifacts.
 
-Commit any remaining appropriate small artifacts.
+Then return a concise final message with:
 
-Then return a concise final message containing:
+- cache bug diagnosis;
+- whether it was fixed;
+- best trusted model/configuration;
+- recommended warm context;
+- warm TTFT/decode;
+- long-context result;
+- persistent g128 path;
+- FINAL_REPORT location;
+- relevant commit SHAs.
 
-- best configuration;
-- recommended context;
-- warm interactive performance;
-- memory result;
-- quantization result;
-- any safety limits encountered;
-- FINAL_REPORT.md location;
-- commit SHAs.
-
-Do not begin another open-ended investigation after FINAL_REPORT.md is written.
+Do not start a new open-ended branch after FINAL_REPORT.md is complete.

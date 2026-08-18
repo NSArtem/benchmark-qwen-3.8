@@ -1,46 +1,42 @@
 # Qwen3.8 MLX Investigation — Project Instructions
 
-This repository is an empirical investigation of running Qwen3.8-27B efficiently
-and correctly on an 18 GB Apple Silicon Mac.
+This repository is an empirical investigation of running Qwen3.8-27B correctly
+and efficiently on an 18 GB Apple Silicon Mac.
 
-Treat measurements and saved artifacts as the source of truth.
+This file supersedes the previous AGENTS.md for the next unattended run. Keep
+all old experiment artifacts; do not erase history.
 
-Do not rely on memory when an earlier experiment can be inspected directly.
+## Primary goal
 
-## Hardware
+Find a correctness-safe, memory-safe, practically useful Qwen3.8-27B MLX
+runtime for interactive coding-agent and long-conversation workloads on this
+machine.
 
-Primary test machine:
+Optimize in this order:
 
-- MacBook Pro
-- Apple M3 Pro
+1. correctness;
+2. macOS / Metal stability;
+3. useful interactive context;
+4. warm-turn latency;
+5. decode throughput;
+6. cold TTFT;
+7. maximum context.
+
+A technically runnable context that risks UI instability is not a win.
+
+## Hardware and canonical environment
+
+Machine:
+
+- MacBook Pro, Apple M3 Pro
 - 18 GB unified memory
 - macOS 15.7.8
 
-The practical goal is not merely "can the model technically run".
-
-The goal is:
-
-> Find a correctness-safe, memory-safe, practically useful Qwen3.8-27B MLX
-> configuration for interactive coding-agent and long-conversation workloads
-> on this 18 GB Mac.
-
-Prioritize:
-
-1. coherent output;
-2. system stability;
-3. useful context length;
-4. TTFT / warm-turn latency;
-5. decode throughput.
-
-Synthetic maximum context is secondary.
-
-## Canonical MLX Environment
-
-Use ONLY:
+Canonical MLX environment:
 
     envs/mlx-0.32.1
 
-Canonical command prefix:
+Always use:
 
     uv run --project envs/mlx-0.32.1 --no-sync ...
 
@@ -49,452 +45,414 @@ Expected:
     Python 3.14.7
     mlx == 0.32.1
 
-Pinned mlx-lm Git revision:
+Pinned mlx-lm revision:
 
     254d153fdeb6f150edd4fc5a54f9828638481fa8
 
-Do not:
+Do not silently upgrade or modify the canonical environment.
 
+Do not use:
+
+    uvx
     uv sync
     uv lock
     uv update
-    uvx
 
-Do not silently upgrade mlx, mlx-lm, transformers, or other core runtime
-dependencies.
+for canonical experiments.
 
-Do not modify:
+## Baseline g64 model
 
-    envs/mlx-0.32.1/pyproject.toml
-    envs/mlx-0.32.1/uv.lock
-    root pyproject.toml
-    root uv.lock
-
-unless a task explicitly requires it.
-
-## Canonical Existing Model
-
-Current baseline checkpoint:
+Original baseline checkpoint:
 
     lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly
 
-Exact local snapshot:
+Exact local snapshot used by prior work:
 
     /Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7
 
-Known quantization:
+Quantization:
 
-    mode = affine
+    affine
     bits = 3
     group_size = 64
 
-This is weight-only MLX affine group quantization.
+Exact tensor payload measured previously:
 
-Do not replace this checkpoint when establishing baseline results.
+    10.963 GiB
 
-## Critical Safety Rule: Wired Memory
+## Source-backed g128 candidate
+
+A source-backed affine 3-bit/group-128 checkpoint was successfully produced
+from the original high-precision Qwen3.8 source.
+
+Previous temporary path:
+
+    /private/tmp/qwen38-g128-mlx
+
+Expected properties:
+
+    affine
+    bits = 3
+    group_size = 128
+    1,847 tensors
+    19 shards
+    tensor payload = 10.180 GiB
+
+Measured saving vs g64:
+
+    ~0.783 GiB
+    ~7.14%
+
+The high-precision source is expected at:
+
+    /Users/artem/.cache/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+
+The bounded converter is:
+
+    research/harness/convert_qwen38_textonly_g128.py
+
+Prior bounded conversion completed in roughly 25 seconds and kept converter
+peak far below full-model memory. Prefer this converter over stock full-model
+mlx_lm.convert for 27B conversion on this machine.
+
+Do not re-quantize g64 into g128 and call it equivalent. Serious weight
+candidates must come from the source weights.
+
+## Proven g128 cold behavior
+
+Source-backed g128 produced coherent fresh-process outputs at:
+
+    short
+    768
+    4K
+    8K
+    12K
+    16.7K
+
+Representative cold measurements:
+
+    4K     peak ~13.360 GiB, decode ~11.61 tok/s
+    8K     peak ~13.983 GiB, decode ~11.20 tok/s
+    12K    peak ~14.609 GiB, decode ~10.83 tok/s
+    16.7K  peak ~15.236 GiB, decode ~10.64 tok/s
+
+The 16.7K probe is evidence of correctness and headroom, not permission to
+blindly scale much farther while unattended.
+
+## Critical correction: previous 8K warm-cache conclusion is NOT valid
+
+The prior final report classified both 4K and 8K persistent-cache chat as
+EXCELLENT.
+
+That conclusion must be corrected.
+
+Inspection of the raw 8K token artifacts found:
+
+    turn 2 generated token sequence == first 64 tokens of turn 1
+
+exactly, token-for-token, despite a semantically different follow-up query.
+
+Therefore:
+
+- P3-WARM8K is NOT correctness-safe evidence;
+- its low TTFT and ~10.65 tok/s decode numbers are performance observations
+  only;
+- do not use P3-WARM8K to recommend interactive 8K until cache semantics are
+  understood and fixed;
+- preserve the old artifacts as evidence; do not rewrite them away.
+
+The old 4K warm run did not show the same exact replay and appears semantically
+reasonable, but it must also be revalidated under the new correctness oracle.
+
+The highest-priority problem for this run is persistent-cache correctness.
+
+## No-wired runtime and wired-memory safety
+
+The known-good inference path is:
+
+    MLX 0.32.1
+    direct generate_step
+    MLX wired state untouched/default
+
+Pinned mlx-lm's normal stream wrapper calls a wired-limit helper using the
+recommended working-set size (~12 GiB on this machine). Controlled tests showed
+that forcing this wired limit can cause Metal OOM around a ~768-token prefill,
+while the equivalent direct/default-wired path passes.
+
+Never call:
+
+    mx.set_wired_limit(...)
+
+in canonical experiments.
 
 NEVER modify:
 
     sudo sysctl iogpu.wired_limit_mb
 
-or any other system-wide wired-memory setting.
+or any system-wide wired-memory setting.
 
-A previous experiment changing the system iogpu wired limit caused the Mac to
-freeze/reboot.
+A previous system wired-memory change caused a freeze/reboot.
 
-Do not recommend it.
-Do not test it.
-Do not automate it.
+The reusable local no-wired helper currently lives at:
 
-Also do not explicitly increase MLX's wired limit.
+    research/runtime/qwen38_runtime.py
 
-## Known mlx-lm Wired-Limit Problem
+It may contain a chat-cache protocol bug. Do not treat its chat mode as trusted
+until this run validates it.
 
-The pinned mlx-lm implementation wraps normal stream generation in a helper
-which calls approximately:
+## Mixed quantization is closed
 
-    mx.set_wired_limit(
-        mx.device_info()["max_recommended_working_set_size"]
-    )
+The corrected source-backed mixed_2_6/group-128 candidate had approximately:
 
-On this machine the recommended working set is approximately 12 GiB.
+    8.989 GiB tensor payload
 
-This has been experimentally shown to cause a Metal OOM for this Qwen3.8 model
-even around a ~768-token prompt.
+but two fresh short runs produced the same pathological repeated-sentence loop
+with identical token hashes.
 
-Controlled result:
+Therefore mixed_2_6 g128 is REJECTED.
 
-    direct generate_step
-    default wired state
-    ~768 prompt tokens
-        -> PASS
+Do not:
 
-    same basic prefill
-    wired limit forced to recommended ~12 GiB
-        -> Metal OOM
+- rerun it at 768/4K/long context;
+- tune it tonight;
+- try to rescue it with sampling;
+- use its smaller memory as evidence of practical quality.
 
-The OOM occurred during prompt-cache-state evaluation.
+Uniform 2-bit and DWQ are also outside the primary scope of this run unless all
+cache/runtime goals are complete and TASK.md explicitly reaches an optional
+follow-up gate.
+
+## KV8 status
+
+Pinned Qwen3.8 has approximately:
+
+    48 recurrent ArraysCache layers
+    16 attention KVCache layers
+
+Previous KV8/group64/start0 tests were coherent.
+
+At 8K, g128 + KV8 measured approximately:
+
+    -0.231 GiB peak vs normal g128
+    ~7% slower decode
+
+This is a poor tradeoff at 8K, but the saving should grow with context because
+only the attention KV portion scales with context.
 
 Therefore:
 
-- do not use the stock wired-limit behavior for Qwen3.8 experiments;
-- leave MLX wired state untouched/default;
-- never call mx.set_wired_limit() in the canonical runtime path.
+- KV8 is rejected for normal 4K/8K use;
+- KV8 is NOT permanently rejected for 16K+ safety/headroom;
+- long-context KV8 may be tested only behind TASK.md gates.
 
-## Canonical Correctness Runtime
+## Units matter
 
-The current known-good baseline is:
+Prior logs mix decimal GB and binary GiB.
 
-    MLX 0.32.1
-    direct generate_step
-    default wired state
-    greedy decoding
-    no speculative decoding
-    no MTP
-    no APC
-    no activation quantization
+Never compare them without conversion.
 
-The controlled alignment experiment tested:
+Use binary GiB internally for new measurements:
 
-    final prompt    main prefill
-    512             511
-    513             512
-    640             639
-    641             640
-    768             767
-    769             768
+    bytes / 2**30
 
-Each was run three times in fresh processes.
+When quoting an old decimal `GB` measurement, label it as decimal and, when it
+matters for a safety comparison, convert it to GiB.
 
-Result:
+Do not casually say that 15.2 GiB is two full GiB below an old 17.2 GB result;
+17.2 decimal GB is only about 16.0 GiB.
 
-    18 / 18 COHERENT
-    0 DEGRADED
-    0 BROKEN
-    0 OOM
+## System-stability policy
 
-All three repeats at each length produced identical complete 128-token output
-token sequences.
-
-Simple 512/640/768 prefill alignment therefore did NOT explain the historical
-corruption.
-
-## Important Real-World 16K Result
-
-A real coding-agent prompt was run manually using MLX 0.32.1 with the normal
-mlx_lm.generate implementation except that the mlx_lm wired_limit context
-manager was monkey-patched to a no-op.
-
-Prompt file:
-
-    qwen38-mtp-smoke/coding-prompt.txt
-
-Observed result:
-
-    Prompt: 16767 tokens
-    Prompt throughput: 63.348 tok/s
-    Generation: 256 tokens
-    Decode throughput: 4.118 tok/s
-    Peak MLX memory: 17.200 GB
-    Output: coherent
-    OOM: no
-
-The generated answer correctly understood the Lantern repository/task.
-
-This is strong evidence that:
-
-- the current checkpoint can work at ~16.8K;
-- MLX 0.32.1 can work at ~16.8K;
-- the 3-bit g64 quant itself is not intrinsically broken at long context;
-- the forced mlx-lm wired limit is a distinct problem.
-
-However, 17.2 GB reported MLX peak on an 18 GB machine is NOT comfortable
-headroom.
-
-Do not repeatedly reproduce a ~17+ GB state without a good reason.
-
-## Historical 0.32.0 Result
-
-MLX 0.32.0 is retired from active investigation.
-
-Do not run it.
-
-It previously completed a ~16.7K run but produced corrupted output and caused
-visible macOS screen/UI flicker near ~17.1 GB reported MLX peak.
-
-Do not reproduce this.
-
-Use historical artifacts only.
-
-## GGUF Control
-
-A llama.cpp GGUF control exists and demonstrated that the model architecture
-itself can operate at long context.
-
-Known useful control:
-
-    unsloth/Qwen3.8-27B-GGUF:UD-IQ3_XXS
-
-Representative results:
-
-    16K:
-        prefill ~52.7 tok/s
-        decode ~4.39 tok/s
-
-    24K:
-        prefill ~42.5 tok/s
-        decode ~3.91 tok/s
-
-    32K:
-        prefill ~28.3 tok/s
-        decode ~3.36 tok/s
-
-Do not rerun GGUF unless explicitly required by the task.
-
-## Memory Measurement
-
-Do NOT use mx.get_peak_memory() alone.
-
-For every important run capture when practical:
-
-    mx.get_active_memory()
-    mx.get_cache_memory()
-    mx.get_peak_memory()
-
-Also calculate:
-
-    active + cache
-
-The MLX allocator may retain freed buffers in its cache, so allocator pressure
-can be materially higher than active/peak numbers alone suggest.
-
-Capture OS-level memory information when practical without sudo:
-
-    ps
-    vm_stat
-    footprint
-    memory_pressure
-
-Do not make monitoring itself materially affect benchmark performance.
-
-## System Stability
-
-Swap usage alone is NOT failure.
-Pageouts alone are NOT failure.
+Swap alone is not failure.
+Pageouts alone are not failure.
 
 Hard stop conditions include:
 
 - Metal OOM;
 - GPU timeout;
-- repeated severe OS memory-pressure indications;
-- substantial system unresponsiveness;
+- severe/repeated memory-pressure warnings;
+- substantial machine unresponsiveness if observable;
 - WindowServer/UI instability if observable;
-- repeated failed allocation at the same configuration.
+- repeated allocation failure at the same configuration.
 
-Because unattended runs cannot reliably observe UI flicker, be conservative
-once measured memory approaches previously dangerous territory.
+Because this is an unattended run, do not depend on a human noticing screen
+flicker. Use conservative measured limits.
 
-Never repeatedly hammer a configuration that has already failed.
+Do not repeatedly probe near the historical danger envelope merely to find an
+absolute maximum.
 
-## Heavy Workload Concurrency
+## Heavy workload serialization
 
-Do not run two large MLX/Qwen inference or conversion workloads concurrently.
+Never run two large Qwen MLX inference/conversion workloads concurrently.
 
-At startup inspect relevant processes.
+Static source analysis, report generation, small CPU-only scripts, and file
+inspection may be done while a heavy workload is unavailable.
 
-If another benchmark from this repository is actively using the model, do not
-start a competing heavy Metal workload.
+If process inspection is denied by the sandbox, do not infer that no external
+heavy process exists. Still serialize all heavy commands you launch yourself.
 
-Static analysis, source inspection, report generation, and size calculations
-may proceed while waiting for heavy inference to become available.
+## Fresh-process and persistent-process rules
 
-## Fresh-Process Rule
+Cold benchmark:
 
-For cold correctness/context benchmarks, use a fresh Python process per
-configuration.
+    fresh Python process per configuration
 
-Do not load the model once and then use that process to compare unrelated cold
-configurations.
+Warm/chat benchmark:
 
-Persistent caches are allowed only in experiments explicitly measuring
-interactive/warm-cache behavior.
+    persistent process is allowed only when persistent cache behavior is the
+    variable being tested
 
-## Output Correctness
+Do not contaminate cold comparisons with allocator/cache history.
 
-Do not judge correctness from only the first token.
+## Correctness standard
 
-For important smoke tests generate enough output to detect delayed corruption.
+Never classify only from a superficial text heuristic.
 
-Prefer:
+For cache experiments, correctness must include protocol-aware checks.
 
-    128 tokens for context-ladder probes
-    256 tokens for final candidate validation
+At minimum save:
 
-Classification:
+- complete generated token IDs;
+- raw decoded output;
+- prompt/token construction metadata;
+- generated token SHA256;
+- overlap with previous turn output;
+- semantic relation to the current user query;
+- comparison against a fresh-process reference.
+
+A follow-up that simply repeats the previous answer is BROKEN even if the text
+is grammatical.
+
+Classifications:
 
 COHERENT:
-- meaningful response;
-- normal linguistic/syntactic progression;
-- no pathological repetition.
+- responds to the current user turn;
+- normal linguistic progression;
+- no pathological repetition/replay.
 
 DEGRADED:
-- meaningful content mixed with obvious corruption/repetition.
+- partly relevant but visibly corrupted/replayed/confused.
 
 BROKEN:
 - token soup;
-- repeated punctuation;
-- repeated one-token/word loops;
-- meaningless fragments;
-- pathological substring loops.
+- pathological loops;
+- exact or near-exact inappropriate replay of an earlier answer;
+- response ignores the new turn because stale cache state dominates.
 
-Technical imperfection is not catastrophic inference corruption.
+## Cache correctness oracles
 
-Save raw output and token IDs.
+For multi-turn debugging distinguish at least two references:
 
-## Experimental Discipline
+1. EXACT-TOKEN CONCATENATION ORACLE
 
-For every experiment:
+   Reconstruct in a fresh process the exact token sequence that should have
+   existed before the new generation:
 
-1. state the question;
-2. change as few variables as possible;
-3. define the decision gate before running;
-4. save raw measurements;
-5. compare against the appropriate baseline;
-6. record negative results;
-7. do not silently tune parameters until something works.
+       initial prompt tokens
+       + generated assistant token IDs
+       + next incremental prompt-fragment tokens
 
-Never reinterpret a failed experiment as success merely because a later
-configuration worked.
+   This tests whether persistent cache state is equivalent to replaying the
+   same token stream from scratch.
 
-## External Research
+2. FULL-TRANSCRIPT CHAT ORACLE
 
-Prefer primary sources for MLX / mlx-lm behavior:
+   Re-serialize the logical conversation using the tokenizer chat template:
 
-- MLX source;
-- mlx-lm source;
-- official repository issues and pull requests;
-- model config/model card.
+       user
+       assistant
+       user
+       ...
 
-When using current upstream behavior, record the commit or source revision.
+   then generate in a fresh process.
 
-Do not upgrade the canonical runtime merely because current upstream differs.
+   This tests whether the incremental turn protocol itself represents the
+   intended conversation.
 
-Upstream code may be inspected or adapted into a local experimental helper.
+If persistent cache differs from exact-token concatenation, suspect cache-state
+implementation/runtime behavior.
 
-## Quantization Rules
+If persistent cache matches exact-token concatenation but both are wrong vs the
+full-transcript oracle, suspect the turn serialization/protocol.
 
-Do not casually re-quantize the existing 3-bit model into another quant and
-treat it as equivalent to conversion from the original higher-precision
-weights.
+Do not conflate these failure classes.
 
-For a serious quality comparison, new weight quantizations should be produced
-from the appropriate original/high-precision source whenever practical.
+## External source research
 
-If an experiment must quantize from already-quantized weights, label it
-explicitly as a compounded-quantization experiment and do not use it for final
-quality conclusions.
+For current MLX/mlx-lm behavior use primary sources only:
 
-## Conversion Safety
+- official MLX source/issues/PRs;
+- official mlx-lm source/issues/PRs;
+- official model/config metadata.
 
-Do not blindly launch a full ~27B conversion just to see whether it OOMs.
+Do not upgrade the canonical runtime just because main contains a change.
 
-Before conversion:
+A current-main fix may be copied/adapted into an isolated local experiment or a
+separate disposable environment after source review.
 
-- identify source weights precisely;
-- determine whether they are already local;
-- check free disk space;
-- estimate final output size;
-- inspect conversion memory behavior;
-- choose stock vs streaming/chunked conversion deliberately.
+Record exact commits.
 
-If a large source-model download is necessary, first verify that there is
-comfortable free disk space for source weights, output weights, temporary
-files, and existing model caches.
+## Git discipline
 
-Do not delete unrelated model caches automatically.
-
-## Git Discipline
-
-Always begin with:
+Begin with:
 
     git status
+    git log --oneline -15
 
-Preserve unrelated user changes.
+Preserve unrelated changes.
 
-Never:
+Never use:
 
     git reset --hard
     git clean -fd
-    discard unrelated modifications
-
-Commit logical completed phases separately when appropriate.
-
-Use focused commit messages.
 
 Do not commit:
 
-- Hugging Face model weights;
-- large generated model files;
-- cache directories;
+- HF source weights;
+- converted 27B model weights;
 - virtual environments;
-- giant raw temporary files;
-- unrelated changes.
+- huge raw temporary files;
+- unrelated files.
 
-Experiment scripts, small logs, JSON results, Markdown reports, and small text
-outputs may be committed when useful.
+Commit small harnesses, logs/results, JSON, and reports when useful.
 
-## Persistent Research Memory
+## Night-2 research state
 
-Long-running work must maintain external state in the repository.
+Create a new namespace for this run:
+
+    research/night2/
 
 Use:
 
-    research/PLAN.md
-    research/STATUS.md
-    research/RESULTS.md
-    research/results.jsonl
-    research/FINAL_REPORT.md
+    research/night2/PLAN.md
+    research/night2/STATUS.md
+    research/night2/RESULTS.md
+    research/night2/results.jsonl
+    research/night2/FINAL_REPORT.md
 
-Before each major phase, re-read:
+Do not destroy the previous `research/` results.
+
+Before every major phase re-read:
 
     AGENTS.md
     TASK.md
-    research/STATUS.md
+    research/night2/STATUS.md
 
-Update STATUS.md after every meaningful experiment or decision gate.
+Update STATUS after every meaningful experiment/decision gate.
 
-Append machine-readable measurements to results.jsonl.
+## Unattended behavior
 
-Do not rely on the conversational context as the sole memory of the experiment.
+The user will be away for hours.
 
-## Unattended Operation
+Do not stop for ordinary clarification.
+Make conservative documented choices.
 
-The user may be away for hours.
+If one branch is blocked:
 
-Do not stop merely to ask a nonessential clarification.
+- record the blocker;
+- move to another independent safe branch.
 
-Resolve ordinary ambiguities conservatively and document the choice.
+Do not violate safety constraints to keep working.
 
-If one branch becomes blocked:
-
-- record why;
-- continue with an independent useful phase where safe.
-
-Do not improvise around safety constraints.
-
-Do not perform destructive operations merely to keep making progress.
-
-## Final Standard
-
-A successful evening is NOT defined by executing every planned phase.
-
-A successful evening means:
-
-- reliable measurements;
-- preserved system stability;
-- useful negative results;
-- a clearly improved understanding of the memory/context envelope;
-- and, if supported by evidence, a better practical runtime configuration.
-
-Stop unsafe or unproductive branches early.
+A good unattended run may end with a bug localized rather than fixed. Evidence
+is more valuable than a pile of speculative changes.
