@@ -1,0 +1,107 @@
+{
+  "actual_prompt_tokens": 640,
+  "callback_prefill_seconds": 0.17733712500194088,
+  "callback_prefill_tps": 3608.9453914006754,
+  "failure_reason": null,
+  "finish_reason": "length",
+  "first_16_token_ids": [
+    12,
+    561,
+    328,
+    2083,
+    5144,
+    5144,
+    5144,
+    5144,
+    5144,
+    5144,
+    5144,
+    5144,
+    5144,
+    5144,
+    5144,
+    5144
+  ],
+  "first_token_id": 12,
+  "first_token_text": "-",
+  "first_token_top_logprobs": [
+    {
+      "logprob": -1.0625,
+      "token_id": 12
+    },
+    {
+      "logprob": -2.4375,
+      "token_id": 8
+    },
+    {
+      "logprob": -2.8125,
+      "token_id": 40
+    },
+    {
+      "logprob": -3.25,
+      "token_id": 16
+    },
+    {
+      "logprob": -3.4375,
+      "token_id": 2
+    },
+    {
+      "logprob": -3.6875,
+      "token_id": 760
+    },
+    {
+      "logprob": -3.75,
+      "token_id": 332
+    },
+    {
+      "logprob": -4.3125,
+      "token_id": 623
+    },
+    {
+      "logprob": -4.3125,
+      "token_id": 13962
+    },
+    {
+      "logprob": -4.5,
+      "token_id": 550
+    }
+  ],
+  "generated_tokens": 128,
+  "generation_tps": 11.144613274582662,
+  "implementation": "metal",
+  "log_file": "qwen38-mlx-gated-delta-ab/logs/metal-0640-r5.log",
+  "max_output_tokens": 128,
+  "mlx_after_load": {
+    "active_bytes": 11771722760,
+    "cache_bytes": 10564,
+    "peak_bytes": 11771722760
+  },
+  "mlx_after_run": {
+    "active_bytes": 11772230666,
+    "cache_bytes": 246308466,
+    "peak_bytes": 13221861986
+  },
+  "mlx_lm_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+  "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
+  "model_load_seconds": 3.9780902079946827,
+  "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+  "notes": "required fresh-process Metal repeat",
+  "ops_patch_active": false,
+  "ops_wrapper_call_count": 0,
+  "output_classification": null,
+  "output_file": "qwen38-mlx-gated-delta-ab/outputs/metal-0640-r5.txt",
+  "peak_memory_gb": 13.221861986,
+  "prefill_step_size": 2048,
+  "prompt_file": "qwen38-mlx-threshold/prompts/0640.txt",
+  "prompt_tps": 81.04334100083179,
+  "repeat_index": 5,
+  "response_count": 128,
+  "result_file": "qwen38-mlx-gated-delta-ab/logs/metal-0640-r5.json",
+  "success": true,
+  "swap_after_mb": 2008.44,
+  "swap_before_mb": 2048.44,
+  "swap_delta_mb": -40.0,
+  "target_prompt_tokens": 640,
+  "test_id": "metal-0640-r5",
+  "wall_seconds": 24.57541329099331
+}

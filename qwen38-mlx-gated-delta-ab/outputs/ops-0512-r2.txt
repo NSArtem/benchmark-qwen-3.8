@@ -1,0 +1,14 @@
+<think>
+The user wants me to act as a coding agent inside the Lantern monorepo. They've given me context about the system:
+
+- Lantern is a multi-tenant job orchestration service for a design-rendering company
+- User submits a render job → API writes job + outbox record in PostgreSQL
+- Worker claims the job from Redis
+- Worker emits lifecycle events
+- Web dashboard consumes events via SSE
+
+The task is: "Implement the outbox pattern"
+
+Let me think about what the outbox pattern is in this context:
+
+The **outbox pattern** is a reliability pattern where, instead of writing
