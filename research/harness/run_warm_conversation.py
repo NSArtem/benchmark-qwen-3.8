@@ -117,6 +117,7 @@ def main() -> None:
     parser.add_argument("--prompt-file", default="research/context-ladder/prompts/prompt-4096.txt")
     parser.add_argument("--result-file", default="research/warm-cache/results-4k.json")
     parser.add_argument("--output-dir", default="research/warm-cache")
+    parser.add_argument("--experiment-id", default="P3-WARM4K")
     parser.add_argument("--initial-max-tokens", type=int, default=128)
     parser.add_argument("--follow-up-max-tokens", type=int, default=64)
     args = parser.parse_args()
@@ -135,7 +136,7 @@ def main() -> None:
     ]
     queries = [initial_prompt, *follow_ups]
     result: dict[str, Any] = {
-        "experiment_id": "P3-WARM4K",
+        "experiment_id": args.experiment_id,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "git_commit": current_commit(),
         "python_version": platform.python_version(),

@@ -74,4 +74,12 @@ The incremental turns processed only 33, 35, and 30 new prompt tokens and had
 TTFTs of 0.726, 1.103, and 0.728 s, with decode rates of 11.024, 11.017, and
 11.005 tok/s. Active+cache after the turns was 11.463, 11.433, 11.447, and
 11.447 GiB. The measured 4K interactive profile is classified **EXCELLENT**;
-an 8K confirmation is planned before choosing the practical context.
+the 8K confirmation below was run before choosing the practical context.
+
+The same four-turn script at 8,191 initial prompt tokens was also **EXCELLENT**:
+initial TTFT 104.222 s, 78.667 prompt tok/s, 10.547 decode tok/s, and 14.766
+GiB cumulative peak. Follow-up TTFTs were 0.816, 1.202, and 0.828 s, with
+10.664, 10.651, and 10.645 tok/s decode. Active+cache after turns was 11.714,
+11.684, 11.697, and 11.697 GiB, with 25% system free memory. This supports an
+8K practical warm-context recommendation; 12K remains measured only as a cold
+one-shot point.

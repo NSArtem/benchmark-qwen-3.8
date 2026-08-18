@@ -1,0 +1,7 @@
+# Diagnosis: Lantern Job State Regression
+
+## Root Causes
+
+The incident ("completed render returns to running") and the secondary bug ("second retry creates a second render") stem from three distinct violations of the stated invariants:
+
+### 1. Non-Atomic Idempotency Check (Violates Invariant 3

@@ -1,0 +1,4 @@
+# Focused Test: Concurrent Identical Job Creation
+
+## Test Strategy
+Use an integration test (requiring a real PostgreSQL instance) to simulate the exact race condition described in the incident report. The test must verify that **two concurrent requests** with the same idempotency key result in **exactly one job

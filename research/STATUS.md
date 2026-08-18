@@ -1,13 +1,11 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 3 after P3-WARM4K.
+Last updated: 2026-08-18, Phase 3 after P3-WARM8K.
 
 ## Current phase
 
-Phase 0 and Phase 1 are complete. Phase 2 no-wired runtime helper and its
-short/moderate validations are complete. Phase 3 warm-cache measurement is in
-progress; the 4K conversation passed and one 8K conversation is next. No heavy
-workload is running. Process inspection was
+Phase 0 through Phase 3 are complete. Phase 4 exact quantization-size analysis
+is next. No heavy workload is running. Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -77,6 +75,14 @@ observe through their command sessions.
   active+cache was 11.463, 11.433, 11.447, and 11.447 GiB; cumulative peak
   was 14.142 GiB. OS snapshots showed 26% free memory and 203.75 MB swap at
   the end. Responses and token IDs are in `research/warm-cache/`.
+- `P3-WARM8K`: the same persistent-cache script ran an 8,191-token initial
+  coding turn plus the same three short follow-ups. All four turns were
+  COHERENT. Initial TTFT 104.222 s at 78.667 prompt tok/s and 10.547 decode
+  tok/s. Follow-up TTFTs were 0.816, 1.202, and 0.828 s; follow-up decode was
+  10.664, 10.651, and 10.645 tok/s. After-turn active+cache was 11.714,
+  11.684, 11.697, and 11.697 GiB; cumulative peak was 14.766 GiB. OS
+  snapshots showed 25% free memory and 203.75 MB swap at the end. Responses
+  and token IDs are in `research/warm-cache-8k/`.
 
 ## Key measurements
 
@@ -100,6 +106,10 @@ observe through their command sessions.
   in about 0.7–1.1 s to first token and decode at about 11 tok/s without
   material memory growth. On this evidence the 4K interactive classification
   is EXCELLENT.
+- The 8K confirmation has the same classification: short follow-ups remain
+  below 1.21 s TTFT and about 10.65 tok/s decode with no material cache growth.
+  The measured practical warm context is therefore 8K; 12K remains a cold
+  one-shot measurement only.
 - At 769 final prompt tokens / 768 main prefill: peak 12.459 GiB; after-first
   token active about 11.199 GiB and active+cache about 11.363 GiB in one
   repeat. The adjacent-length peak differences were immaterial.
@@ -110,8 +120,10 @@ observe through their command sessions.
 
 Best measured practical candidate remains g64 affine, MLX 0.32.1, direct or
 no-wired execution, greedy, no speculation/MTP/APC/activation quantization.
-The reusable no-wired helper now provides the canonical user-facing path, and
-the 4K persistent-cache profile is currently classified EXCELLENT.
+The reusable no-wired helper now provides the canonical user-facing path. The
+4K and 8K persistent-cache profiles are both classified EXCELLENT. For a
+conservative interactive recommendation, use 8K prompt context; 12K is a
+coherent cold probe but has not been validated as a warm conversation.
 The largest fresh-process cold probe is 12,288 coherent at 15.392 GiB peak;
 the separate 16,767-token policy-summary run was coherent at 17.200 GB but is
 not a comfortable recommendation.
@@ -137,10 +149,11 @@ not a comfortable recommendation.
 
 ## Next action
 
-Re-read `AGENTS.md`, `TASK.md`, and this file, then run one serialized 8K
-persistent-cache conversation using the same four-turn script. Stop if peak
-approaches 17 GiB or OS pressure becomes severe; do not start a 12K/16K warm
-conversation based on this single result.
+Re-read `AGENTS.md`, `TASK.md`, and this file, then enter Phase 4. Inspect the
+actual safetensor tensor headers, model config, pinned quantization code, and
+model-specific quantization predicate. Compute stored-size estimates for
+g64-3bit, g128-3bit, g128-2bit, and supported mixed candidates without loading
+or converting a new model.
 
 ## Safety notes
 
