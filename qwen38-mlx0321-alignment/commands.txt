@@ -1,0 +1,35 @@
+# Qwen3.8 MLX 0.32.1 alignment experiment
+# All Python commands use the locked project and --no-sync.
+
+MODEL_PATH=/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7
+
+# Environment verification
+uv run --project envs/mlx-0.32.1 --no-sync python -c 'import importlib.metadata as md, sys; print(sys.version); print(md.version("mlx")); print(md.version("mlx-lm"))'
+
+# Tokenizer-only exact prompt construction
+uv run --project envs/mlx-0.32.1 --no-sync python qwen38-mlx0321-alignment/harness/prepare_prompts.py \
+  --source coding_prompt.md \
+  --model-path "$MODEL_PATH" \
+  --output-root qwen38-mlx0321-alignment
+
+# One fresh-process run; substitute each target and repeat index.
+uv run --project envs/mlx-0.32.1 --no-sync python qwen38-mlx0321-alignment/harness/run_case.py \
+  --test-id align-512-r1 --repeat-index 1 \
+  --model-path "$MODEL_PATH" \
+  --prompt-file qwen38-mlx0321-alignment/prompts/prompt-512.txt \
+  --output-file qwen38-mlx0321-alignment/outputs/512-r1.txt \
+  --result-file qwen38-mlx0321-alignment/logs/512-r1.json \
+  --log-file qwen38-mlx0321-alignment/logs/512-r1.stdout.log
+
+# The completed matrix was the same command for:
+#   target/repeats = 512/(1,2,3), 513/(1,2,3), 640/(1,2,3),
+#                   641/(1,2,3), 768/(1,2,3), 769/(1,2,3)
+# with each target substituted in the prompt/output/result/log paths.
+
+# Finalize per-run records and compute determinism/pair summaries.
+uv run --project envs/mlx-0.32.1 --no-sync python qwen38-mlx0321-alignment/harness/aggregate_results.py \
+  --root qwen38-mlx0321-alignment \
+  --classification COHERENT
+
+# No stream_generate(), mlx_lm.generate CLI, mlx_lm.chat, wired-limit setter,
+# sysctl, or alternate MLX environment was used for the counted matrix.

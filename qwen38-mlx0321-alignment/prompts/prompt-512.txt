@@ -1,0 +1,39 @@
+# Lantern repository context
+
+You are acting as a coding agent inside the fictional Lantern monorepo. Lantern is a small
+multi-tenant job orchestration service used by a design-rendering company. A user submits a
+render job, the API writes the job and an outbox record in PostgreSQL, a worker claims the job
+from Redis, and the worker emits lifecycle events. The web dashboard consumes a compact event
+stream over server-sent events (SSE). The repository is deliberately incomplete below: these
+are the relevant excerpts from a checkout at commit `7b91e1a`.
+
+The service is written in TypeScript with strict mode enabled. API requests may be retried by a
+client, workers may crash and restart, and the same event may be delivered more than once. The
+intended invariants are:
+
+* a job has one logical state machine: queued -> running -> succeeded or failed, with cancelled
+  allowed from queued or running;
+* state transitions are monotonic in the event sequence, and a late event must never make a
+  terminal job appear active again;
+* every mutation carrying an idempotency key returns the
+
+## Task
+
+Diagnose the incident and propose a minimal, production-quality refactor. Trace the relevant
+interleavings through the API transaction, worker transaction, outbox publisher, SSE replay,
+and browser reducer. Identify every invariant that the current excerpts violate. Then provide
+an implementation-oriented answer with the smallest set of file changes needed to ensure that:
+
+1. concurrent identical `POST /v1/jobs` requests with one tenant and one idempotency key create
+   exactly one job and return the same response;
+2. a terminal job cannot be reopened by a delayed or duplicated event in either the durable
+   projection or the browser;
+3. event sequence allocation and the job projection remain atomic, including worker progress and
+   completion;
+4. a worker that loses its lease cannot publish a successful completion;
+5. SSE replay and live delivery do not produce a visible regression or a permanent gap.
+
+Include concrete TypeScript/SQL patches or focused pseudocode for the critical methods, and add
+tests for the two races described above. Call out any behavior that should be handled as a
+separate follow-up instead of being smuggled into the minimal fix. Keep the response focused on
+this repository and task; do not invent a new messaging platform.
