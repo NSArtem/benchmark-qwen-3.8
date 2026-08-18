@@ -1,0 +1,44 @@
+# Commands used for the Qwen3.8 MLX quantized-matmul diagnostic
+
+git status --short --branch
+mkdir -p qwen38-mlx-quantmatmul/{harness,layer-tests,fresh-process,forward-fingerprints,outputs,logs}
+
+# All commands below use this pinned source through uvx:
+# UV_CACHE_DIR=/private/tmp/qwen38-mlx-threshold-uv-cache
+# uvx --from 'git+https://github.com/ml-explore/mlx-lm@254d153fdeb6f150edd4fc5a54f9828638481fa8'
+
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/inspect_model.py
+
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/parameter_fingerprint.py --process-index 0
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/parameter_fingerprint.py --process-index 1
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/parameter_fingerprint.py --process-index 2
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/parameter_fingerprint.py --process-index 3
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/parameter_fingerprint.py --process-index 4
+
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/quantized_linear_runner.py --mode same-process --repeats 20
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/quantized_linear_runner.py --mode fresh-suite --process-index N
+  # N = 0..9; T = 1, 128, 512, 768
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/quantized_linear_runner.py --mode reference --process-index 0
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/quantized_linear_runner.py --mode reference-repeats --process-index 0 --repeats 10
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/quantized_linear_runner.py --mode reference-repeats --process-index N --repeats 1
+  # N = 0..4; T = 512, 768
+
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/representative_suite.py --process-index N
+  # N = 0..4; T = 1, 512; GatedDelta, attention, and MLP representatives
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/representative_suite.py --process-index N --labels lm_head --lengths 1 --skip-reference-labels lm_head
+  # N = 0..4; safe lm_head T=1 control; dense lm_head reference intentionally skipped
+
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/forward_fingerprint.py --process-index N
+  # N = 0..2; whole 512-token forward; layers 0,7,15,23,31,39,47,55,63
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/chunked_forward_fingerprint.py --process-index N
+  # N = 0..2; exact generate_step schedule: 511-token prefill + 1-token decode
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/normal_generation_fingerprint.py --process-index N --prompt qwen38-mlx-threshold/prompts/0512.txt
+  # N = 0..4; normal pinned generate_step first-token control
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/normal_generation_fingerprint.py --process-index N --prompt qwen38-mlx-threshold/prompts/0768.txt
+  # N = 0..4; same control at 768 tokens; an earlier five-run batch was also retained
+
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/aggregate_fingerprints.py
+uvx --from PIN python qwen38-mlx-quantmatmul/harness/aggregate_parameter_fingerprints.py
+uvx --from PIN python -c 'import ast; from pathlib import Path; files=sorted(Path("qwen38-mlx-quantmatmul/harness").glob("*.py")); [ast.parse(p.read_text(encoding="utf-8"),filename=str(p)) for p in files]; print("parsed",len(files),"harness files")'
+
+# PIN expands to the pinned Git URL above. No model weights are stored in this repository.
