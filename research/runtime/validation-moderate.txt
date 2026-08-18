@@ -1,0 +1,15 @@
+Prompt source: research/context-ladder/prompts/prompt-4096.txt
+
+# Diagnosis of the "Completed Render Returns to Running" Incident
+
+## Root Cause Analysis
+
+The incident is caused by a **race condition between the API's idempotency handling and the worker's event publication**, compounded by **non-atomic sequence allocation** and **missing idempotency enforcement in the event store
+
+Validation telemetry:
+prompt_tokens=4096
+generated_tokens=64
+prompt_tps=79.687609
+generation_tps=11.026677
+peak_memory_gb_decimal=15.185067
+classification=COHERENT

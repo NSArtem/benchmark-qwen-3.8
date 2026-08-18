@@ -4,8 +4,9 @@ Last updated: 2026-08-18, Phase 1 after P1-G64-12288.
 
 ## Current phase
 
-Phase 0 complete; Phase 1 cold g64 consolidation is complete. Phase 2 no-wired
-runtime helper is next. No heavy workload is running. Process inspection was
+Phase 0 and Phase 1 are complete. Phase 2 no-wired runtime helper and its
+short/moderate validations are complete. Phase 3 warm-cache measurement is
+next. No heavy workload is running. Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -56,6 +57,17 @@ observe through their command sessions.
   End snapshot reported 24% system free memory and 235.75 MB swap; no
   exception or safety stop. Raw result and output are saved under
   `research/context-ladder/`.
+- `P2-HELPER-INFO`: `research/runtime/qwen38_runtime.py info` reported Python
+  3.14.7, MLX 0.32.1, pinned mlx-lm revision, the exact local model path,
+  affine 3-bit g64 metadata, and `MLX wired state untouched`.
+- `P2-HELPER-SHORT`: the no-wired helper generated a coherent 37-token answer
+  from a 25-token chat-templated prompt. Prompt 23.859 tok/s; decode 11.497
+  tok/s; peak 12.075 GB decimal. Raw response is saved in
+  `research/runtime/validation-short.txt`.
+- `P2-HELPER-4K`: the corrected no-wired helper generated a coherent 64-token
+  diagnosis from the 4,096-token Lantern prompt. Prompt 79.688 tok/s; decode
+  11.027 tok/s; peak 15.185 GB decimal. Raw response is saved in
+  `research/runtime/validation-moderate.txt`.
 
 ## Key measurements
 
@@ -69,6 +81,11 @@ observe through their command sessions.
 - Cold TTFT was 13.352, 25.671, 51.383, 104.330, and 160.908 s at those
   same prompt sizes. Prompt throughput stayed 76.366–79.780 tok/s; decode
   throughput fell from 11.112 to 7.734 tok/s.
+- The reusable helper reproduced the moderate 4K baseline behavior and emits
+  an explicit no-wired startup line. Its CLI's initial raw-file mode was
+  briefly wrong because it bypassed the chat template; that tooling bug
+  produced a one-token EOS response, was corrected, and the corrected 4K
+  validation passed. This is not evidence of model corruption.
 - At 769 final prompt tokens / 768 main prefill: peak 12.459 GiB; after-first
   token active about 11.199 GiB and active+cache about 11.363 GiB in one
   repeat. The adjacent-length peak differences were immaterial.
@@ -79,6 +96,7 @@ observe through their command sessions.
 
 Best measured practical candidate remains g64 affine, MLX 0.32.1, direct or
 no-wired execution, greedy, no speculation/MTP/APC/activation quantization.
+The reusable no-wired helper now provides the canonical user-facing path.
 The largest fresh-process cold probe is 12,288 coherent at 15.392 GiB peak;
 the separate 16,767-token policy-summary run was coherent at 17.200 GB but is
 not a comfortable recommendation.
@@ -104,11 +122,11 @@ not a comfortable recommendation.
 
 ## Next action
 
-Re-read the governing files, then enter Phase 2: build and short-prompt
-validate a small reusable no-wired runtime helper. Preserve the pinned
-environment and leave MLX wired state untouched. Do not run another large g64
-context probe solely to fill the gap between 12K and the existing 16.8K
-policy-summary run.
+Re-read `AGENTS.md`, `TASK.md`, and this file, then run Phase 3 as one
+serialized persistent-cache conversation at about 4K initial context. Measure
+initial and incremental timing, output correctness, and memory after each
+turn. If stable and informative, consider one 8K warm run; do not start at
+16K.
 
 ## Safety notes
 

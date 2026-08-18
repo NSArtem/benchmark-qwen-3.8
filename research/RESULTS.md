@@ -46,3 +46,20 @@ boundary without artificial padding; the saved natural prefixes are 1,023 and
   for routine use.
 - Older `qwen38-3bit-mlx-rescue/` and `qwen38-3bit-textonly/` reports used MLX
   0.32.0 and are not valid current-baseline rows.
+
+## Phase 2 no-wired runtime
+
+`research/runtime/qwen38_runtime.py` is a small local wrapper around the
+pinned `generate_step`/`speculative_generate_step` APIs. It deliberately does
+not enter mlx-lm's stock wired-limit context and prints:
+
+`[qwen38-runtime] mlx-lm wired_limit wrapper disabled; MLX wired state untouched`
+
+The metadata command confirmed MLX 0.32.1, Python 3.14.7, revision
+`254d153fdeb6f150edd4fc5a54f9828638481fa8`, and affine 3-bit g64 metadata. A
+short 25-token prompt produced a coherent 37-token answer at 11.497 tok/s
+decode. The corrected moderate 4,096-token Lantern prompt produced a coherent
+64-token answer at 79.688 prompt tok/s and 11.027 decode tok/s, with 15.185 GB
+decimal MLX peak. The first moderate attempt bypassed the chat template and
+returned one EOS token; this helper-only interface bug was fixed before the
+recorded passing validation.
