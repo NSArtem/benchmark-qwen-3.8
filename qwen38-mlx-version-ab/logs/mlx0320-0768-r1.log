@@ -1,0 +1,24 @@
+test_id=mlx0320-0768-r1
+environment=mlx0320
+python_version=3.14.7
+python_executable=/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.0/.venv/bin/python3
+mlx_version=0.32.0
+mlx_lm_metadata_version=0.31.3
+mlx_lm_git_commit=254d153fdeb6f150edd4fc5a54f9828638481fa8
+model=lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly
+model_path=/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7
+prompt_file=qwen38-mlx-threshold/prompts/0768.txt
+prompt_sha256=e43371c867d970f5001796f970c080914a17c4bd34fcb21a15115619c3333767
+settings=enable_thinking_false,default_argmax_sampler,max_tokens_128,default_prefill,no_KV_quantization,no_activation_quantization,no_MTP,no_APC
+raw_prompt_tokens=757
+prompt_tokens=768
+[WARNING] Generating with a model that requires 11225 MB which is close to the maximum recommended size of 12288 MB. This can be slow. See the documentation for possible work-arounds: https://github.com/ml-explore/mlx-lm/tree/main#large-models
+first_token_id=2722
+first_token_text='irl'
+first_16_token_ids=[2722, 271, 2722, 271, 2722, 271, 2722, 271, 2722, 271, 2722, 271, 2722, 271, 2722, 271]
+generated_tokens=128
+finish_reason=length
+prompt_tps=91.15460121770138
+generation_tps=11.127819261263962
+peak_memory_gb=13.360472162
+{"classification": null, "enable_thinking": false, "environment": "mlx0320", "failure_reason": null, "finish_reason": "length", "first_16_token_ids": [2722, 271, 2722, 271, 2722, 271, 2722, 271, 2722, 271, 2722, 271, 2722, 271, 2722, 271], "first_token_id": 2722, "first_token_text": "irl", "generated_tokens": 128, "generation_tps": 11.127819261263962, "log_file": "qwen38-mlx-version-ab/logs/mlx0320-0768-r1.log", "log_json_file": "qwen38-mlx-version-ab/logs/mlx0320-0768-r1.json", "max_output_tokens": 128, "mlx_lm_git_commit": "254d153fdeb6f150edd4fc5a54f9828638481fa8", "mlx_lm_metadata_version": "0.31.3", "mlx_version": "0.32.0", "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly", "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7", "output_file": "qwen38-mlx-version-ab/outputs/mlx0320-0768-r1.txt", "peak_memory_gb": 13.360472162, "prefill_step_size": "default", "prompt_file": "qwen38-mlx-threshold/prompts/0768.txt", "prompt_sha256": "e43371c867d970f5001796f970c080914a17c4bd34fcb21a15115619c3333767", "prompt_tokens": 768, "prompt_tps": 91.15460121770138, "python_version": "3.14.7", "raw_prompt_tokens": 757, "repeat_index": 1, "sampler": "mlx_lm.generate_step default argmax", "success": true, "test_id": "mlx0320-0768-r1", "wall_seconds": 26.510909500000707}

@@ -1,0 +1,28 @@
+# Controlled MLX core-version A/B; model runs are sequential fresh processes.
+# No dependency or lockfile changes are permitted during this experiment.
+
+# Environment verification used importlib.metadata and PEP 610 direct_url.json:
+uv run --project envs/mlx-0.32.0 --no-sync python -c 'import importlib.metadata as md, pathlib, sys; print(sys.version); print(sys.executable); print(md.version("mlx")); print(md.version("mlx-lm")); d=md.distribution("mlx-lm"); print(pathlib.Path(d.locate_file(next(p for p in d.files if str(p).endswith("direct_url.json")))).read_text())'
+uv run --project envs/mlx-0.32.1 --no-sync python -c 'import importlib.metadata as md, pathlib, sys; print(sys.version); print(sys.executable); print(md.version("mlx")); print(md.version("mlx-lm")); d=md.distribution("mlx-lm"); print(pathlib.Path(d.locate_file(next(p for p in d.files if str(p).endswith("direct_url.json")))).read_text())'
+
+# Model snapshot used by every run:
+MODEL_PATH=/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7
+
+# Existing prompts, reused byte-for-byte:
+SHORT_PROMPT=qwen38-3bit-mlx-rescue/control-short-prompt.txt
+PROMPT_768=qwen38-mlx-threshold/prompts/0768.txt
+
+# Every command below uses the pinned mlx-lm default argmax sampler, default
+# prefill, thinking disabled, max output 128, no KV/activation quantization,
+# no MTP/APC, and a new process.
+
+uv run --project envs/mlx-0.32.0 --no-sync python qwen38-mlx-version-ab/harness/run_case.py --test-id mlx0320-short --environment mlx0320 --expected-mlx-version 0.32.0 --model-path "$MODEL_PATH" --prompt-file "$SHORT_PROMPT" --output-file qwen38-mlx-version-ab/outputs/mlx0320-short.txt --log-file qwen38-mlx-version-ab/logs/mlx0320-short.log --log-json-file qwen38-mlx-version-ab/logs/mlx0320-short.json --results-file qwen38-mlx-version-ab/results.json --repeat-index 0
+uv run --project envs/mlx-0.32.1 --no-sync python qwen38-mlx-version-ab/harness/run_case.py --test-id mlx0321-short --environment mlx0321 --expected-mlx-version 0.32.1 --model-path "$MODEL_PATH" --prompt-file "$SHORT_PROMPT" --output-file qwen38-mlx-version-ab/outputs/mlx0321-short.txt --log-file qwen38-mlx-version-ab/logs/mlx0321-short.log --log-json-file qwen38-mlx-version-ab/logs/mlx0321-short.json --results-file qwen38-mlx-version-ab/results.json --repeat-index 0
+
+uv run --project envs/mlx-0.32.0 --no-sync python qwen38-mlx-version-ab/harness/run_case.py --test-id mlx0320-0768-r1 --environment mlx0320 --expected-mlx-version 0.32.0 --model-path "$MODEL_PATH" --prompt-file "$PROMPT_768" --output-file qwen38-mlx-version-ab/outputs/mlx0320-0768-r1.txt --log-file qwen38-mlx-version-ab/logs/mlx0320-0768-r1.log --log-json-file qwen38-mlx-version-ab/logs/mlx0320-0768-r1.json --results-file qwen38-mlx-version-ab/results.json --repeat-index 1
+uv run --project envs/mlx-0.32.0 --no-sync python qwen38-mlx-version-ab/harness/run_case.py --test-id mlx0320-0768-r2 --environment mlx0320 --expected-mlx-version 0.32.0 --model-path "$MODEL_PATH" --prompt-file "$PROMPT_768" --output-file qwen38-mlx-version-ab/outputs/mlx0320-0768-r2.txt --log-file qwen38-mlx-version-ab/logs/mlx0320-0768-r2.log --log-json-file qwen38-mlx-version-ab/logs/mlx0320-0768-r2.json --results-file qwen38-mlx-version-ab/results.json --repeat-index 2
+uv run --project envs/mlx-0.32.0 --no-sync python qwen38-mlx-version-ab/harness/run_case.py --test-id mlx0320-0768-r3 --environment mlx0320 --expected-mlx-version 0.32.0 --model-path "$MODEL_PATH" --prompt-file "$PROMPT_768" --output-file qwen38-mlx-version-ab/outputs/mlx0320-0768-r3.txt --log-file qwen38-mlx-version-ab/logs/mlx0320-0768-r3.log --log-json-file qwen38-mlx-version-ab/logs/mlx0320-0768-r3.json --results-file qwen38-mlx-version-ab/results.json --repeat-index 3
+
+uv run --project envs/mlx-0.32.1 --no-sync python qwen38-mlx-version-ab/harness/run_case.py --test-id mlx0321-0768-r1 --environment mlx0321 --expected-mlx-version 0.32.1 --model-path "$MODEL_PATH" --prompt-file "$PROMPT_768" --output-file qwen38-mlx-version-ab/outputs/mlx0321-0768-r1.txt --log-file qwen38-mlx-version-ab/logs/mlx0321-0768-r1.log --log-json-file qwen38-mlx-version-ab/logs/mlx0321-0768-r1.json --results-file qwen38-mlx-version-ab/results.json --repeat-index 1
+uv run --project envs/mlx-0.32.1 --no-sync python qwen38-mlx-version-ab/harness/run_case.py --test-id mlx0321-0768-r2 --environment mlx0321 --expected-mlx-version 0.32.1 --model-path "$MODEL_PATH" --prompt-file "$PROMPT_768" --output-file qwen38-mlx-version-ab/outputs/mlx0321-0768-r2.txt --log-file qwen38-mlx-version-ab/logs/mlx0321-0768-r2.log --log-json-file qwen38-mlx-version-ab/logs/mlx0321-0768-r2.json --results-file qwen38-mlx-version-ab/results.json --repeat-index 2
+uv run --project envs/mlx-0.32.1 --no-sync python qwen38-mlx-version-ab/harness/run_case.py --test-id mlx0321-0768-r3 --environment mlx0321 --expected-mlx-version 0.32.1 --model-path "$MODEL_PATH" --prompt-file "$PROMPT_768" --output-file qwen38-mlx-version-ab/outputs/mlx0321-0768-r3.txt --log-file qwen38-mlx-version-ab/logs/mlx0321-0768-r3.log --log-json-file qwen38-mlx-version-ab/logs/mlx0321-0768-r3.json --results-file qwen38-mlx-version-ab/results.json --repeat-index 3
