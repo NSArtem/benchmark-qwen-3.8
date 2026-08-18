@@ -866,9 +866,13 @@ def orchestrate(args: argparse.Namespace) -> int:
     args.conversation_file = str(plan_path)
 
     mode_a_dir = output_dir / "mode-a"
-    mode_a_result = mode_a_dir / "mode-a.json"
-    mode_a_command = child_command(args, "a-child", mode_a_dir)
-    mode_a_rc = run_child(mode_a_command, output_dir / "mode-a.log")
+    if args.reuse_mode_a_result is not None:
+        mode_a_result = Path(args.reuse_mode_a_result).resolve()
+        mode_a_rc = 0 if mode_a_result.exists() else 1
+    else:
+        mode_a_result = mode_a_dir / "mode-a.json"
+        mode_a_command = child_command(args, "a-child", mode_a_dir)
+        mode_a_rc = run_child(mode_a_command, output_dir / "mode-a.log")
     if mode_a_rc != 0 or not mode_a_result.exists():
         aggregate = {
             "experiment_id": args.experiment_id,
@@ -1032,6 +1036,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", default="research/night2/cache-probes/default")
     parser.add_argument("--output-file", default=None)
     parser.add_argument("--mode-a-result", default=None)
+    parser.add_argument("--reuse-mode-a-result", default=None)
     parser.add_argument("--experiment-id", default="P3-PROTOCOL")
     parser.add_argument("--turn-index", type=int, default=None)
     parser.add_argument("--initial-max-tokens", type=int, default=128)
