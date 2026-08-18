@@ -1,13 +1,13 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 6 converter self-test before source download.
+Last updated: 2026-08-18, Phase 6 source verified before conversion.
 
 ## Current phase
 
 Phase 0 through Phase 5 feasibility review are complete. Phase 6 bounded
-text-only g128 conversion is in progress. The converter self-test passed, but
-the 55.6 GB source download has not started. No heavy workload is running.
-Process inspection was
+text-only g128 conversion is in progress. The converter self-test passed and
+the exact 55.6 GB source snapshot is now verified; conversion has not started.
+No MLX inference workload is running. Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -112,6 +112,12 @@ observe through their command sessions.
   layer chunks, verified source-to-MLX key mapping, preserved the pinned
   global norm shift on a full-attention chunk (`1.0` to `2.0`), and made zero
   wired-policy calls. No source arrays were loaded. Tool commit: `c12bace`.
+- `P6-SOURCE-DOWNLOAD`: downloaded the exact `Qwen/Qwen3.8-27B` revision
+  `1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0` into the HF cache. Verification
+  found all 18 shards, 1,199 indexed tensors, 333 vision tensors, 15 MTP
+  tensors, 851 retained text tensors, and 55,563,006,776 bytes on disk. The
+  cache is 52G and 194 GiB remains free. No output model or inference process
+  was started.
 
 ## Key measurements
 
@@ -154,6 +160,9 @@ observe through their command sessions.
   until a source-backed conversion run measures it.
 - The self-test confirms the planned layer boundaries and sanitization logic;
   source-backed output integrity and peak memory remain unmeasured.
+- The exact high-precision source is now available locally, so the g128 branch
+  is no longer source-blocked; its next gate is bounded conversion memory and
+  output integrity.
 
 ## Current best configuration
 
@@ -188,16 +197,17 @@ not a comfortable recommendation.
 
 ## Next action
 
-Re-read `AGENTS.md`, `TASK.md`, and this file, then download the exact pinned
-`Qwen/Qwen3.8-27B` source snapshot using the recorded disk gate. Verify the
-downloaded revision and source headers before starting the fresh-process
-bounded conversion. Do not run the stock converter.
+Re-read `AGENTS.md`, `TASK.md`, and this file, then start one fresh-process
+bounded conversion into a new untracked output directory. Capture per-layer
+MLX active/cache/peak metrics and OS snapshots. Stop on the first Metal OOM or
+severe memory-pressure signal; never fall back to the stock converter.
 
 ## Safety notes
 
-- No system wired-memory setting was modified. The Phase 5 gate and Phase 6
-  converter self-test were completed before any source download; source
-  weights and conversion remain unstarted.
+- No system wired-memory setting was modified. The Phase 5 gate, converter
+  self-test, and source verification were completed before conversion.
+- Source weights are cached but must not be committed. The output directory
+  must remain untracked and must not be committed.
 - Do not run the pinned stock converter. Do not commit source or converted
   model weights.
 - Do not use the older 0.32.0 environment.

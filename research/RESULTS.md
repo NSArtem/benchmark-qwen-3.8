@@ -152,3 +152,11 @@ mapping. A full-attention norm-only chunk preserved the pinned Qwen3.5
 sanitization rule by shifting a test value from 1.0 to 2.0. The tool contains
 no wired-limit setter call. This proves only the static planning/sanitization
 path; source-backed integrity, conversion time, and peak memory remain open.
+
+The exact high-precision source was then downloaded at revision
+`1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0`. Verification found 18 safetensor
+shards, 1,199 indexed tensors, 333 vision tensors, 15 MTP tensors, and 851
+retained text tensors. The source shard bytes sum to 55,563,006,776 (51.747
+GiB); the source index metadata reports 55,562,855,904 bytes of tensor payload.
+The source cache occupies 52G and 194 GiB remains free. No conversion output
+has been created yet.
