@@ -1,11 +1,11 @@
 # Night-2 status
 
-Last updated: 2026-08-19T02:25:40+04:00, Phase 0 ledger created.
+Last updated: 2026-08-19T02:40:31+04:00, Phase 2 harness committed.
 
 ## Current phase
 
-Phase 0 — recover state, preserve the source-backed g128 checkpoint, and
-establish the correction ledger.
+Phase 2 — protocol-aware cache harness is implemented; Phase 3 reproduction is
+next.
 
 ## Last completed experiment
 
@@ -23,6 +23,14 @@ performance data only.
 group-size 128; 19 shards and 1,847 tensor keys are intact; header payload is
 10,930,715,648 bytes (10.180022 GiB), exactly equal to the index metadata.
 
+`P2-HARNESS`: `research/night2/harness/protocol_cache_harness.py` is committed
+as `93f8048`. It records raw token IDs/text, exact hashes, prefix and n-gram
+replay metrics, semantic keyword support checks, prompt join tokens, MLX
+active/cache/peak memory, OS snapshots, and compact hybrid-cache layer
+signatures at creation, prompt processing, first generated token, and turn
+completion. Its orchestrator runs Mode A persistently and Mode B/C in fresh
+child processes per turn.
+
 ## Current diagnosis of the cache bug
 
 The stale replay is reproduced from raw artifacts, but its mechanism is not
@@ -30,6 +38,12 @@ localized yet. The existing `NoWiredChat` passes a freshly templated one-user
 fragment into one persistent hybrid `prompt_cache`; this is the suspect path.
 The next evidence must compare it with exact-token concatenation and a fresh
 full-transcript chat reference.
+
+The canonical project `.venv` is currently only a bare virtualenv in this
+sandbox. The exact pinned packages remain in the existing uv archive cache; the
+heavy commands will use the project Python via the canonical `uv run ...
+--no-sync` prefix with explicit read-only `PYTHONPATH`/MLX 0.32.1 Metal library
+paths. This does not alter project dependency files or install a new runtime.
 
 ## Current trusted chat mode
 
@@ -64,7 +78,6 @@ g128 checkpoint is preserved outside temporary storage.
 
 ## Next action
 
-Create the erratum and implement the protocol-aware harness under
-`research/night2/harness/`, then run a single fresh g64 Mode-A reproduction at
-the first safe boundary before spending more memory exposure.
-
+Re-read policy and status, then run a fresh g64 Mode-A reproduction at ~4K
+with the strong two-follow-up protocol. Inspect its saved raw output and cache
+signatures before proceeding to ~6K/~7K/~8K and the exact/full oracles.
