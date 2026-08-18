@@ -1,12 +1,13 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 1 after P1-G64-12288.
+Last updated: 2026-08-18, Phase 3 after P3-WARM4K.
 
 ## Current phase
 
 Phase 0 and Phase 1 are complete. Phase 2 no-wired runtime helper and its
-short/moderate validations are complete. Phase 3 warm-cache measurement is
-next. No heavy workload is running. Process inspection was
+short/moderate validations are complete. Phase 3 warm-cache measurement is in
+progress; the 4K conversation passed and one 8K conversation is next. No heavy
+workload is running. Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -68,6 +69,14 @@ observe through their command sessions.
   diagnosis from the 4,096-token Lantern prompt. Prompt 79.688 tok/s; decode
   11.027 tok/s; peak 15.185 GB decimal. Raw response is saved in
   `research/runtime/validation-moderate.txt`.
+- `P3-WARM4K`: one persistent-cache process ran a 4,096-token initial coding
+  turn plus three short follow-ups (128, 64, 64, and 64 output tokens).
+  All four turns were COHERENT. Initial TTFT 51.484 s at 79.710 prompt tok/s
+  and 10.943 decode tok/s. Follow-up TTFTs were 0.726, 1.103, and 0.728 s;
+  follow-up decode was 11.024, 11.017, and 11.005 tok/s. After-turn
+  active+cache was 11.463, 11.433, 11.447, and 11.447 GiB; cumulative peak
+  was 14.142 GiB. OS snapshots showed 26% free memory and 203.75 MB swap at
+  the end. Responses and token IDs are in `research/warm-cache/`.
 
 ## Key measurements
 
@@ -86,6 +95,11 @@ observe through their command sessions.
   briefly wrong because it bypassed the chat template; that tooling bug
   produced a one-token EOS response, was corrected, and the corrected 4K
   validation passed. This is not evidence of model corruption.
+- Persistent prompt caching is confirmed useful at 4K: the initial cold turn
+  retains the expected ~51 s prefill, while short incremental turns complete
+  in about 0.7–1.1 s to first token and decode at about 11 tok/s without
+  material memory growth. On this evidence the 4K interactive classification
+  is EXCELLENT.
 - At 769 final prompt tokens / 768 main prefill: peak 12.459 GiB; after-first
   token active about 11.199 GiB and active+cache about 11.363 GiB in one
   repeat. The adjacent-length peak differences were immaterial.
@@ -96,7 +110,8 @@ observe through their command sessions.
 
 Best measured practical candidate remains g64 affine, MLX 0.32.1, direct or
 no-wired execution, greedy, no speculation/MTP/APC/activation quantization.
-The reusable no-wired helper now provides the canonical user-facing path.
+The reusable no-wired helper now provides the canonical user-facing path, and
+the 4K persistent-cache profile is currently classified EXCELLENT.
 The largest fresh-process cold probe is 12,288 coherent at 15.392 GiB peak;
 the separate 16,767-token policy-summary run was coherent at 17.200 GB but is
 not a comfortable recommendation.
@@ -122,11 +137,10 @@ not a comfortable recommendation.
 
 ## Next action
 
-Re-read `AGENTS.md`, `TASK.md`, and this file, then run Phase 3 as one
-serialized persistent-cache conversation at about 4K initial context. Measure
-initial and incremental timing, output correctness, and memory after each
-turn. If stable and informative, consider one 8K warm run; do not start at
-16K.
+Re-read `AGENTS.md`, `TASK.md`, and this file, then run one serialized 8K
+persistent-cache conversation using the same four-turn script. Stop if peak
+approaches 17 GiB or OS pressure becomes severe; do not start a 12K/16K warm
+conversation based on this single result.
 
 ## Safety notes
 

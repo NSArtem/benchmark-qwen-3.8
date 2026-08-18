@@ -63,3 +63,15 @@ decode. The corrected moderate 4,096-token Lantern prompt produced a coherent
 decimal MLX peak. The first moderate attempt bypassed the chat template and
 returned one EOS token; this helper-only interface bug was fixed before the
 recorded passing validation.
+
+## Phase 3 warm / interactive behavior
+
+The persistent `NoWiredChat` session was tested in one process with the 4,096
+token Lantern coding prompt followed by three short follow-ups. The initial
+turn reproduced the cold baseline (51.484 s TTFT, 79.710 prompt tok/s, 10.943
+decode tok/s, 14.142 GiB cumulative peak). All four responses were coherent.
+The incremental turns processed only 33, 35, and 30 new prompt tokens and had
+TTFTs of 0.726, 1.103, and 0.728 s, with decode rates of 11.024, 11.017, and
+11.005 tok/s. Active+cache after the turns was 11.463, 11.433, 11.447, and
+11.447 GiB. The measured 4K interactive profile is classified **EXCELLENT**;
+an 8K confirmation is planned before choosing the practical context.

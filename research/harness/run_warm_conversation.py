@@ -16,6 +16,12 @@ from typing import Any
 import mlx.core as mx
 from mlx_lm import load
 
+# Direct execution puts ``research/harness`` on sys.path, not the repository
+# root where the reusable runtime module lives.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from research.runtime.qwen38_runtime import NoWiredChat, PINNED_MLX_LM_REVISION
 
 

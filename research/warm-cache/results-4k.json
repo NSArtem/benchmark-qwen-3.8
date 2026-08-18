@@ -1,0 +1,306 @@
+{
+  "exception": null,
+  "experiment_id": "P3-WARM4K",
+  "git_commit": "e979d48796c14f522a22d11e1eb175632af4b7d0",
+  "kv_bits": null,
+  "kv_group_size": 64,
+  "memory_after_model_load": {
+    "active_bytes": 11771722760,
+    "active_gib": 10.963271148502827,
+    "active_plus_cache_bytes": 11771733324,
+    "active_plus_cache_gib": 10.963280986994505,
+    "cache_bytes": 10564,
+    "cache_gib": 9.838491678237915e-06,
+    "elapsed_seconds": 3.820217375000084,
+    "label": "after_model_load",
+    "peak_bytes": 11771722760,
+    "peak_gib": 10.963271148502827,
+    "rss_max_bytes": 8190394368,
+    "timestamp": 1787065885.618114
+  },
+  "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+  "mlx_version": "0.32.1",
+  "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+  "model_quantization": {
+    "bits": 3,
+    "group_size": 64,
+    "mode": "affine"
+  },
+  "os_memory_final": {
+    "memory_pressure": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 26%\n"
+    },
+    "vm_stat": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                              174826.\nPages active:                             66325.\nPages inactive:                           65483.\nPages speculative:                          476.\nPages throttled:                              0.\nPages wired down:                        827279.\nPages purgeable:                            334.\n\"Translation faults\":                   9372319.\nPages copy-on-write:                     240272.\nPages zero filled:                     26064591.\nPages reactivated:                       165825.\nPages purged:                             17692.\nFile-backed pages:                        85528.\nAnonymous pages:                          46756.\nPages stored in compressor:               53608.\nPages occupied by compressor:              4257.\nDecompressions:                         7443059.\nCompressions:                           7504422.\nPageins:                                6440921.\nPageouts:                                  1468.\nSwapins:                                 125720.\nSwapouts:                                138996.\n"
+    },
+    "vm_swapusage": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "vm.swapusage: total = 1024.00M  used = 203.75M  free = 820.25M  (encrypted)\n"
+    }
+  },
+  "prefill_step_size": 2048,
+  "prompt_path": "research/context-ladder/prompts/prompt-4096.txt",
+  "prompt_sha256": "ed38c182ce4cbef206fe381724ac6794a89146cfc79c7de7b06132a878aad5c4",
+  "python_executable": "/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.1/.venv/bin/python3",
+  "python_version": "3.14.7",
+  "quantized_kv_start": 0,
+  "safety_stop_reason": null,
+  "timestamp": "2026-08-18T19:11:21+0400",
+  "total_elapsed_seconds": 87.10419662499999,
+  "turns": [
+    {
+      "classification": "COHERENT",
+      "decode_tps": 10.943081145041159,
+      "generated_token_hash": "44245c283a4f3c7d8f7964657405b416ad0f14e25149e4328b6fe1c32eb20135",
+      "generated_tokens": 128,
+      "generation_seconds": 11.705739916999846,
+      "max_tokens": 128,
+      "memory_after": {
+        "active_bytes": 12225302716,
+        "active_gib": 11.385700400918722,
+        "active_plus_cache_bytes": 12308225792,
+        "active_plus_cache_gib": 11.462928533554077,
+        "cache_bytes": 82923076,
+        "cache_gib": 0.077228132635355,
+        "elapsed_seconds": 67.0295792500001,
+        "label": "after_turn_1",
+        "peak_bytes": 15185067062,
+        "peak_gib": 14.14219575189054,
+        "rss_max_bytes": 8190394368,
+        "timestamp": 1787065948.8284001
+      },
+      "memory_before": {
+        "active_bytes": 11771722760,
+        "active_gib": 10.963271148502827,
+        "active_plus_cache_bytes": 11771733324,
+        "active_plus_cache_gib": 10.963280986994505,
+        "cache_bytes": 10564,
+        "cache_gib": 9.838491678237915e-06,
+        "elapsed_seconds": 3.820334792000267,
+        "label": "before_turn_1",
+        "peak_bytes": 11771722760,
+        "peak_gib": 10.963271148502827,
+        "rss_max_bytes": 8190394368,
+        "timestamp": 1787065885.618232
+      },
+      "newly_processed_prompt_tokens": 4096,
+      "os_memory_after": {
+        "memory_pressure": {
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 26%\n"
+        },
+        "vm_stat": {
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                              180655.\nPages active:                             63969.\nPages inactive:                           63386.\nPages speculative:                          278.\nPages throttled:                              0.\nPages wired down:                        826409.\nPages purgeable:                            315.\n\"Translation faults\":                   9335481.\nPages copy-on-write:                     237335.\nPages zero filled:                     26051871.\nPages reactivated:                       165816.\nPages purged:                             17692.\nFile-backed pages:                        85261.\nAnonymous pages:                          42372.\nPages stored in compressor:               53645.\nPages occupied by compressor:              4280.\nDecompressions:                         7443022.\nCompressions:                           7504422.\nPageins:                                6440791.\nPageouts:                                  1468.\nSwapins:                                 125716.\nSwapouts:                                138996.\n"
+        },
+        "vm_swapusage": {
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "vm.swapusage: total = 1024.00M  used = 203.75M  free = 820.25M  (encrypted)\n"
+        }
+      },
+      "prompt_tps": 79.70970585277102,
+      "query_sha256": "ed38c182ce4cbef206fe381724ac6794a89146cfc79c7de7b06132a878aad5c4",
+      "query_tokens_are_incremental": true,
+      "raw_output": "research/warm-cache/turn-1.txt",
+      "raw_token_ids": "research/warm-cache/turn-1.tokens.json",
+      "total_seconds": 63.18992345800007,
+      "ttft_seconds": 51.48418354100022,
+      "turn": 1
+    },
+    {
+      "classification": "COHERENT",
+      "decode_tps": 11.023580185035756,
+      "generated_token_hash": "0abf721cf4e473e9195ee6043b6bbeab4e89110e06a0d5e5dad2d374df11e383",
+      "generated_tokens": 64,
+      "generation_seconds": 5.813139958000193,
+      "max_tokens": 64,
+      "memory_after": {
+        "active_bytes": 12230742608,
+        "active_gib": 11.390766695141792,
+        "active_plus_cache_bytes": 12275703744,
+        "active_plus_cache_gib": 11.432640016078949,
+        "cache_bytes": 44961136,
+        "cache_gib": 0.04187332093715668,
+        "elapsed_seconds": 73.58638650000012,
+        "label": "after_turn_2",
+        "peak_bytes": 15185067062,
+        "peak_gib": 14.14219575189054,
+        "rss_max_bytes": 8190394368,
+        "timestamp": 1787065955.385303
+      },
+      "memory_before": {
+        "active_bytes": 12211862538,
+        "active_gib": 11.373183259740472,
+        "active_plus_cache_bytes": 12308225792,
+        "active_plus_cache_gib": 11.462928533554077,
+        "cache_bytes": 96363254,
+        "cache_gib": 0.08974527381360531,
+        "elapsed_seconds": 67.04586962500025,
+        "label": "before_turn_2",
+        "peak_bytes": 15185067062,
+        "peak_gib": 14.14219575189054,
+        "rss_max_bytes": 8190394368,
+        "timestamp": 1787065948.844691
+      },
+      "newly_processed_prompt_tokens": 33,
+      "os_memory_after": {
+        "memory_pressure": {
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 26%\n"
+        },
+        "vm_stat": {
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                              177991.\nPages active:                             65462.\nPages inactive:                           64583.\nPages speculative:                          385.\nPages throttled:                              0.\nPages wired down:                        826463.\nPages purgeable:                            334.\n\"Translation faults\":                   9349232.\nPages copy-on-write:                     238298.\nPages zero filled:                     26058745.\nPages reactivated:                       165816.\nPages purged:                             17692.\nFile-backed pages:                        85411.\nAnonymous pages:                          45019.\nPages stored in compressor:               53617.\nPages occupied by compressor:              4253.\nDecompressions:                         7443050.\nCompressions:                           7504422.\nPageins:                                6440874.\nPageouts:                                  1468.\nSwapins:                                 125716.\nSwapouts:                                138996.\n"
+        },
+        "vm_swapusage": {
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "vm.swapusage: total = 1024.00M  used = 203.75M  free = 820.25M  (encrypted)\n"
+        }
+      },
+      "prompt_tps": 53.058511680607836,
+      "query_sha256": "88268468fb113f18f11e9ee472d26b6f5d5a9f61494782e15edcde7a446ba1df",
+      "query_tokens_are_incremental": true,
+      "raw_output": "research/warm-cache/turn-2.txt",
+      "raw_token_ids": "research/warm-cache/turn-2.tokens.json",
+      "total_seconds": 6.5395972500000425,
+      "ttft_seconds": 0.72645729199985,
+      "turn": 2
+    },
+    {
+      "classification": "COHERENT",
+      "decode_tps": 11.017303285753972,
+      "generated_token_hash": "33bfe7951f4b5872df6ad65308279a71fba7f61d2ab46076105e3a848cd24b80",
+      "generated_tokens": 64,
+      "generation_seconds": 5.81607162499995,
+      "max_tokens": 64,
+      "memory_after": {
+        "active_bytes": 12245946960,
+        "active_gib": 11.404926851391792,
+        "active_plus_cache_bytes": 12290908096,
+        "active_plus_cache_gib": 11.446800172328949,
+        "cache_bytes": 44961136,
+        "cache_gib": 0.04187332093715668,
+        "elapsed_seconds": 80.5186579580004,
+        "label": "after_turn_3",
+        "peak_bytes": 15185067062,
+        "peak_gib": 14.14219575189054,
+        "rss_max_bytes": 8190394368,
+        "timestamp": 1787065962.317674
+      },
+      "memory_before": {
+        "active_bytes": 12211862538,
+        "active_gib": 11.373183259740472,
+        "active_plus_cache_bytes": 12275703744,
+        "active_plus_cache_gib": 11.432640016078949,
+        "cache_bytes": 63841206,
+        "cache_gib": 0.059456756338477135,
+        "elapsed_seconds": 73.59905254200021,
+        "label": "before_turn_3",
+        "peak_bytes": 15185067062,
+        "peak_gib": 14.14219575189054,
+        "rss_max_bytes": 8190394368,
+        "timestamp": 1787065955.397969
+      },
+      "newly_processed_prompt_tokens": 35,
+      "os_memory_after": {
+        "memory_pressure": {
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 26%\n"
+        },
+        "vm_stat": {
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                              176733.\nPages active:                             65745.\nPages inactive:                           64766.\nPages speculative:                          417.\nPages throttled:                              0.\nPages wired down:                        827265.\nPages purgeable:                            334.\n\"Translation faults\":                   9359719.\nPages copy-on-write:                     238964.\nPages zero filled:                     26061275.\nPages reactivated:                       165816.\nPages purged:                             17692.\nFile-backed pages:                        85456.\nAnonymous pages:                          45472.\nPages stored in compressor:               53612.\nPages occupied by compressor:              4257.\nDecompressions:                         7443055.\nCompressions:                           7504422.\nPageins:                                6440882.\nPageouts:                                  1468.\nSwapins:                                 125720.\nSwapouts:                                138996.\n"
+        },
+        "vm_swapusage": {
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "vm.swapusage: total = 1024.00M  used = 203.75M  free = 820.25M  (encrypted)\n"
+        }
+      },
+      "prompt_tps": 35.05684028440065,
+      "query_sha256": "96cd80f40c08a429249d99158d624066962cf0533e64157eec6915273235ebf8",
+      "query_tokens_are_incremental": true,
+      "raw_output": "research/warm-cache/turn-3.txt",
+      "raw_token_ids": "research/warm-cache/turn-3.tokens.json",
+      "total_seconds": 6.918788334000055,
+      "ttft_seconds": 1.1027167090001058,
+      "turn": 3
+    },
+    {
+      "classification": "COHERENT",
+      "decode_tps": 11.005287832391096,
+      "generated_token_hash": "da0760560f5c25ac8937ee31c6e81e2ae170b5b1d328d639f7ac57355898e693",
+      "generated_tokens": 64,
+      "generation_seconds": 5.822429499999998,
+      "max_tokens": 64,
+      "memory_after": {
+        "active_bytes": 12245946960,
+        "active_gib": 11.404926851391792,
+        "active_plus_cache_bytes": 12290908096,
+        "active_plus_cache_gib": 11.446800172328949,
+        "cache_bytes": 44961136,
+        "cache_gib": 0.04187332093715668,
+        "elapsed_seconds": 87.0825549580004,
+        "label": "after_turn_4",
+        "peak_bytes": 15185067062,
+        "peak_gib": 14.14219575189054,
+        "rss_max_bytes": 8190394368,
+        "timestamp": 1787065968.881668
+      },
+      "memory_before": {
+        "active_bytes": 12227066890,
+        "active_gib": 11.387343415990472,
+        "active_plus_cache_bytes": 12290908096,
+        "active_plus_cache_gib": 11.446800172328949,
+        "cache_bytes": 63841206,
+        "cache_gib": 0.059456756338477135,
+        "elapsed_seconds": 80.53172566700005,
+        "label": "before_turn_4",
+        "peak_bytes": 15185067062,
+        "peak_gib": 14.14219575189054,
+        "rss_max_bytes": 8190394368,
+        "timestamp": 1787065962.330743
+      },
+      "newly_processed_prompt_tokens": 30,
+      "os_memory_after": {
+        "memory_pressure": {
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 26%\n"
+        },
+        "vm_stat": {
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                              174936.\nPages active:                             66310.\nPages inactive:                           65487.\nPages speculative:                          476.\nPages throttled:                              0.\nPages wired down:                        827279.\nPages purgeable:                            334.\n\"Translation faults\":                   9370270.\nPages copy-on-write:                     239618.\nPages zero filled:                     26064451.\nPages reactivated:                       165825.\nPages purged:                             17692.\nFile-backed pages:                        85528.\nAnonymous pages:                          46745.\nPages stored in compressor:               53608.\nPages occupied by compressor:              4257.\nDecompressions:                         7443059.\nCompressions:                           7504422.\nPageins:                                6440918.\nPageouts:                                  1468.\nSwapins:                                 125720.\nSwapouts:                                138996.\n"
+        },
+        "vm_swapusage": {
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "vm.swapusage: total = 1024.00M  used = 203.75M  free = 820.25M  (encrypted)\n"
+        }
+      },
+      "prompt_tps": 48.15061512412212,
+      "query_sha256": "92b4307acec7a06e880167e29722292c70e5c6b331965c9b6cf03bd366680055",
+      "query_tokens_are_incremental": true,
+      "raw_output": "research/warm-cache/turn-4.txt",
+      "raw_token_ids": "research/warm-cache/turn-4.tokens.json",
+      "total_seconds": 6.550052334000156,
+      "ttft_seconds": 0.727622834000158,
+      "turn": 4
+    }
+  ],
+  "wired_policy": "no-wired helper; persistent prompt_cache; MLX wired state untouched"
+}
