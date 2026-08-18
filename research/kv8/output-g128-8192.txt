@@ -1,0 +1,8 @@
+# Diagnosis
+
+The reported incident—completed renders reverting to "running" and duplicate jobs appearing on retry—stems from a fundamental architectural mismatch in how the system handles idempotency, atomicity, and state projection.
+
+### 1. The "Completed Render Returns to Running" Bug
+**Root Cause:** The `JobService.cancel` method (and implicitly, any state transition) does not check if the job is already in that state. More critically, the `applyEvent` function in `domain/job.ts` has a subtle flaw in its monotonicity check:
+```ts
+if (event.sequence <= job

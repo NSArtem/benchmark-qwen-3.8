@@ -214,3 +214,25 @@ make it a maximum cold-context result rather than a measured warm-chat
 recommendation. 20K/24K/32K probes were deliberately not started because
 the practical objective was already answered at a safer measured point and
 the additional synthetic exposure had low decision value.
+
+## Phase 9 — KV8 cache quantization
+
+The pinned runtime's Qwen3.8 cache has 64 layers: 48 recurrent
+`linear_attention` layers use `ArraysCache`, while 16 `full_attention` layers
+use `KVCache`. With `kv_bits=8`, `kv_group_size=64`, and
+`quantized_kv_start=0`, only the latter 16 caches are converted by the pinned
+`maybe_quantize_kv_cache` path.
+
+| Configuration | Prompt tokens | Classification | TTFT (s) | Prompt tok/s | Decode tok/s | Peak GiB | Comparison |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | --- |
+| g64, no KV8 baseline | 4,096 | COHERENT | 51.383 | 79.715 | 10.858 | 14.142 | reference |
+| g64 + KV8 | 4,096 | COHERENT | 51.579 | 79.413 | 10.575 | 14.029 | −0.113 GiB peak; −2.6% decode |
+| g64, no KV8 baseline | 8,191 | COHERENT | 104.330 | 78.511 | 10.415 | 14.766 | reference |
+| g64 + KV8 | 8,191 | COHERENT | 104.621 | 78.292 | 9.862 | 14.535 | −0.231 GiB peak; −5.3% decode |
+| g128, no KV8 | 8,191 | COHERENT | 103.864 | 78.863 | 11.204 | 13.983 | reference |
+| g128 + KV8 | 8,191 | COHERENT | 104.235 | 78.582 | 10.417 | 13.752 | −0.231 GiB peak; −7.0% decode |
+
+KV8 preserved correctness and left TTFT essentially unchanged, but its
+measured memory savings were small and its decode penalty increased with the
+tested context. It is rejected for the practical recommendation; no 12K/16K
+KV8 matrix was run.

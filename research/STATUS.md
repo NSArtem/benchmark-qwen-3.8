@@ -1,14 +1,15 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 8 g128 16K probe passed.
+Last updated: 2026-08-18, Phase 9 KV8 study complete.
 
 ## Current phase
 
-Phase 0 through Phase 6 are complete, all three Phase 7 g128 correctness gates
-have passed, and the Phase 8 8K, 12K, and ~16K probes passed. The bounded
-text-only affine 3-bit g128 conversion succeeded and passed header/index
-verification. The measured g128 cold maximum is now 16,727 prompt tokens.
-No MLX inference workload is running. Process inspection was
+Phase 0 through Phase 8 are complete: all three Phase 7 g128 correctness gates
+passed, the Phase 8 8K/12K/~16K probes passed, and the Phase 9 original-g64
+KV8 plus g128+KV8 probes are complete. The bounded text-only affine 3-bit
+g128 conversion succeeded and passed header/index verification. KV8 is
+rejected as a practical lever. No MLX inference workload is running. Process
+inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -167,6 +168,26 @@ observe through their command sessions.
   76.167 tok/s; decode 10.641 tok/s; peak 15.236 GiB; after-completion
   active+cache 11.397 GiB. System-wide free memory was 27% after the run and
   swap used was 326.19 MB. No exception or safety stop.
+- `P9-G64-KV8-4096`: original g64 with pinned KV8/group64/start0 produced a
+  coherent 128-token response at 4,096 prompt tokens. TTFT 51.579 s; prompt
+  79.413 tok/s; decode 10.575 tok/s; peak 14.029 GiB; after-completion
+  active+cache 11.316 GiB. Relative to `P1-G64-4096`, peak was only 0.113 GiB
+  lower and decode was about 2.6% slower. System-wide free memory was 28%
+  after the run; swap used was 302.19 MB; no exception or safety stop.
+- `P9-G64-KV8-8192`: original g64 with the same pinned KV8 settings produced
+  coherent 128-token output at 8,191 prompt tokens. TTFT 104.621 s; prompt
+  78.292 tok/s; decode 9.862 tok/s; peak 14.535 GiB; after-completion
+  active+cache 11.413 GiB. Relative to `P1-G64-8192`, peak was 0.231 GiB
+  lower but decode was about 5.3% slower; TTFT was effectively unchanged.
+  System-wide free memory was 27% after the run; swap used was 294.19 MB; no
+  exception or safety stop.
+- `P9-G128-KV8-8192`: the source-backed g128 plus pinned KV8/group64/start0
+  combination produced coherent 128-token output at 8,191 prompt tokens.
+  TTFT 104.235 s; prompt 78.582 tok/s; decode 10.417 tok/s; peak 13.752 GiB;
+  after-completion active+cache 10.909 GiB. Relative to `P8-G128-8192`, peak
+  was 0.231 GiB lower but decode was about 7.0% slower; TTFT was effectively
+  unchanged. System-wide free memory was 31% after the run; swap used was
+  294.19 MB; no exception or safety stop.
 
 ## Key measurements
 
@@ -236,6 +257,15 @@ observe through their command sessions.
   g64 real-prompt result of 17.200 GB decimal. It remained coherent, but the
   long cold TTFT (219.6 s) and increased swap make this a maximum cold probe,
   not yet a warm interactive recommendation.
+- The first KV8 isolation result is coherent and has a small 4K peak saving,
+  but not yet a meaningful practical improvement. Because only the 16
+  full-attention layers have KVCache objects, an 8K probe is needed before
+  rejecting the lever for longer contexts.
+- At 8K, KV8 still saves only 0.231 GiB while reducing decode by about 5.3%.
+  This is a negative practical tradeoff for g64, but the requested g128+KV8
+  combination was tested once at 8K and showed the same 0.231 GiB saving with
+  about a 7.0% decode penalty. KV8 is rejected for larger probes and normal
+  interactive use; no 12K/16K KV8 runs are justified.
 
 ## Current best configuration
 
@@ -257,6 +287,9 @@ not a comfortable recommendation.
   no new 0.32.0 runs.
 - Historical 0.32.0 3-bit rescue, chunking, and KV8 results: not canonical
   evidence for this task and not used to claim 0.32.1 behavior.
+- Original g64 + KV8 and g128 + KV8: coherent, but rejected because the
+  measured 8K peak saving was only 0.231 GiB while decode slowed 5.3% and
+  7.0%, respectively.
 
 ## Current hypotheses
 
@@ -273,8 +306,8 @@ not a comfortable recommendation.
 Phase 8's planned ladder is complete. Do not automatically start 20K/24K:
 the 16,727-token result already establishes a materially safer cold envelope,
 while larger synthetic probes would add memory exposure without improving the
-interactive recommendation. Re-read the governing files before Phase 9 KV8
-work.
+interactive recommendation. Re-read the governing files before the optional
+Phase 10 candidate decision.
 
 ## Safety notes
 
