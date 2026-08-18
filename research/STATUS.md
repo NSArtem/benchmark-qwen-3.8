@@ -1,6 +1,6 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 10 mixed loader gate found a metadata bug.
+Last updated: 2026-08-18, Phase 10 corrected mixed artifact passed integrity.
 
 ## Current phase
 
@@ -9,10 +9,10 @@ passed, the Phase 8 8K/12K/~16K probes passed, and the Phase 9 original-g64
 KV8 plus g128+KV8 probes are complete. The bounded text-only affine 3-bit
 g128 conversion succeeded and passed header/index verification. KV8 is
 rejected as a practical lever. Phase 10's mixed_2_6 predicate self-test and
-source-backed conversion passed; header/index integrity is verified. The first
-load attempt found a converter metadata-path bug before generation, so the
-converter is being corrected and the candidate will be rebuilt once. No MLX
-inference workload is running. Process inspection was
+source-backed conversion passed; the first load attempt found and preserved a
+converter metadata-path bug before generation, and the corrected rebuild now
+passes config and header/index integrity. Short correctness gates remain. No
+MLX inference workload is running. Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -210,6 +210,12 @@ observe through their command sessions.
   load failed with `Expected shape (5120, 1088) but received shape (5120, 3264)`.
   No model-quality or memory conclusion was drawn; the failure is preserved in
   `research/mixed26-correctness/result-short.json`.
+- `P10-MIXED-CONVERT-FIXED`: after the metadata-path fix, one fresh bounded
+  rebuild completed in 25.656 s with the same 9,651,780,608-byte payload,
+  17 shards, 1,847 tensors, 457 two-bit and 41 six-bit modules, and 3.626 GiB
+  converter peak. The corrected config has zero `.weight` suffix entries;
+  all 1,847 index keys match safetensor headers. The candidate remains
+  untracked at `/private/tmp/qwen38-mixed26-g128-mlx-fixed`.
 
 ## Key measurements
 
@@ -282,7 +288,8 @@ observe through their command sessions.
 - The source-backed mixed_2_6 g128 artifact is structurally valid and matches
   the 8.988921 GiB header estimate. Its source quality and inference behavior
   are still unknown until the corrected metadata artifact passes the
-  short/768/4K gates.
+  short/768/4K gates. The first metadata-only artifact is not a valid runtime
+  candidate; use the corrected path.
 - The first KV8 isolation result is coherent and has a small 4K peak saving,
   but not yet a meaningful practical improvement. Because only the 16
   full-attention layers have KVCache objects, an 8K probe is needed before
@@ -326,18 +333,16 @@ not a comfortable recommendation.
   usefulness and memory growth are unmeasured here.
 - Larger-group quantization may save model memory, but quality/runtime support
   and a valid high-precision source path are unresolved. The mixed_2_6
-  predicate is statically verified and the source-backed artifact is
-  structurally valid. The first loader attempt exposed a metadata path
-  compatibility bug; source-backed quality is still unknown.
+  predicate is statically verified and the corrected source-backed artifact is
+  structurally valid. Source-backed quality is still unknown.
 
 ## Next action
 
 Phase 8's planned ladder is complete. Do not automatically start 20K/24K:
 the 16,727-token result already establishes a materially safer cold envelope,
 while larger synthetic probes would add memory exposure without improving the
-interactive recommendation. Rebuild the mixed artifact with module-path
-metadata (one bounded retry justified by the loader diagnosis), verify its
-headers/config, then test only short, 768, and 4K correctness gates. Reject
+interactive recommendation. Load the corrected mixed artifact through the
+no-wired runtime, then test only short, 768, and 4K correctness gates. Reject
 quickly on any degraded/broken result.
 
 ## Safety notes
