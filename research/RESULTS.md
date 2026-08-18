@@ -83,3 +83,32 @@ GiB cumulative peak. Follow-up TTFTs were 0.816, 1.202, and 0.828 s, with
 11.684, 11.697, and 11.697 GiB, with 25% system free memory. This supports an
 8K practical warm-context recommendation; 12K remains measured only as a cold
 one-shot point.
+
+## Phase 4 exact quantization size study
+
+The tool `research/harness/analyze_quant_sizes.py` parsed only safetensor
+headers, config, and the pinned mlx-lm conversion predicate. It found 1,847
+tensors and 498 quantized modules in the three-shard checkpoint. The current
+affine g64 formula reproduced the exact 11,771,132,928-byte stored model. Both
+the embedding and lm_head are among the quantized modules; all observed input
+widths are divisible by 128. The index's parameter metadata excludes 4,608
+saved `A_log`/`dt_bias` buffer elements, which reconciles the count.
+
+| Candidate | Effective bpw | Stored GiB | Saved GiB | Saved vs current | First-order extra tokens to 16 GiB |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| affine 3-bit g64 (current) | 3.501 | 10.963 | 0.000 | 0.00% | 0 |
+| affine 3-bit g128 | 3.251 | 10.180 | 0.783 | 7.14% | 4,019 |
+| mixed_2_6 g64 | 3.121 | 9.772 | 1.191 | 10.87% | 6,116 |
+| mixed_2_6 g128 | 2.871 | 8.989 | 1.974 | 18.00% | 10,134 |
+| affine 2-bit g128 | 2.251 | 7.049 | 3.913 | 35.70% | 20,093 |
+
+The cold-curve least-squares fit is peak GiB ≈ 13.120 + 0.0001948 × prompt
+tokens. The extra-token and 16 GiB columns are first-order planning math only;
+they do not model quality, conversion overhead, allocator behavior, or a safe
+OS operating point.
+
+Candidate ranking: affine 3-bit g128 has the lowest expected quality risk and
+same runtime family but only modest savings; mixed_2_6 g128 is the strongest
+built-in memory/quality tradeoff to investigate if valid source weights are
+available; affine 2-bit g128 saves the most but should not be treated as a
+recommendation without quality testing.

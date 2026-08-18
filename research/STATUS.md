@@ -1,11 +1,11 @@
 # Investigation Status
 
-Last updated: 2026-08-18, Phase 3 after P3-WARM8K.
+Last updated: 2026-08-18, Phase 4 after P4-QUANT-SIZES.
 
 ## Current phase
 
-Phase 0 through Phase 3 are complete. Phase 4 exact quantization-size analysis
-is next. No heavy workload is running. Process inspection was
+Phase 0 through Phase 4 are complete. Phase 5 conversion-feasibility review is
+next. No heavy workload is running. Process inspection was
 attempted, but this execution sandbox denied
 both `ps` and `pgrep` (`operation not permitted` / `sysmond service not found`);
 heavy launches will therefore remain strictly serialized and short enough to
@@ -83,6 +83,18 @@ observe through their command sessions.
   11.684, 11.697, and 11.697 GiB; cumulative peak was 14.766 GiB. OS
   snapshots showed 25% free memory and 203.75 MB swap at the end. Responses
   and token IDs are in `research/warm-cache-8k/`.
+- `P4-QUANT-SIZES`: header-only analysis of all three current safetensor
+  shards. It found 1,847 tensors, 498 quantized modules, 5,291,008 bytes of
+  non-quantized storage, and exact current storage of 11,771,132,928 bytes.
+  The affine g64 packing formula reproduced the current byte count exactly.
+  All 498 module input widths are divisible by 128. Estimates: affine 3-bit
+  g128 = 10.180 GiB (0.783 GiB / 7.14% saved; 3.251 effective bpw),
+  mixed_2_6 g64 = 9.772 GiB (1.191 GiB / 10.87% saved; 3.121 bpw),
+  mixed_2_6 g128 = 8.989 GiB (1.974 GiB / 18.00% saved; 2.871 bpw), and
+  affine 2-bit g128 = 7.049 GiB (3.913 GiB / 35.70% saved; 2.251 bpw).
+  The current index's 26,895,993,856 parameter count is reconciled after
+  excluding 4,608 saved `A_log`/`dt_bias` buffer elements. No weight arrays
+  were loaded.
 
 ## Key measurements
 
@@ -110,6 +122,11 @@ observe through their command sessions.
   below 1.21 s TTFT and about 10.65 tok/s decode with no material cache growth.
   The measured practical warm context is therefore 8K; 12K remains a cold
   one-shot measurement only.
+- The pinned conversion predicate supports a useful ranking: affine 3-bit g128
+  has the lowest expected quality risk but modest savings; mixed_2_6 g128 is
+  the larger built-in tradeoff; affine 2-bit g128 saves the most but has the
+  highest expected quality risk. These rankings are hypotheses until source
+  weights and correctness tests exist.
 - At 769 final prompt tokens / 768 main prefill: peak 12.459 GiB; after-first
   token active about 11.199 GiB and active+cache about 11.363 GiB in one
   repeat. The adjacent-length peak differences were immaterial.
@@ -149,11 +166,11 @@ not a comfortable recommendation.
 
 ## Next action
 
-Re-read `AGENTS.md`, `TASK.md`, and this file, then enter Phase 4. Inspect the
-actual safetensor tensor headers, model config, pinned quantization code, and
-model-specific quantization predicate. Compute stored-size estimates for
-g64-3bit, g128-3bit, g128-2bit, and supported mixed candidates without loading
-or converting a new model.
+Re-read `AGENTS.md`, `TASK.md`, and this file, then enter Phase 5. Identify the
+exact source/base model from local metadata, inspect disk/cache headroom, and
+review the pinned conversion path for bounded-memory feasibility. Do not
+download source weights or start conversion until the source and disk gate is
+explicitly recorded.
 
 ## Safety notes
 
