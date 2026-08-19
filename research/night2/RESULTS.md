@@ -166,6 +166,34 @@ which is the expected comparison against the invalid incremental protocol.
 The authoritative safe-vs-full-transcript correctness gate is `PASS` at all
 four turns.
 
+## Phase 8 quality comparison
+
+### P9-QUALITY-NLL-FULL4096-CHUNK256
+
+Measured fact: g64 and g128 were evaluated in separate fresh processes on the
+same exact 4,096-token coding prompt. The bounded teacher-forced harness used
+256-token cache chunks, reduced logits to scalar target log-probabilities, and
+never saved raw logits. Both runs evaluated 4,095 target tokens.
+
+g64 measured average NLL 4.138706 nats/token, PPL 62.7216, and target top-1
+accuracy 0.557509. Peak MLX memory was 12.161 GiB and active+cache was
+11.968 GiB. g128 measured average NLL 5.833455 nats/token, PPL 341.5368, and
+target top-1 accuracy 0.441514. Peak was 11.454 GiB and active+cache was
+11.398 GiB.
+
+Measured comparison: g128 was +1.694750 nats/token, 5.4453x g64 PPL, and
+-0.115995 top-1 accuracy on this corpus. This is material quality-loss
+evidence for the measured coding prompt, not a universal claim about all
+tasks. A later 1,023-token code-heavy slice at offset 2,048 showed a much
+smaller delta (0.033203 nats/token and -0.004892 top-1), so the result is
+content-dependent and should not be generalized from one prompt.
+
+The first g64 no-cache attempt is preserved as
+`research/night2/quality/P9-G64-nll.json`. It failed before producing a metric
+because the harness paired 1,021 logits with 1,022 targets. The corrected
+alignment was rerun successfully; the negative artifact is recorded as
+`HARNESS_BUG`, not as model evidence.
+
 ### P7-G128-SAFE-16K
 
 Measured fact: the source-backed g128 safe full-transcript path completed the

@@ -1,0 +1,55 @@
+{
+  "exception": "ValueError: [broadcast_shapes] Shapes (1,1021) and (1,1022) cannot be broadcast.",
+  "experiment_id": "P9-NLL-c98bba5926f51fec1c8d8737e577221673f524d7",
+  "git_commit": "4e10a8c09db8a3f2f51d9421cb9d1b71abcf564e",
+  "max_tokens": 1023,
+  "memory_after_model_load": {
+    "active_bytes": 11771722760,
+    "active_gib": 10.963271148502827,
+    "active_plus_cache_bytes": 11771733324,
+    "active_plus_cache_gib": 10.963280986994505,
+    "cache_bytes": 10564,
+    "cache_gib": 9.838491678237915e-06,
+    "elapsed_seconds": 4.877110417000949,
+    "label": "after_model_load",
+    "peak_bytes": 11771722760,
+    "peak_gib": 10.963271148502827,
+    "rss_max_bytes": 7170621440,
+    "timestamp": 1787108140.163767
+  },
+  "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+  "model": {
+    "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+    "mlx_lm_version": "0.31.3",
+    "mlx_version": "0.32.1",
+    "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+    "python_executable": "/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.1/.venv/bin/python3",
+    "python_version": "3.14.7",
+    "quantization": {
+      "bits": 3,
+      "group_size": 64,
+      "mode": "affine"
+    },
+    "wired_policy": "direct generate_step; MLX wired state untouched"
+  },
+  "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+  "protocol_mode": "teacher_forced_full_sequence_no_cache",
+  "source_token_record": {
+    "actual_prompt_tokens": 1023,
+    "chat_template": "apply_chat_template(add_generation_prompt=true, enable_thinking=false)",
+    "main_prefill_tokens": 1022,
+    "prompt_file": "research/context-ladder/prompts/prompt-1024.txt",
+    "prompt_sha256": "56f745eb7e18b0e0a9bd9a5bf760a5a2a0efbb1c6f67a37114b58a235690e8cf",
+    "raw_prompt_tokens": 1012,
+    "raw_text_length": 4443,
+    "source_cut_character": 3169,
+    "target_prompt_tokens": 1024,
+    "token_file": "research/context-ladder/prompts/prompt-1024.tokens.json"
+  },
+  "timestamp": "2026-08-19T06:55:35+0400",
+  "token_file": "/Users/artem/projects/benchmark-qwen-3.8/research/context-ladder/prompts/prompt-1024.tokens.json",
+  "token_sha256": "c6e7c1867ae8be8f39316f51030edffe16b00a64c3bcc5ef4f8c24f56876e1c6",
+  "tokens_used": 1023,
+  "total_elapsed_seconds": 4.881792291998863,
+  "traceback": "Traceback (most recent call last):\n  File \"/Users/artem/projects/benchmark-qwen-3.8/research/night2/harness/quality_nll.py\", line 87, in main\n    target_logprobs = mx.take_along_axis(\n                      ~~~~~~~~~~~~~~~~~~^\n        next_logits, targets[..., None], axis=-1\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    ).squeeze(-1) - mx.logsumexp(next_logits, axis=-1)\n    ^\nValueError: [broadcast_shapes] Shapes (1,1021) and (1,1022) cannot be broadcast.\n"
+}

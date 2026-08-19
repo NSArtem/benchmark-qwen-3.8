@@ -1,0 +1,105 @@
+{
+  "average_nll_nats": 5.71875,
+  "average_target_logprob_nats": -5.71875,
+  "evaluated_targets": 1022,
+  "exception": null,
+  "experiment_id": "P9-NLL-Qwen3.8-27B-3bit-g128-MLX",
+  "git_commit": "4e10a8c09db8a3f2f51d9421cb9d1b71abcf564e",
+  "max_tokens": 1023,
+  "memory_after_eval": {
+    "active_bytes": 11438928884,
+    "active_gib": 10.653332699090242,
+    "active_plus_cache_bytes": 12214657006,
+    "active_plus_cache_gib": 11.375785810872912,
+    "cache_bytes": 775728122,
+    "cache_gib": 0.72245311178267,
+    "elapsed_seconds": 17.8019749160012,
+    "label": "after_eval",
+    "peak_bytes": 12179045408,
+    "peak_gib": 11.342619925737381,
+    "rss_max_bytes": 7496859648,
+    "timestamp": 1787108335.90608
+  },
+  "memory_after_model_load": {
+    "active_bytes": 10931338248,
+    "active_gib": 10.180602081120014,
+    "active_plus_cache_bytes": 10931348812,
+    "active_plus_cache_gib": 10.180611919611692,
+    "cache_bytes": 10564,
+    "cache_gib": 9.838491678237915e-06,
+    "elapsed_seconds": 4.44386079099786,
+    "label": "after_model_load",
+    "peak_bytes": 10931338248,
+    "peak_gib": 10.180602081120014,
+    "rss_max_bytes": 7496859648,
+    "timestamp": 1787108322.547839
+  },
+  "memory_after_release": {
+    "active_bytes": 10931338250,
+    "active_gib": 10.18060208298266,
+    "active_plus_cache_bytes": 12214657006,
+    "active_plus_cache_gib": 11.375785810872912,
+    "cache_bytes": 1283318756,
+    "cache_gib": 1.195183727890253,
+    "elapsed_seconds": 17.83735533300205,
+    "label": "after_release",
+    "peak_bytes": 12179045408,
+    "peak_gib": 11.342619925737381,
+    "rss_max_bytes": 7496859648,
+    "timestamp": 1787108335.941461
+  },
+  "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+  "model": {
+    "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+    "mlx_lm_version": "0.31.3",
+    "mlx_version": "0.32.1",
+    "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+    "python_executable": "/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.1/.venv/bin/python3",
+    "python_version": "3.14.7",
+    "quantization": {
+      "bits": 3,
+      "group_size": 128,
+      "mode": "affine"
+    },
+    "wired_policy": "direct generate_step; MLX wired state untouched"
+  },
+  "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+  "os_memory_after_eval": {
+    "memory_pressure": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 80%\n"
+    },
+    "vm_stat": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                4633.\nPages active:                            483731.\nPages inactive:                          426348.\nPages speculative:                          355.\nPages throttled:                              0.\nPages wired down:                        218390.\nPages purgeable:                             52.\n\"Translation faults\":                 130230444.\nPages copy-on-write:                    2432078.\nPages zero filled:                    589695873.\nPages reactivated:                      5700345.\nPages purged:                            462468.\nFile-backed pages:                       204743.\nAnonymous pages:                         705691.\nPages stored in compressor:              141491.\nPages occupied by compressor:              5432.\nDecompressions:                       232325319.\nCompressions:                         236704839.\nPageins:                               88435162.\nPageouts:                                 47505.\nSwapins:                               45842954.\nSwapouts:                              46061417.\n"
+    },
+    "vm_swapusage": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "vm.swapusage: total = 2048.00M  used = 813.56M  free = 1234.44M  (encrypted)\n"
+    }
+  },
+  "perplexity": 304.5240299109616,
+  "protocol_mode": "teacher_forced_full_sequence_no_cache",
+  "source_token_record": {
+    "actual_prompt_tokens": 4096,
+    "chat_template": "apply_chat_template(add_generation_prompt=true, enable_thinking=false)",
+    "main_prefill_tokens": 4095,
+    "prompt_file": "research/context-ladder/prompts/prompt-4096.txt",
+    "prompt_sha256": "ed38c182ce4cbef206fe381724ac6794a89146cfc79c7de7b06132a878aad5c4",
+    "raw_prompt_tokens": 4085,
+    "raw_text_length": 14776,
+    "source_cut_character": 13500,
+    "target_prompt_tokens": 4096,
+    "token_file": "research/context-ladder/prompts/prompt-4096.tokens.json"
+  },
+  "timestamp": "2026-08-19T06:58:38+0400",
+  "token_file": "/Users/artem/projects/benchmark-qwen-3.8/research/context-ladder/prompts/prompt-4096.tokens.json",
+  "token_offset": 0,
+  "token_sha256": "2bbc046e0ea8ff8d89644879bc94fe416960bb3d3f0eb8aa6d6257cef083d6ae",
+  "tokens_used": 1023,
+  "top1_accuracy": 0.3140900135040283,
+  "total_elapsed_seconds": 17.837369207998563
+}

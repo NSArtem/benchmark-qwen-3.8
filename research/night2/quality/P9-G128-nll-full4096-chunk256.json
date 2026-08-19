@@ -1,0 +1,107 @@
+{
+  "average_nll_nats": 5.833455433455433,
+  "average_target_logprob_nats": -5.833455433455433,
+  "chunk_count": 16,
+  "chunk_size": 256,
+  "evaluated_targets": 4095,
+  "exception": null,
+  "experiment_id": "P9-NLL-Qwen3.8-27B-3bit-g128-MLX",
+  "git_commit": "4e10a8c09db8a3f2f51d9421cb9d1b71abcf564e",
+  "max_tokens": 4096,
+  "memory_after_eval": {
+    "active_bytes": 10931338250,
+    "active_gib": 10.18060208298266,
+    "active_plus_cache_bytes": 12238497081,
+    "active_plus_cache_gib": 11.397988610900939,
+    "cache_bytes": 1307158831,
+    "cache_gib": 1.2173865279182792,
+    "elapsed_seconds": 58.91704179200315,
+    "label": "after_eval",
+    "peak_bytes": 12298374238,
+    "peak_gib": 11.453753558918834,
+    "rss_max_bytes": 7539687424,
+    "timestamp": 1787108644.229624
+  },
+  "memory_after_model_load": {
+    "active_bytes": 10931338248,
+    "active_gib": 10.180602081120014,
+    "active_plus_cache_bytes": 10931348812,
+    "active_plus_cache_gib": 10.180611919611692,
+    "cache_bytes": 10564,
+    "cache_gib": 9.838491678237915e-06,
+    "elapsed_seconds": 4.582202999998117,
+    "label": "after_model_load",
+    "peak_bytes": 10931338248,
+    "peak_gib": 10.180602081120014,
+    "rss_max_bytes": 7539687424,
+    "timestamp": 1787108589.894284
+  },
+  "memory_after_release": {
+    "active_bytes": 10931338250,
+    "active_gib": 10.18060208298266,
+    "active_plus_cache_bytes": 12238497081,
+    "active_plus_cache_gib": 11.397988610900939,
+    "cache_bytes": 1307158831,
+    "cache_gib": 1.2173865279182792,
+    "elapsed_seconds": 58.95059525000397,
+    "label": "after_release",
+    "peak_bytes": 12298374238,
+    "peak_gib": 11.453753558918834,
+    "rss_max_bytes": 7539687424,
+    "timestamp": 1787108644.263179
+  },
+  "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+  "model": {
+    "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+    "mlx_lm_version": "0.31.3",
+    "mlx_version": "0.32.1",
+    "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+    "python_executable": "/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.1/.venv/bin/python3",
+    "python_version": "3.14.7",
+    "quantization": {
+      "bits": 3,
+      "group_size": 128,
+      "mode": "affine"
+    },
+    "wired_policy": "direct generate_step; MLX wired state untouched"
+  },
+  "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+  "os_memory_after_eval": {
+    "memory_pressure": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 65%\n"
+    },
+    "vm_stat": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                7943.\nPages active:                            425632.\nPages inactive:                          319074.\nPages speculative:                           81.\nPages throttled:                              0.\nPages wired down:                        376037.\nPages purgeable:                              2.\n\"Translation faults\":                 133455085.\nPages copy-on-write:                    2449052.\nPages zero filled:                    593032904.\nPages reactivated:                      5725965.\nPages purged:                            464322.\nFile-backed pages:                       212278.\nAnonymous pages:                         532509.\nPages stored in compressor:              145081.\nPages occupied by compressor:             10102.\nDecompressions:                       234107757.\nCompressions:                         238492810.\nPageins:                               91143660.\nPageouts:                                 48359.\nSwapins:                               45846053.\nSwapouts:                              46061417.\n"
+    },
+    "vm_swapusage": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "vm.swapusage: total = 2048.00M  used = 765.56M  free = 1282.44M  (encrypted)\n"
+    }
+  },
+  "perplexity": 341.5368001254799,
+  "protocol_mode": "teacher_forced_chunked_cache",
+  "source_token_record": {
+    "actual_prompt_tokens": 4096,
+    "chat_template": "apply_chat_template(add_generation_prompt=true, enable_thinking=false)",
+    "main_prefill_tokens": 4095,
+    "prompt_file": "research/context-ladder/prompts/prompt-4096.txt",
+    "prompt_sha256": "ed38c182ce4cbef206fe381724ac6794a89146cfc79c7de7b06132a878aad5c4",
+    "raw_prompt_tokens": 4085,
+    "raw_text_length": 14776,
+    "source_cut_character": 13500,
+    "target_prompt_tokens": 4096,
+    "token_file": "research/context-ladder/prompts/prompt-4096.tokens.json"
+  },
+  "timestamp": "2026-08-19T07:03:05+0400",
+  "token_file": "/Users/artem/projects/benchmark-qwen-3.8/research/context-ladder/prompts/prompt-4096.tokens.json",
+  "token_offset": 0,
+  "token_sha256": "901f877398a2e8855de13fa0757d8951436192bdbe59f2b8a1a88ff48bd8defc",
+  "tokens_used": 4096,
+  "top1_accuracy": 0.4415140415140415,
+  "total_elapsed_seconds": 58.95060787499824
+}

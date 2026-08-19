@@ -1,13 +1,12 @@
 # Night-2 status
 
-Last updated: 2026-08-19T06:53:00+04:00, Phase 7 g128 ~16K oracle validation complete.
+Last updated: 2026-08-19T07:08:27+04:00, Phase 8 quality comparison complete.
 
 ## Current phase
 
-Phase 7 — g64 safe acceptance is complete and the preserved g128 checkpoint
-passes the ~4K safe chat gate with a matching full-transcript oracle. The
-combined cache diagnosis remains `BOTH`: invalid incremental framing plus
-recurrent-cache state drift.
+Phase 9 — controlled g64/g128 performance repeats are next. Phase 8 quality
+comparison is complete. The combined cache diagnosis remains `BOTH`: invalid
+incremental framing plus recurrent-cache state drift.
 
 ## Last completed experiment
 
@@ -194,6 +193,20 @@ authoritative safe-vs-C correctness gate is `PASS` for every turn. Child peak
 remained below the conservative 15.5 GiB stop; after completion OS free memory
 returned to 91%.
 
+`P9-QUALITY-NLL-FULL4096-CHUNK256`: the same exact 4,096-token coding prompt
+was evaluated in separate fresh g64 and g128 processes using 256-token
+teacher-forced cache chunks. g64 measured average NLL 4.138706 nats/token,
+PPL 62.7216, and target top-1 accuracy 0.557509; peak was 12.161 GiB and
+active+cache was 11.968 GiB. g128 measured average NLL 5.833455,
+PPL 341.5368, and top-1 accuracy 0.441514; peak was 11.454 GiB and
+active+cache was 11.398 GiB. The measured delta is +1.694750 nats/token,
+5.4453x PPL, and -0.115995 top-1 accuracy. This is
+`MATERIAL_ON_MEASURED_CORPUS` evidence for this coding prompt, not a
+universal quality claim; a later code-heavy slice had only a small delta. The
+initial uncorrected g64 NLL attempt is preserved as `HARNESS_BUG` because
+logits/target lengths were misaligned; it was corrected before the comparison
+gate.
+
 ## Current diagnosis of the cache bug
 
 The old 8K replay is now classified as an incremental-protocol failure, not a
@@ -211,10 +224,11 @@ paths. This does not alter project dependency files or install a new runtime.
 
 ## Current trusted chat mode
 
-`chat-safe` is trusted for the validated g64 ~4K and ~8K protocols. It performs true
-full-transcript re-prefill and does not retain recurrent or KV state between
-turns. Persistent incremental reuse remains untrusted; no `chat-fast` mode is
-published. Two independent ~8K safe repeats are complete.
+`chat-safe` is trusted for the validated g64 ~4K/~8K and g128 ~4K/~8K/~12K/~16K
+protocols. It performs true full-transcript re-prefill and does not retain
+recurrent or KV state between turns. Persistent incremental reuse remains
+untrusted; no `chat-fast` mode is published. Two independent g64 ~8K safe
+repeats are complete.
 
 ## Persistent g128 path
 
@@ -234,6 +248,11 @@ The g128 safe path is oracle-validated through ~16K with matching
 full-transcript oracles at ~4K, ~8K, ~12K, and ~16K. The ~16K safe peak was
 15.236 GiB; no long-context safety incident occurred.
 
+The largest correctness-safe tested warm context is g128 ~16K. The practical
+interactive recommendation remains to be selected after Phase 9 performance
+and Phase 10 headroom gates; ~8K is the current conservative default while
+~16K is a correctness-safe but high-latency option.
+
 ## Best cold context
 
 Source-backed g128: 16,727 actual prompt tokens, coherent, 15.236 GiB peak in
@@ -246,10 +265,11 @@ No Night-2 inference workload is running. No wired-memory setting has been
 changed. `ps` is unavailable in this sandbox, so process absence cannot be
 independently established; all heavy launches will remain serialized. The
 g128 checkpoint is preserved outside temporary storage. The completed ~16K
-oracle returned the system to 91% free memory.
+oracle and quality comparison returned the system to healthy telemetry; no
+inference workload is active.
 
 ## Next action
 
-Re-read AGENTS.md, TASK.md, and this STATUS.md, then enter Phase 8 quality
-comparison using bounded separate-process g64/g128 measurements. Do not probe
-20K, 24K, or 32K; do not reopen rejected quantization branches.
+Re-read AGENTS.md, TASK.md, and this STATUS.md, then run Phase 9 fresh-process
+performance repeats at 4K and 8K for g64 and g128. Keep workloads serialized,
+use prefill_step_size 2048, and do not probe 20K, 24K, or 32K.
