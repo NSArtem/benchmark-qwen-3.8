@@ -1,12 +1,13 @@
 # Night-2 status
 
-Last updated: 2026-08-19T07:08:27+04:00, Phase 8 quality comparison complete.
+Last updated: 2026-08-19T07:28:41+04:00, Phase 9 4K/8K performance gate complete.
 
 ## Current phase
 
-Phase 9 — controlled g64/g128 performance repeats are next. Phase 8 quality
-comparison is complete. The combined cache diagnosis remains `BOTH`: invalid
-incremental framing plus recurrent-cache state drift.
+Phase 10 — gated g128+KV8 long-context headroom is next. Phase 9 controlled
+g64/g128 performance repeats and Phase 8 quality comparison are complete. The
+combined cache diagnosis remains `BOTH`: invalid incremental framing plus
+recurrent-cache state drift.
 
 ## Last completed experiment
 
@@ -207,6 +208,25 @@ initial uncorrected g64 NLL attempt is preserved as `HARNESS_BUG` because
 logits/target lengths were misaligned; it was corrected before the comparison
 gate.
 
+`P9-G64/G128-PERF-4K`: two fresh-process repeats per model used the same
+4,096-token prompt, greedy decoding, 128 output tokens, prefill step 2048,
+and no KV8/speculation. Both models were coherent and deterministic across
+repeats. g64 runs measured TTFT 54.514/54.145 s, prompt throughput
+75.142/75.649 tok/s, decode 10.882/10.873 tok/s, peak 14.142 GiB, and
+active+cache 11.403 GiB. g128 measured TTFT 51.296/51.294 s, prompt
+throughput 79.850/79.853 tok/s, decode 11.664/11.623 tok/s, peak 13.360 GiB,
+and active+cache 10.685 GiB. This is a positive but bounded 4K performance
+result; the matching 8K gate is recorded below.
+
+`P9-G64/G128-PERF-8K`: two fresh-process repeats per model used the same
+8,191-token prompt and the same settings. Both models were coherent and
+deterministic across repeats. g64 medians were TTFT 109.262 s, prompt 74.967
+tok/s, decode 10.412 tok/s, peak 14.766 GiB, active+cache 11.654 GiB. g128
+medians were TTFT 105.975 s, prompt 77.293 tok/s, decode 11.275 tok/s, peak
+13.983 GiB, active+cache 11.392 GiB. The g128 differences were -3.288 s TTFT,
++0.863 tok/s decode, and -0.783 GiB peak. No safety stop occurred and memory
+returned to 91% free.
+
 ## Current diagnosis of the cache bug
 
 The old 8K replay is now classified as an incremental-protocol failure, not a
@@ -270,6 +290,7 @@ inference workload is active.
 
 ## Next action
 
-Re-read AGENTS.md, TASK.md, and this STATUS.md, then run Phase 9 fresh-process
-performance repeats at 4K and 8K for g64 and g128. Keep workloads serialized,
-use prefill_step_size 2048, and do not probe 20K, 24K, or 32K.
+Re-read AGENTS.md, TASK.md, and this STATUS.md, then enter Phase 10A: inspect
+the pinned KV8 API/source and run one conservative g128+KV8 ~16K probe only if
+the documented safety gate remains satisfied. Do not probe 20K, 24K, or 32K
+without the explicit later gates; never change wired-memory settings.

@@ -1,0 +1,8 @@
+# Diagnosis: Lantern Job State Regression
+
+## Root Causes
+
+The incident ("completed render returns to running") and the secondary bug ("second retry creates a second render") stem from three distinct violations of the stated invariants:
+
+### 1. Non-Atomic Idempotency Check (Violates Invariant 3)
+In `JobService.create()`, the idempotency check happens **before** the transaction begins. Two concurrent `POST /v1/jobs` requests with the same idempotency key can both pass the "no existing record" check before either commits. Both then insert separate job rows and out

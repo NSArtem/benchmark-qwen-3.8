@@ -166,6 +166,39 @@ which is the expected comparison against the invalid incremental protocol.
 The authoritative safe-vs-full-transcript correctness gate is `PASS` at all
 four turns.
 
+## Phase 9 controlled performance repeats
+
+### P9-G64/G128-PERF-4K
+
+Measured fact: two fresh-process runs per model used the same actual 4,096-token
+prompt, greedy decoding, 128 generated tokens, prefill step size 2048, and no
+KV8/speculation. Both models were coherent and each repeated the same complete
+generated-token hash.
+
+Median g64: TTFT 54.329 s, prompt throughput 75.395 tok/s, decode 10.878
+tok/s, peak 14.142 GiB, active+cache 11.403 GiB. Median g128: TTFT 51.295
+s, prompt throughput 79.852 tok/s, decode 11.643 tok/s, peak 13.360 GiB,
+active+cache 10.685 GiB. The g128 median differences were -3.034 s TTFT,
++0.766 tok/s decode, and -0.783 GiB peak versus g64.
+
+### P9-G64/G128-PERF-8K
+
+Measured fact: two fresh-process runs per model used the same actual 8,191-token
+prompt and the same generation settings. Both models were coherent and each
+repeated the same complete generated-token hash.
+
+Median g64: TTFT 109.262 s, prompt throughput 74.967 tok/s, decode 10.412
+tok/s, peak 14.766 GiB, active+cache 11.654 GiB. Median g128: TTFT 105.975
+s, prompt throughput 77.293 tok/s, decode 11.275 tok/s, peak 13.983 GiB,
+active+cache 11.392 GiB. The g128 median differences were -3.288 s TTFT,
++0.863 tok/s decode, and -0.783 GiB peak versus g64.
+
+Inference: across these controlled 4K/8K repeats, g128 has a modest practical
+TTFT/prompt/decode advantage and a stable ~0.783 GiB peak reduction. The
+differences are repeated but should not be overfit as a universal scaling
+law. Quality remains the higher-priority tradeoff because the separate
+teacher-forced Phase-8 corpus showed a material content-dependent g128 delta.
+
 ## Phase 8 quality comparison
 
 ### P9-QUALITY-NLL-FULL4096-CHUNK256
