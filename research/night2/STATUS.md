@@ -1,13 +1,12 @@
 # Night-2 status
 
-Last updated: 2026-08-19T04:02:00+04:00, Phase 5 upstream review and Phase 6 safe-path implementation.
+Last updated: 2026-08-19T09:18:00+04:00, Phase 6 g64 4K/8K safe acceptance complete.
 
 ## Current phase
 
-Phase 6 — the upstream review is complete and the correctness-safe runtime
-path is implemented; g64 acceptance validation is next. The combined cache
-diagnosis remains `BOTH`: invalid incremental framing plus recurrent-cache
-state drift.
+Phase 6 — the upstream review, safe implementation, and g64 ~4K/~8K
+acceptance gates are complete. The combined cache diagnosis remains `BOTH`:
+invalid incremental framing plus recurrent-cache state drift.
 
 ## Last completed experiment
 
@@ -103,6 +102,39 @@ CLI exposes `chat-safe`, and the existing `chat` command is a safe alias. The
 old persistent `NoWiredChat` class remains available only for controlled
 experiments and is explicitly documented as untrusted.
 
+`P6-G64-SAFE-4K`: the safe session completed the initial 4,096-token prompt
+plus three historical follow-ups (128/64/64/64 tokens). All four outputs were
+coherent and distinct. Fresh Mode-B exact-token and Mode-C full-transcript
+children were run against the exact saved safe outputs. Safe A equals fresh C
+at all four turns; safe A intentionally differs from the invalid exact
+fragment B at turns 2–4. The per-turn safe TTFTs were 54.974, 54.271, 55.106,
+and 57.442 s; decode was 10.969, 11.075, 10.977, and 10.911 tok/s; peak was
+14.142–14.143 GiB and active+cache was 11.433–11.463 GiB. The aggregate
+oracle classifier is `BOTH` only because it reports the expected divergence
+between the safe full transcript and the deliberately fragment-based B; the
+safe-vs-C correctness gate is `PASS` for every turn.
+
+The first safe 4K artifact (`P6-G64-safe-4K-rerun4/safe.json`) retained an
+invalid comparison to an earlier two-follow-up oracle and therefore reports
+`UNRESOLVED` internally. It is preserved; the matching four-follow-up
+oracle artifact is authoritative for this gate.
+
+`P6-G64-SAFE-8K-REPEAT1`: the safe session completed the historical failing
+8,191-token prompt plus three follow-ups (128/64/64/64). All four outputs were
+coherent and non-replaying. Fresh Mode-B and Mode-C children were run against
+the exact saved safe outputs. Safe A equals full-transcript C at all turns;
+exact-token B differs from safe A at turns 2–4 and has the historical stale
+turn-2 hash `cb7ec89a...`. TTFT was 106.428/109.292/111.047/116.938 s;
+decode was 10.626/10.577/10.626/10.650 tok/s; peak was 14.766–14.768 GiB;
+active+cache was 11.683–11.714 GiB. No safety stop occurred.
+
+`P6-G64-SAFE-8K-REPEAT2`: an independent fresh safe process completed the
+same four turns coherently with no safety stop. Its prompt hashes and all four
+generated-token hashes exactly matched Repeat 1. TTFT was
+108.010/109.942/111.844/112.280 s; decode was 10.588/10.638/10.682/10.710
+tok/s; peak and active+cache matched the same 14.766–14.768 and
+11.683–11.714 GiB envelopes.
+
 ## Current diagnosis of the cache bug
 
 The old 8K replay is now classified as an incremental-protocol failure, not a
@@ -120,11 +152,10 @@ paths. This does not alter project dependency files or install a new runtime.
 
 ## Current trusted chat mode
 
-`chat-safe` is the candidate trusted mode, pending the required fresh-process
-g64 4K/8K acceptance runs and two independent 8K repeats. It performs true
+`chat-safe` is trusted for the validated g64 ~4K and ~8K protocols. It performs true
 full-transcript re-prefill and does not retain recurrent or KV state between
 turns. Persistent incremental reuse remains untrusted; no `chat-fast` mode is
-published.
+published. Two independent ~8K safe repeats are complete.
 
 ## Persistent g128 path
 
@@ -134,9 +165,11 @@ integrity verification.
 
 ## Best validated warm context
 
-None under the Night-2 oracle. Historical g64 4K/8K warm timings are retained
-as performance observations, but 8K correctness is invalid and 4K must be
-revalidated.
+g64 ~8K multi-turn is correctness-safe under the full-transcript path. This is
+not a warm-cache TTFT result: follow-ups re-prefill the complete transcript in
+about 109–117 s at ~10.6 tok/s decode. The ~4K safe follow-ups take about
+54–57 s. Historical persistent-cache warm timings remain invalid for
+correctness.
 
 ## Best cold context
 
@@ -153,7 +186,6 @@ g128 checkpoint is preserved outside temporary storage.
 
 ## Next action
 
-Re-read AGENTS.md, TASK.md, and this STATUS.md, then run the safe-path g64
-acceptance matrix: ~4K with three follow-ups, ~8K with three follow-ups, and
-two independent fresh 8K repeats. Compare saved safe outputs against Mode B
-and Mode C, then enter g128 warm validation only if this gate passes.
+Re-read AGENTS.md, TASK.md, and this STATUS.md, then enter Phase 7: validate
+the persistent g128 checkpoint with the same safe chat protocol at ~4K, ~8K,
+and ~12K. Only consider ~16K if those gates remain coherent and memory-safe.

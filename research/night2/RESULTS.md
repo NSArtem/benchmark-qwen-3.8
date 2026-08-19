@@ -110,3 +110,27 @@ therefore implemented: `NoWiredTranscriptChat` stores logical messages,
 renders the entire transcript each turn, and creates a fresh cache per turn.
 The existing `chat` CLI command now aliases this safe mode; the old persistent
 class remains only for diagnostics and is not called correct.
+
+### P6-G64-SAFE-4K-RERUN4 + matching fresh oracles
+
+Measured fact: the safe runtime generated four coherent turns for the 4,096
+token prompt and historical three-follow-up sequence. Fresh Mode-C
+full-transcript children matched all four safe generated token sequences
+exactly. Safe-vs-Mode-B differed at turns 2–4, as expected because Mode B is
+the exact-token replay of the invalid one-user-fragment protocol. Safe TTFTs
+were 54.974/54.271/55.106/57.442 s; decode was
+10.969/11.075/10.977/10.911 tok/s; peak was 14.142–14.143 GiB.
+
+The first safe artifact compared against a mismatched earlier two-follow-up
+oracle and is retained as a bookkeeping correction, not used as the gate.
+
+### P6-G64-SAFE-8K-REPEAT1 + REPEAT2
+
+Measured fact: both independent safe sessions completed the historical 8,191
+token prompt and three follow-ups with four coherent, non-replaying outputs.
+Repeat 1 matched fresh full-transcript C exactly at all turns; exact-token B
+diverged at turns 2–4, with the known stale replay hash at B turn 2. Repeat 2
+matched Repeat 1's prompt and generated-token hashes exactly at all four turns.
+Repeat-1 TTFTs were 106.428/109.292/111.047/116.938 s and Repeat-2 TTFTs
+108.010/109.942/111.844/112.280 s. Decode was about 10.6 tok/s; peak was
+14.766–14.768 GiB and no safety stop occurred.

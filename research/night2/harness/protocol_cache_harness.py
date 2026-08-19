@@ -906,6 +906,7 @@ def orchestrate(args: argparse.Namespace) -> int:
                     collection[turn] = loaded["turns"][0]
 
     a_result = read_json(mode_a_result)
+    a_protocol_mode = a_result.get("protocol_mode", "mode_a_persistent_incremental")
     relations = []
     for a_turn in a_result.get("turns", []):
         turn = int(a_turn["turn"])
@@ -950,7 +951,7 @@ def orchestrate(args: argparse.Namespace) -> int:
                 "mlx_lm_revision": PINNED_MLX_LM_REVISION,
                 "model_path": args.model_path,
                 "quantization": a_result["model"].get("quantization"),
-                "protocol_mode": "mode_a_persistent_incremental",
+                "protocol_mode": a_protocol_mode,
                 "prompt_path": plan["initial_prompt_path"],
                 "prompt_sha256": plan["initial_prompt_sha256"],
                 "prompt_tokens": a_turn.get("prompt_fragment_tokens"),
