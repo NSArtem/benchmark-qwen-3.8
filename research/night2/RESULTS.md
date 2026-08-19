@@ -134,3 +134,68 @@ matched Repeat 1's prompt and generated-token hashes exactly at all four turns.
 Repeat-1 TTFTs were 106.428/109.292/111.047/116.938 s and Repeat-2 TTFTs
 108.010/109.942/111.844/112.280 s. Decode was about 10.6 tok/s; peak was
 14.766–14.768 GiB and no safety stop occurred.
+
+### P7-G128-SAFE-4K + matching fresh oracles
+
+Measured fact: source-backed affine 3-bit/group-128 g128 completed the same
+four-turn safe full-transcript protocol coherently. Prompt tokens were
+4,096/4,259/4,360/4,456; TTFT was 53.152/53.704/54.893/56.091 s; decode was
+11.831/11.722/11.735/11.731 tok/s; peak was 13.360–13.361 GiB and
+active+cache was 10.665–10.742 GiB.
+
+Measured fact: the matching fresh-process full-transcript oracle reproduced
+all four safe generated-token hashes exactly. The exact-token fragment oracle
+diverged at turns 2–4, as expected for the deliberately invalid incremental
+protocol. The authoritative safe-vs-full-transcript gate is `PASS` at every
+turn. A first oracle attempt with only the harness default two follow-ups is
+retained separately as a bookkeeping correction and is excluded from this
+conclusion.
+
+### P7-G128-SAFE-8K-REPEAT1 + matching fresh oracles
+
+Measured fact: the source-backed g128 safe full-transcript path completed the
+historical 8,191-token prompt plus three follow-ups with four coherent,
+non-replaying outputs. Prompt tokens were 8,191/8,354/8,455/8,551; TTFT was
+104.164/106.370/107.998/109.843 s; decode was 11.445/11.422/11.269/11.540
+tok/s; peak was 13.983–13.986 GiB and active+cache was 10.914–11.398 GiB.
+No safety stop occurred, and the final OS memory snapshot reported 28% free.
+
+Measured fact: matching fresh full-transcript C reproduced all four safe
+generated-token hashes exactly. Exact-token fragment B diverged at turns 2–4,
+which is the expected comparison against the invalid incremental protocol.
+The authoritative safe-vs-full-transcript correctness gate is `PASS` at all
+four turns.
+
+### P7-G128-SAFE-16K
+
+Measured fact: the source-backed g128 safe full-transcript path completed the
+existing 16,727-token coding prompt plus three follow-ups with four coherent,
+non-replaying outputs. Prompt tokens were 16,727/16,890/16,991/17,087; TTFT
+was 228.212/227.252/228.502/231.586 s; decode was
+10.683/10.842/10.865/10.832 tok/s; peak was 15.236 GiB and active+cache was
+11.433–11.447 GiB. No safety stop occurred, and final OS free memory was 25%.
+This is a local safe-path result pending the matching fresh-process oracle.
+
+### P7-G128-SAFE-16K + matching fresh oracles
+
+Measured fact: the matching fresh full-transcript C reproduced all four safe
+generated-token hashes exactly at the 16K coding prompt. Exact-token fragment B
+diverged at turns 2–4, which is the expected comparison against the invalid
+incremental protocol. The authoritative safe-vs-full-transcript correctness
+gate is `PASS` at every turn. Fresh child peaks stayed below the conservative
+15.5 GiB stop, and final memory returned to 91% free.
+
+### P7-G128-SAFE-12K + matching fresh oracles
+
+Measured fact: the source-backed g128 safe full-transcript path completed the
+12,288-token prompt plus three follow-ups with four coherent, non-replaying
+outputs. Prompt tokens were 12,288/12,451/12,552/12,648; TTFT was
+161.970/163.269/165.115/166.413 s; decode was 11.092/11.201/11.261/11.225
+tok/s; peak was 14.609–14.611 GiB and active+cache was 11.161–11.285 GiB.
+No safety stop occurred, and the final OS snapshot reported 26% free.
+
+Measured fact: matching fresh full-transcript C reproduced all four safe
+generated-token hashes exactly. Exact-token fragment B diverged at turns 2–4,
+which is the expected comparison against the invalid incremental protocol.
+The authoritative safe-vs-full-transcript correctness gate is `PASS` at all
+four turns.

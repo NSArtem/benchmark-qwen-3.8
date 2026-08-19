@@ -1,12 +1,13 @@
 # Night-2 status
 
-Last updated: 2026-08-19T09:18:00+04:00, Phase 6 g64 4K/8K safe acceptance complete.
+Last updated: 2026-08-19T06:53:00+04:00, Phase 7 g128 ~16K oracle validation complete.
 
 ## Current phase
 
-Phase 6 — the upstream review, safe implementation, and g64 ~4K/~8K
-acceptance gates are complete. The combined cache diagnosis remains `BOTH`:
-invalid incremental framing plus recurrent-cache state drift.
+Phase 7 — g64 safe acceptance is complete and the preserved g128 checkpoint
+passes the ~4K safe chat gate with a matching full-transcript oracle. The
+combined cache diagnosis remains `BOTH`: invalid incremental framing plus
+recurrent-cache state drift.
 
 ## Last completed experiment
 
@@ -135,6 +136,64 @@ generated-token hashes exactly matched Repeat 1. TTFT was
 tok/s; peak and active+cache matched the same 14.766–14.768 and
 11.683–11.714 GiB envelopes.
 
+`P7-G128-SAFE-4K`: the persistent source-backed g128 checkpoint completed the
+same four-turn safe protocol coherently with no replay or safety stop. Prompt
+tokens were 4,096/4,259/4,360/4,456; TTFT was 53.152/53.704/54.893/56.091 s;
+decode was 11.831/11.722/11.735/11.731 tok/s; peak was 13.360–13.361 GiB;
+active+cache was 10.665–10.742 GiB. This is safe full-transcript re-prefill,
+not persistent cache reuse.
+
+`P7-G128-SAFE-4K-ORACLES-RERUN`: the matching fresh-process run used the exact
+same three follow-ups as the safe session. Safe A equals full-transcript C at
+all four turns, with generated hashes
+`cc2075e0...`, `c2d9ed89...`, `765a12425...`, and `41882be4...`. Safe A
+differs from exact-token B at turns 2–4 because B intentionally represents the
+invalid one-user-fragment protocol. The authoritative safe-vs-C correctness
+gate is `PASS` for every turn. A prior oracle directory that accidentally used
+the default two follow-ups is preserved as a harness-bookkeeping correction and
+is not evidence.
+
+`P7-G128-SAFE-8K-REPEAT1`: the historical 8,191-token prompt plus the same
+three follow-ups completed all four turns coherently with no replay or safety
+stop. Prompt tokens were 8,191/8,354/8,455/8,551; TTFT was
+104.164/106.370/107.998/109.843 s; decode was 11.445/11.422/11.269/11.540
+tok/s; peak was 13.983–13.986 GiB and active+cache was 10.914–11.398 GiB.
+The final OS snapshot reported 28% free memory; swap was used but no hard
+safety condition occurred.
+
+`P7-G128-SAFE-8K-ORACLES-RERUN`: the matching fresh-process run reproduced all
+four safe generated-token hashes in full-transcript C. Exact-token B diverged
+at turns 2–4, as expected for the invalid fragment protocol. The authoritative
+safe-vs-C correctness gate is `PASS` for every turn.
+
+`P7-G128-SAFE-12K`: the 12,288-token prompt plus the same three follow-ups
+completed all four turns coherently with no replay or safety stop. Prompt
+tokens were 12,288/12,451/12,552/12,648; TTFT was
+161.970/163.269/165.115/166.413 s; decode was 11.092/11.201/11.261/11.225
+tok/s; peak was 14.609–14.611 GiB and active+cache was 11.161–11.285 GiB.
+The final OS snapshot reported 26% free memory; no hard safety condition
+occurred.
+
+`P7-G128-SAFE-12K-ORACLES-RERUN`: the matching fresh-process run reproduced
+all four safe generated-token hashes in full-transcript C. Exact-token B
+diverged at turns 2–4, as expected for the invalid fragment protocol. The
+authoritative safe-vs-C correctness gate is `PASS` for every turn.
+
+`P7-G128-SAFE-16K`: the existing validated 16,727-token coding prompt plus
+the same three follow-ups completed all four turns coherently with no replay or
+safety stop. Prompt tokens were 16,727/16,890/16,991/17,087; TTFT was
+228.212/227.252/228.502/231.586 s; decode was 10.683/10.842/10.865/10.832
+tok/s; peak was 15.236 GiB and active+cache was 11.433–11.447 GiB. The final
+OS snapshot reported 25% free memory and no hard safety condition. This is a
+safe Mode-A/full-transcript run but remains pending its matching fresh oracle.
+
+`P7-G128-SAFE-16K-ORACLES-RERUN`: the matching fresh-process run reproduced
+all four safe generated-token hashes in full-transcript C. Exact-token B
+diverged at turns 2–4, as expected for the invalid fragment protocol. The
+authoritative safe-vs-C correctness gate is `PASS` for every turn. Child peak
+remained below the conservative 15.5 GiB stop; after completion OS free memory
+returned to 91%.
+
 ## Current diagnosis of the cache bug
 
 The old 8K replay is now classified as an incremental-protocol failure, not a
@@ -171,6 +230,10 @@ about 109–117 s at ~10.6 tok/s decode. The ~4K safe follow-ups take about
 54–57 s. Historical persistent-cache warm timings remain invalid for
 correctness.
 
+The g128 safe path is oracle-validated through ~16K with matching
+full-transcript oracles at ~4K, ~8K, ~12K, and ~16K. The ~16K safe peak was
+15.236 GiB; no long-context safety incident occurred.
+
 ## Best cold context
 
 Source-backed g128: 16,727 actual prompt tokens, coherent, 15.236 GiB peak in
@@ -182,10 +245,11 @@ permission to probe larger contexts.
 No Night-2 inference workload is running. No wired-memory setting has been
 changed. `ps` is unavailable in this sandbox, so process absence cannot be
 independently established; all heavy launches will remain serialized. The
-g128 checkpoint is preserved outside temporary storage.
+g128 checkpoint is preserved outside temporary storage. The completed ~16K
+oracle returned the system to 91% free memory.
 
 ## Next action
 
-Re-read AGENTS.md, TASK.md, and this STATUS.md, then enter Phase 7: validate
-the persistent g128 checkpoint with the same safe chat protocol at ~4K, ~8K,
-and ~12K. Only consider ~16K if those gates remain coherent and memory-safe.
+Re-read AGENTS.md, TASK.md, and this STATUS.md, then enter Phase 8 quality
+comparison using bounded separate-process g64/g128 measurements. Do not probe
+20K, 24K, or 32K; do not reopen rejected quantization branches.
