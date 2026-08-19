@@ -1,0 +1,4701 @@
+{
+  "cache_diagnostics": [
+    {
+      "class_counts": {
+        "ArraysCache": 48,
+        "KVCache": 16
+      },
+      "label": "turn2_persistent_exact_suffix:before_generation",
+      "layer_count": 64,
+      "layers": [
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 0,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "43e2e4b7ad3fe953e742622dc7f782c5cce913852ef426256bf800d7324da774",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 1,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "676e66b28790e1b18a33df79decc7263a03ece0d404f4550e3f6f57b329caea2",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 2,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "da6797a1a94d48ecd8eacda8e96f611ff85fb9aa3a0395c26273b8fd085c347e",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 3,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "09aa9d5239b4f29aa9cb5325429599977c4bb0268b9ef4533cf253fb1ae3e39a",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 4,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "9028670b5739feab2f0f0bec40fb3aef54d1d409c4949895a4e176faf2eedd13",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 5,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "2717f580bcd2b565425135c50d4966581e24cca717e32e68f7a73a5d92fd591c",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 6,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "9d0d7b06a9caba7faf6cbdc2d4a526e91d3ecda17834c701af4fb38cbfc292a1",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 7,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "09dd53a10c56101e30c78e0c0e49a89eff1da4d8ca8953254be5fc65c7061213",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 8,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "2b233d2810e6f98dd99715cb84480f53940475348ffb63a569ad458148803f41",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 9,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "5a9373e42b3b5bab9ec2839c5fc21d1e1c0cf7cdb4d16b05439787245eae2cae",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 10,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "c70fd72e99097bf87c1753de29d503ec6931294dd4e2c68c7f15f271f49a8806",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 11,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "0574855e8e0e236e0701cf3826540292f9748f9868b91132969f2cd0ff7cf556",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 12,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "6b78aac6d9852859d0e327651401f62d8411c60c1f6c5ac7657a37705587a3c3",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 13,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "7d79bd81cb8a8eba76f3d7d88b752d858b29ad501d552cc48287332fe63a4055",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 14,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "9d69a9f7b45f673bb8da1b51331d09bb37030ae538d9f4c2fd11ae3026dc4c44",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 15,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "599501c16af86cb93b613001007fb045a3cc1d15368b6725c8dc075b7062bc41",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 16,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "bc23d6608521847f18150e9df6829930da848bcac0bbef1212877238c41fb8ee",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 17,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "17bf12e768c50c2ed8895d4c8233e65cfd59e0396f5854f7ee812cc55c83ff78",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 18,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "34d8bba2121514eb270375caf040da33b3246890f2b3b373c730cc576130ce7f",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 19,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "5c2f510a8c06f5f824a02df41d87b9430eb95741c891d2ed219d222ef90c9797",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 20,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "4c9308133a933123974091308f394451a8f69f5b6b2c204d342e2cd1c09e825b",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 21,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "4c390d8ebcd1c98cfdb5bdfc7d760e81e1363addb3826647393022d129e1b75c",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 22,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "6b7cfca5c45fef94a9f38211e9c30b3d8c22c1dfe33ea12da02bab3d3e502c20",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 23,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "3f0bc304c4173e4204b40e1ca13f6500ffead7aa559e45db3ee5cda2d42ad6e8",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 24,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "cd0e22d9d540d9c09652152ef611b0ad8b19666b8781e8c83b3ab85c953ec60c",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 25,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "4362cc05af6b58bc9028c09f58624dd7da57ee2a4efb29ae3aae70f15eaf746f",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 26,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "fe8df342f648e7e653699f3aec80890e46ca84b07be0db4444269a987bfbf833",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 27,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "087584f220fb0711de7af2178b108e13c0941f4222d1ae85b8725493e27664be",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 28,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "3b47bcb9147d26ec88d6ffb97e79bffdff5cf958d43b7cbe9c1bd6c7cbec700f",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 29,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "51c2bdec0d1de8a54b367160fefafd4c08e94849e71918171942026c39fd386d",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 30,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "c2b021db312360bc1aaeb25fadc25f428708f96c51c25117ed05f9eb13b1f6fb",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 31,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "a0a1ef9929803130d10f7527d4846e86bede583ac5411f0eb363605d82bc1502",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 32,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "7c679a31f31a52f8e7ce793344a6e3fe08e78334cb52cbb0e84dead536dd7101",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 33,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "e2cd5a128011eceb2e316b5ac1ecf788ccd2789ee8661b6da02ac660a894a45e",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 34,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "ecf69e65cb66b68bacb48226dd916f79fbd6832d37b33a7916a470d140478b19",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 35,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "cfbdf24ca53dcf91f2ea68e7aed0c155b41eab77a0b444f04fd114693ed312e7",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 36,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "5be8e780dc6f87ad498900e2a4f475065f67bf9bc1bad19f6254f94b8926cf7e",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 37,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "f4f49857bb95183dd426c8bbe88f247e5b62cf70a7d4a324024f487ebdf80bcc",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 38,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "d7d24131a54702689de55c17bbbae986c892ba2600e6d550b5fd0dd68f459eda",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 39,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "edf494f5e7ea61f390d8685bd558f6f0ad491317afa38bf48e2a9958a0d23c7e",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 40,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "8ff688a5937cc5d6a67154e690f9f9af53a0ba764ce5cebad8a1d90edcaffce4",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 41,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "0bdc8d41a52d82441286c6f8dcbf02f24635c304577d755d3f7d9513791e8ceb",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 42,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "bee6befb8deecb099472ff0c7b6238b7e8f3fda6dc5679df971e74cfb8745370",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 43,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "6f765eb95e049f4b4411b29d9b8432cb5eac3fb192645df5325b354455dd664e",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 44,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "f83658cc82be6642125357efbf7672415ce1cb141af7707a873b1cf332b0bf71",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 45,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "3489f1e482b76a29d47bce04305f912dbead0748b1e12a7da1b1ca31012f9bf8",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 46,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "86cfbc5eefd6e28ee5fbd36fab7d806af417dfa9fa58dad018ff83b8fe18700a",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 47,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "729d9a7ecf7b43ae1dd05dd940ace6baa8c48d803d809dc9bdc53b3715ad4a3a",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 48,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "64b68a21a748e3839940e94033337e526742eadc3f3bbaf729fd33d8a15621d6",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 49,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "c5209863c42abb0285f41ba6925984240a3440a6a0c127134edbeb174e7bb0af",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 50,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "e428dc68554956c75a5a73df5d614efca5a79962f68c1cfec1d29471808b767b",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 51,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "ea5fa1f5c0e9a7e9736158fd1cf74334e2623872a96cbc91a0142d5d279f889e",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 52,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "d1a3c42724a0655291c55ad84971f3c7eb286717e31f3cb3b351446c940e2dc3",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 53,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "50faed0322a9655570b3069ebd5d14222cacd4a94f7259ed8fe5dcf0a4dde281",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 54,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "d736e319f30d5ef1140d083ba5fa87dd19fbf2f134b3e17bd44b1d85409bd4e7",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 55,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "fab8c484b9eefc35a9525b63867d84afdaac7d40e42c622d4f1ad5b68427c923",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 56,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "d05fa10ef2b3892e3012c71a77d81f7e1b8c889e0481591589ffc6acf526bd03",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 57,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "46034b7b60ba6787b98651ebda93a74883d20117b4f3b6ff9f9e2e0053ca04ac",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 58,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "8c2b7ed31c43517a62092ed023cde43ef8200f2a7bea2e56180526703ba6fb9f",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 59,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "03b8110e46473869f93b9ea608cab15e7b6a10f705d70653eca0f137fbd53551",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 60,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "4f0586fa9e8ca2a6b7ca2bbd71bd9771efeef68a4be37eaea18e72969dd1bd93",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 61,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "f48a5c4db8dfbcf87e63db1dee33a3cdad3ddeb8bb8d6661753b4db65b024de8",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 62,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "bd3dd92845609aebc0cddcaeb55132b4fe5ae3072fde3b688a8ad06a3184452e",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 63,
+          "nbytes": 17825792,
+          "offset": 4192,
+          "size": 4192,
+          "state_signature_sha256": "e963b7bb0682259d0e193b2db529d554290438bb0a2a95771c633d3da99b6856",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8585216,
+              "shape": [
+                1,
+                4,
+                4192,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        }
+      ],
+      "logical_prefix_token_count": 4192,
+      "offsets": [
+        4192
+      ],
+      "offsets_consistent": true,
+      "state_signature_sha256": "61e84826b55335b3d59cdcfc3670ba514d8118410bc5a49db604039e5232aa4e"
+    },
+    {
+      "label": "turn2_persistent_exact_suffix:after_prompt_and_first_generation_step",
+      "layers": [
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 0,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 1,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 2,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 3,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 4,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 5,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 6,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 7,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 8,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 9,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 10,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 11,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 12,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 13,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 14,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 15,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 16,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 17,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 18,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 19,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 20,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 21,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 22,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 23,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 24,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 25,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 26,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 27,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 28,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 29,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 30,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 31,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 32,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 33,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 34,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 35,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 36,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 37,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 38,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 39,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 40,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 41,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 42,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 43,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 44,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 45,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 46,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 47,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 48,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 49,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 50,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 51,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 52,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 53,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 54,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 55,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 56,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 57,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 58,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 59,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 60,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 61,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 62,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 63,
+          "offset": 4231
+        }
+      ],
+      "logical_prefix_token_count": 4231,
+      "offsets": [
+        4231
+      ],
+      "offsets_consistent": true
+    },
+    {
+      "label": "turn2_persistent_exact_suffix:after_first_yield",
+      "layers": [
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 0,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 1,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 2,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 3,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 4,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 5,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 6,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 7,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 8,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 9,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 10,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 11,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 12,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 13,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 14,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 15,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 16,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 17,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 18,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 19,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 20,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 21,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 22,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 23,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 24,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 25,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 26,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 27,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 28,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 29,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 30,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 31,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 32,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 33,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 34,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 35,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 36,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 37,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 38,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 39,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 40,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 41,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 42,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 43,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 44,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 45,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 46,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 47,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 48,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 49,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 50,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 51,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 52,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 53,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 54,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 55,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 56,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 57,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 58,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 59,
+          "offset": 4231
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 60,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 61,
+          "offset": null
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 62,
+          "offset": null
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 63,
+          "offset": 4231
+        }
+      ],
+      "logical_prefix_token_count": 4231,
+      "offsets": [
+        4231
+      ],
+      "offsets_consistent": true
+    },
+    {
+      "class_counts": {
+        "ArraysCache": 48,
+        "KVCache": 16
+      },
+      "label": "turn2_persistent_exact_suffix:after_generation",
+      "layer_count": 64,
+      "layers": [
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 0,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "35151dcac085bbaa4bb878bc7e57eaf0deeac94c6a3e19f6ddce5618d2b20b8a",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 1,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "616ac10cedde4a0b3ab54b6cbbbbc811513d51fc311ccd7eeaa419a6b70e36ec",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 2,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "3ac0cc1158512e4451fe1864d22d8093128e02203daafc6ca44ee7f7a9cc3ddb",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 3,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "22fa6ccc6297af3661488fcf40e03e8b74e9348473ba163251374f1be648eaac",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 4,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "55200972ae73efbc1d0aaa65c0e0e4912fae99b1eca5029db18da3931cee0c2b",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 5,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "ec1ae222dbb216c53bd2ee13245c1f63e7c51787b8c48df41b8a882c8b59a606",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 6,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "1264a60fc09b2c1d118c6ce66e0c6a1bd6ea59dcb7ff99cc911dddfa061c9019",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 7,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "518a7d4d3797f900dcc2c8dad7a000ad9b271aa4577504af926508b850e7201e",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 8,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "a0c0a75c41a382eeba0be9193c1002e7dcd03fb15a9a493be01cd017e82d6a61",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 9,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "00a910883468e18148fb7e98d0f63576a9c465c0743aead0a46e657b9ae7ff22",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 10,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "3e9381889e1410ba718ec2e009596c9279d6c8a52991565da028133fc10247ec",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 11,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "99d01701bb50136d2011af775f6d134627eb08e5f8870fab81ec4e48fc314e77",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 12,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "e9349940fc7027a3b3fee1576c16efb95e374d602e4b2fe4156cdaaabb3adb4b",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 13,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "d2de52e1e160f62f46748492c67bdfd48a405de66feeb81a65ef89dd2095a0e1",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 14,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "6b485a568c67ff5fd98f3fdf92d1f6e102939e53341f699d2891f4e6b53114d7",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 15,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "ec306f5615ffb669d5b4177540e4acb98b5cdd046ffde32c48d76499b2ec2a4a",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 16,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "1eb1a3de3348eefc8b9c5bf70ce20cd66453c321c82a921d9599a075f1d44be9",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 17,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "acba6249f6bfd2c41afb1e0ce3e763f8fac069a36fdcee8bf2bdb0122af28c75",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 18,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "58f8ddbf733e15fd3d9e8741eb85982e2b41a2a1ca7a9be8749357eac2944ef5",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 19,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "9bc6acc4508861a584a5f3015907c0964e786895ef617a5ac58501fa35319167",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 20,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "89c144c902007a5d20f23210168337cd82d606597926f817c80e0712397a97d6",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 21,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "4db8caefbe7ff237af323fadba5df0fb30032ccfe617541d9ec7968052d4eaa3",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 22,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "dfb5649fc5a3f119940758541d914ef72b740a94b96bd79dfddccb654e09a961",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 23,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "693713b7cf393c461d4e3c15f789ebcfb7c99295d94fb9f79bfd0a4d43b2a2f8",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 24,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "e3904e072b268adc96f55de88e38f1475cf975387e20583e4c7bf14ed34d0e3e",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 25,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "3be4b4a53a5d21b35bbb24fbf5d051887318e043a22f4be58c6a8203528a352f",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 26,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "101e7d665b08907d90b032b06395d3ce7b4253958acc5d2280c615c4188482ba",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 27,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "514dac44d6752472342f70b699823f1a6b9841dfcbf6b8707b7649fb840c9439",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 28,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "f6c01f7a5943db13e1a54c677dbf52275873b965a508244f21739c2deddb910a",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 29,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "17bdb23eb2f5a6dc804fc313ec8527a8dd9d0a2a92439265bbeb7e9806ca268a",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 30,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "87112a4c19f495e9e305d58c8ba4371d30127e37f00d9ebc475b516db1e1f8dc",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 31,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "de3c64e3b60cc1c465a9be3f1f6506caa8aff35736eb430db216db7188d761d0",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 32,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "ff9720fe6b1791eca427f275597c2d52b5f450b87c477e2638c12497b41802d9",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 33,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "2165d28289641efc519bb9058fdb662cf2d8dbaa26bb6edafc48e48a1c3a24e9",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 34,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "4bc7518094a53a75f9c7c7028f5e5ee6014fae81ac7b41d1398dbd0545596f36",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 35,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "2c6288ea52755651c160b50faa8db396ca3f6390b6216639f38bfc47a7cabf98",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 36,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "6376c94c633556048f7512ed7f0ca82fe7c4706f2166343762e2826d50484a4b",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 37,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "39683b75a0921d3578aea7eb555ddb068914de605b1b986779c00a6ff4786900",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 38,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "baca407b05f333863c69bdd8c0e1718e0eefec324b0a2a56a5201aadd6c1c24e",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 39,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "490c41e5413b4e2bf8c57424ba85f4f6bda43e6f720e5b0719c2508061011576",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 40,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "68af4b1548bd05b6514b40ed00787738ffd4294ebeb8ab96ed201a0134f5138f",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 41,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "87e0f48c1f7b93f5f8ae899eafbe2ff8830236c74505ffa8d7523ee204cba419",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 42,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "33ea18d6d04ab9fa991d141e44a06ac0d691cc282849731ca0c461e2b64e8abb",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 43,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "24321571e2c9f517090adafb9b538f7acbc8f63cd8f9360e66c89f69471e2ded",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 44,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "9e4580bff7b76ddf192af3160f75c7d3a5bd66da154b2f0e7b62994c2d808798",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 45,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "6122b127bb764f4cba08061cf148f69b622820f8faabe5bcae247764fae4224c",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 46,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "58658cc62ff1872c5d19e4250af8e9ccf90d41af09c7b018fe1ad9219ff36097",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 47,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "70e5bd72eda7e2fc947d1bcababcca7c83da14ffe624f39279dd39d2efbb680e",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 48,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "d6b7bbd8e8d591d9d8403496b50ef5e06eef0a42bcbebca68352397f66cdaaa7",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 49,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "0eeb725844f2e1e252250ef2c0e1232115fc1a1cdc2888d6c0e3e6a2bbf7deaf",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 50,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "9512e35993ddc63a5671e6e7101b6d750ada26c7ddc413bd7a8609ddbb489734",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 51,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "9d9c1509596294748f18048e0667db2c2e0c4c6cc6dedf3f1541eb7f3e5f96c8",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 52,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "2dcb54b7626befb6f226ac70dbc95127c4b926b2a367684facff025327bc7209",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 53,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "29a6a71ee3468b984bc5476ece6a7efbea8a38f4d3bea7e8f033d71df83d5bd3",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 54,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "0278cf72dfce45df277662178a012d0610878e437af151329240b951387614b6",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 55,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "f1b4f338d1ed890b0c036ed6bd1056d2641e6faeafe99bf60822a3d52c4efda7",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 56,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "085e778a655fa18db81c1ca0c80fd4ee810c56beca5d1eb2c43d3f399fb016cb",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 57,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "965cbaff1431a73bec81598f9feb7fa49d8065420819de6187e4690ed3a91d39",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 58,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "029658e42f9b2f3461ed00dda06d1ca4c74d84a706ce58efd5fb8e38fd36dc76",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 59,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "f1916887ffeea7a5e506d1e2b4a54de372f2734513dcfbb5d736836f0375c02e",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 60,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "772ec28c2358ea35a61f2d728724189310871bbb987bbcf8b82938cfa8fb52b8",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 61,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "d808ae550568098306d2bed9261733f19931af6ff09271e49c522b8f16cdda30",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "ArraysCache",
+          "layer_index": 62,
+          "nbytes": 3207168,
+          "offset": null,
+          "size": 0,
+          "state_signature_sha256": "b9ac42a45328d5320fcdb7f7e60358867f536ed0f4b687ccac616ff2921d6db7",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 61440,
+              "shape": [
+                1,
+                3,
+                10240
+              ]
+            },
+            {
+              "dtype": "mlx.core.float32",
+              "nbytes": 3145728,
+              "shape": [
+                1,
+                48,
+                128,
+                128
+              ]
+            }
+          ],
+          "trimmable": false
+        },
+        {
+          "cache_class": "KVCache",
+          "layer_index": 63,
+          "nbytes": 17825792,
+          "offset": 4294,
+          "size": 4294,
+          "state_signature_sha256": "59a5d8291f25715cc11c2c19520d52f5b349df0588651d46a180ec9e783447f8",
+          "states": [
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            },
+            {
+              "dtype": "mlx.core.bfloat16",
+              "nbytes": 8794112,
+              "shape": [
+                1,
+                4,
+                4294,
+                256
+              ]
+            }
+          ],
+          "trimmable": true
+        }
+      ],
+      "logical_prefix_token_count": 4294,
+      "offsets": [
+        4294
+      ],
+      "offsets_consistent": true,
+      "state_signature_sha256": "1b123c1df009a09cb5026c07fe84f58ef02733031b43cf5011693d90eb14fa5c"
+    }
+  ],
+  "decode_tps": 11.633725630342665,
+  "decoded_output": "The API must enforce that idempotency checks and database mutations occur within the same atomic transaction. Currently, the system likely checks for an existing idempotency key before writing the job, but if the first request commits the job without successfully persisting the idempotency record due to a network timeout or crash",
+  "eos_token_ids": [
+    248044,
+    248046
+  ],
+  "finish_reason": "length",
+  "generated_token_hash": "810fea0c23b8689c2664f25eccae03e04bed9bd6f4d39a4ba28b3d7015200830",
+  "generated_token_ids": [
+    760,
+    5165,
+    1902,
+    27247,
+    421,
+    850,
+    3157,
+    349,
+    2179,
+    11988,
+    321,
+    4475,
+    32472,
+    11822,
+    2785,
+    279,
+    1788,
+    23735,
+    7499,
+    13,
+    23394,
+    11,
+    279,
+    1785,
+    4222,
+    11988,
+    364,
+    449,
+    6149,
+    850,
+    3157,
+    349,
+    2179,
+    1328,
+    1518,
+    4237,
+    279,
+    2531,
+    11,
+    694,
+    413,
+    279,
+    1118,
+    1622,
+    40161,
+    279,
+    2531,
+    1973,
+    7544,
+    21640,
+    286,
+    279,
+    850,
+    3157,
+    349,
+    2179,
+    3150,
+    4016,
+    310,
+    264,
+    3790,
+    9345,
+    466,
+    9626
+  ],
+  "generated_tokens": 64,
+  "generation_seconds": 5.415290166005434,
+  "label": "turn2_persistent_exact_suffix",
+  "memory_after_generation": {
+    "active_bytes": 11371805706,
+    "active_gib": 10.59081936813891,
+    "active_plus_cache_gib": 10.64353770762682,
+    "cache_bytes": 56605886,
+    "cache_gib": 0.05271833948791027,
+    "elapsed_seconds": 74.38962820799497,
+    "label": "turn2_persistent_exact_suffix:after_generation",
+    "peak_bytes": 14344715318,
+    "peak_gib": 13.359557202085853,
+    "rss_max_bytes": 3590373376
+  },
+  "prompt_token_ids": [
+    248046,
+    198,
+    248045,
+    846,
+    198,
+    22365,
+    3074,
+    55687,
+    494,
+    678,
+    3555,
+    22267,
+    1220,
+    279,
+    5165,
+    27247,
+    1118,
+    11,
+    321,
+    3069,
+    30,
+    21134,
+    303,
+    220,
+    18,
+    12,
+    20,
+    22157,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271
+  ],
+  "prompt_tokens": 38,
+  "prompt_tps": 38.77673349157076,
+  "total_seconds": 6.3952592499990715,
+  "ttft_seconds": 0.9799690839936375
+}

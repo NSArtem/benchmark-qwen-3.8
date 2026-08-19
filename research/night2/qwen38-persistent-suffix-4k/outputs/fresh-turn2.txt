@@ -1,0 +1,1 @@
+The API must enforce that idempotency checks and database mutations occur within the same atomic transaction. Currently, the system likely checks for an existing idempotency key before writing the job, but if the initial write fails or times out after the check passes, a retry will see no record and create a duplicate job

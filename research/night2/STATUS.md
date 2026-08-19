@@ -1,14 +1,34 @@
 # Night-2 status
 
-Last updated: 2026-08-19T07:41:21+04:00, final report and runtime commands prepared.
+Last updated: 2026-08-19T10:43:44+04:00, focused exact-suffix follow-up saved.
 
 ## Current phase
 
-Phase 12 — final validation and commit are next. The Phase 10 gated KV8
-headroom probe, runtime commands, and final report are complete; Phase 11
-new-quant branches are deliberately skipped.
-The combined cache diagnosis remains `BOTH`: invalid incremental framing plus
-recurrent-cache state drift.
+Interactive follow-up — exact canonical suffix at ~4K completed. No 8K,
+long-context, KV8, g64, or quality follow-up was started.
+The prior diagnosis remains `BOTH`; this focused run shows the malformed
+incremental framing can be corrected, while persistent-vs-fresh recurrent/cache
+state equivalence remains unresolved.
+
+## Focused follow-up: exact canonical suffix at 4K
+
+`research/night2/qwen38-persistent-suffix-4k/` contains one g128 run using
+the canonical 4,096-token prompt. After 96 turn-1 tokens, all 16 KVCache
+offsets measured 4,192, exactly matching prompt plus yielded tokens. The full
+canonical turn-2 transcript was 4,230 tokens; the persistent path supplied
+only its exact 38-token suffix beginning with `<|im_end|>` and no new BOS.
+
+Persistent turn 2 answered the new invariant question coherently with no stale
+replay (zero prefix overlap with turn 1), at 0.980 s TTFT and 11.63 tok/s
+decode. Fresh full-transcript turn 2 answered the same question coherently at
+54.745 s TTFT and 11.60 tok/s. Outputs differed after a 42-token common
+prefix, and all 48 recurrent plus 16 attention compact final state signatures
+differed. This is semantic success for this 4K protocol, not proof of exact
+cache equivalence.
+
+The single recommended next experiment is a fresh-cache control with the same
+step boundaries as the persistent path, to isolate batching-dependent
+recurrent state drift. It has not been started.
 
 ## Last completed experiment
 
