@@ -1,0 +1,5 @@
+# Diagnosis
+
+The reported incident ("completed render returns to running" and "second retry creates a second render") stems from three distinct, compounding defects in the current checkout:
+
+1.  **Idempotency Race (Duplicate Jobs):** The `JobService.create` method checks for an existing idempotency key *before* inserting the job. In a concurrent scenario (Request A and B with the same key), both requests see no existing row. Both proceed to insert their own job and idempotency row. Because the `idempotency_keys` table has a `PRIMARY KEY (tenant_id, key)

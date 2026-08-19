@@ -199,6 +199,33 @@ differences are repeated but should not be overfit as a universal scaling
 law. Quality remains the higher-priority tradeoff because the separate
 teacher-forced Phase-8 corpus showed a material content-dependent g128 delta.
 
+## Phase 10 long-context headroom
+
+### P10-G128-KV8-16K
+
+Measured fact: the pinned KV8 API was inspected before the run. With
+`kv_bits=8`, `kv_group_size=64`, and `quantized_kv_start=0`, the pinned
+`generate_step` path quantizes cache entries that implement `to_quantized`; in
+this hybrid model that is the 16 attention KV caches, while the 48 recurrent
+`ArraysCache` layers remain unquantized. The source-backed g128 model then
+completed the existing exact 16,727-token coding prompt with 128 coherent
+tokens. TTFT was 223.354 s, prompt throughput 74.890 tok/s, decode 9.495
+tok/s, peak 14.771 GiB, and active+cache 10.916 GiB. No safety stop occurred;
+post-run memory pressure returned to 92% free.
+
+Compared with the saved normal g128 one-shot result on the same prompt
+(`research/g128-context/result-16767.json`), KV8 reduced peak by 0.465 GiB
+(15.236 to 14.771 GiB) and active+cache by 0.481 GiB (11.397 to 10.916 GiB).
+TTFT increased by 3.744 s, and decode decreased by 1.146 tok/s (10.641 to
+9.495 tok/s, about 10.8%). The raw KV8 output is coherent and addresses the
+same coding incident; exact token equality is not expected from quantized KV
+state and was not used as the correctness criterion.
+
+Inference: KV8 is a useful ~16K headroom variant, but its decode penalty and
+the measured g128 quality tradeoff keep it out of the normal 4K/8K default.
+The measured normal g128 peak remains below the conservative 15.5 GiB child
+stop, so no prefill-step sweep or larger-context probe is justified tonight.
+
 ## Phase 8 quality comparison
 
 ### P9-QUALITY-NLL-FULL4096-CHUNK256

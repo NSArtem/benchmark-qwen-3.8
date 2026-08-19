@@ -1,12 +1,13 @@
 # Night-2 status
 
-Last updated: 2026-08-19T07:28:41+04:00, Phase 9 4K/8K performance gate complete.
+Last updated: 2026-08-19T07:41:21+04:00, final report and runtime commands prepared.
 
 ## Current phase
 
-Phase 10 — gated g128+KV8 long-context headroom is next. Phase 9 controlled
-g64/g128 performance repeats and Phase 8 quality comparison are complete. The
-combined cache diagnosis remains `BOTH`: invalid incremental framing plus
+Phase 12 — final validation and commit are next. The Phase 10 gated KV8
+headroom probe, runtime commands, and final report are complete; Phase 11
+new-quant branches are deliberately skipped.
+The combined cache diagnosis remains `BOTH`: invalid incremental framing plus
 recurrent-cache state drift.
 
 ## Last completed experiment
@@ -227,6 +228,18 @@ medians were TTFT 105.975 s, prompt 77.293 tok/s, decode 11.275 tok/s, peak
 +0.863 tok/s decode, and -0.783 GiB peak. No safety stop occurred and memory
 returned to 91% free.
 
+`P10-G128-KV8-16K`: pinned-source inspection confirmed that `kv_bits=8`,
+group size 64, start 0 quantizes the 16 attention KV caches while the 48
+recurrent caches remain unquantized. The source-backed g128 model completed
+the existing 16,727-token coding prompt with 128 coherent tokens. TTFT was
+223.354 s, prompt 74.890 tok/s, decode 9.495 tok/s, peak 14.771 GiB, and
+active+cache 10.916 GiB. Against the saved normal g128 one-shot result on the
+same prompt (15.236 GiB peak, 11.397 GiB active+cache, 10.641 tok/s decode),
+KV8 saved 0.465 GiB peak and 0.481 GiB active+cache but added 3.744 s TTFT
+and cost 1.146 tok/s decode. The output was coherent; no OOM, GPU/UI
+incident, or safety stop occurred. This is a useful 16K headroom variant, not
+the normal 4K/8K default.
+
 ## Current diagnosis of the cache bug
 
 The old 8K replay is now classified as an incremental-protocol failure, not a
@@ -248,7 +261,8 @@ paths. This does not alter project dependency files or install a new runtime.
 protocols. It performs true full-transcript re-prefill and does not retain
 recurrent or KV state between turns. Persistent incremental reuse remains
 untrusted; no `chat-fast` mode is published. Two independent g64 ~8K safe
-repeats are complete.
+repeats are complete. The P10 KV8 result is trusted as a one-shot 16K safety
+variant only; it has not passed a multi-turn KV8 oracle session.
 
 ## Persistent g128 path
 
@@ -268,10 +282,12 @@ The g128 safe path is oracle-validated through ~16K with matching
 full-transcript oracles at ~4K, ~8K, ~12K, and ~16K. The ~16K safe peak was
 15.236 GiB; no long-context safety incident occurred.
 
-The largest correctness-safe tested warm context is g128 ~16K. The practical
-interactive recommendation remains to be selected after Phase 9 performance
-and Phase 10 headroom gates; ~8K is the current conservative default while
-~16K is a correctness-safe but high-latency option.
+The largest correctness-safe tested warm context is g128 ~16K under normal
+full-transcript re-prefill. The practical g128 interactive recommendation is
+normal `chat-safe` at ~8K: it retains useful context while avoiding the ~228 s
+16K initial/follow-up prefill and the 15.236 GiB normal peak. ~16K is a
+correctness-safe but high-latency option; KV8 can reduce its peak to 14.771 GiB
+at the measured decode cost.
 
 ## Best cold context
 
@@ -285,12 +301,14 @@ No Night-2 inference workload is running. No wired-memory setting has been
 changed. `ps` is unavailable in this sandbox, so process absence cannot be
 independently established; all heavy launches will remain serialized. The
 g128 checkpoint is preserved outside temporary storage. The completed ~16K
-oracle and quality comparison returned the system to healthy telemetry; no
-inference workload is active.
+oracle, quality comparison, performance repeats, and KV8 probe returned the
+system to healthy telemetry (92% free); no inference workload is active. No
+wired-memory setting has been changed.
 
 ## Next action
 
-Re-read AGENTS.md, TASK.md, and this STATUS.md, then enter Phase 10A: inspect
-the pinned KV8 API/source and run one conservative g128+KV8 ~16K probe only if
-the documented safety gate remains satisfied. Do not probe 20K, 24K, or 32K
-without the explicit later gates; never change wired-memory settings.
+Run final git status/log and artifact validation, then commit the small Phase-
+10/report artifacts. Do not create new weight quantizations. Skip 20K because
+the validated natural prompt family ends at 16,727 tokens and a 20K test would
+require synthetic padding; skip 24K and 32K under the unattended safety
+policy.
