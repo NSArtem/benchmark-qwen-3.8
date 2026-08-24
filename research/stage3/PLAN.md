@@ -22,6 +22,13 @@ does not rewrite prior `research/` or `research/night2/` evidence.
 9. Phase 8: only if all primary questions are closed, perform one low-memory
    decode-acceleration feasibility/measurement study.
 
+## Phase 1 outcome
+
+The 4K g128 B-vs-C gate passed. Phase 2 root-cause localization is therefore
+skipped for this run; the A-vs-C divergence is treated as one-shot versus
+segmented numerical sensitivity, not persistent-cache corruption. Phase 3 is
+authorized with the exact-suffix protocol and normal KV.
+
 ## Runtime invariants
 
 - Canonical command prefix remains `uv run --project envs/mlx-0.32.1
@@ -34,4 +41,3 @@ does not rewrite prior `research/` or `research/night2/` evidence.
 - Large MLX/Qwen workloads are serialized. Fresh-process comparisons are kept
   separate from persistent-process measurements.
 - Model weights and environments remain outside commits.
-

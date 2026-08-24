@@ -1,10 +1,11 @@
 # Stage 3 status
 
-Last updated: 2026-08-24 — Phase 0 recovery and initialization.
+Last updated: 2026-08-24 — Phase 1 same-boundary oracle passed.
 
 ## Current phase
 
-Phase 0 complete; Phase 1 same-boundary cache oracle is next.
+Phase 1 complete with `VALIDATED_FOR_SCALING`; Phase 2 is skipped because the
+B-vs-C gate passed. Phase 3 exact-suffix scaling is next.
 
 ## Recovered baseline from raw artifacts
 
@@ -48,15 +49,39 @@ decimal-GB observations remain labeled in their original artifacts.
   invalid; its replay artifacts are not reused as correctness evidence.
 - Reused the existing 4K exact-suffix result only as a pre-Phase-1 baseline.
 - Did not rerun any completed Night-2 workload during Phase 0.
+- Phase 1 attempt 1 stopped after model load while converting the first
+  bfloat16 logprob vector for the new diagnostic (`ValueError: bfloat16 is not
+  a valid PEP 3118 buffer format string`). This is recorded as a harness
+  compatibility failure, not inference/cache evidence; the path is patched to
+  cast logprobs to MLX float32 before host conversion.
+- `P1-SAME-BOUNDARY-G128` rerun completed A/B/C in 210.5768 s with no
+  exception or safety stop. B and C both generated the preserved turn-1 hash
+  `2090a312...` and turn-2 hash `810fea0c...`; both protocol equations held:
+  measured cached prefix 4,192 + exact suffix 38 = canonical turn-2 length
+  4,230. The final turn-2 B/C state signature was `1b123c1d...` at offset
+  4,294 in all 48 recurrent and 16 attention layers. The suffix boundary
+  callback showed offset 4,231; this is the pinned `generate_step` callback
+  after the first scheduled generation step, not a pure suffix-only snapshot.
+- B-vs-C state signatures and offsets matched at every required boundary;
+  turn-1/turn-2 token streams were identical; first-token logprob max and mean
+  absolute differences were both 0.0 for both generation stages, with 8/8
+  top-k overlap. Both turn-2 outputs were coherent with no replay. The Phase
+  1 gate is `PASS` and exact-suffix persistent cache is validated for scaling
+  under these same boundaries.
+- A's fresh full-transcript turn-2 output was also coherent and non-replaying,
+  but its token stream shared only the first 42 tokens with C. This is the
+  expected one-shot-versus-segmented sensitivity observation and is not a
+  B-vs-C failure.
 
 ## Current best configuration
 
-Before the Phase 1 gate, the strongest validated configuration is source-backed
-g128 with direct `generate_step`, default MLX wired state, normal KV, and the
-full-transcript correctness-safe mode. It is oracle-validated through the prior
-approximately-16K safe run, but it re-prefills the whole transcript and is not
-the desired warm-cache result. The practical warm-cache candidate remains
-unvalidated pending Phase 1.
+The strongest validated warm-cache candidate is now source-backed g128 with
+direct `generate_step`, default MLX wired state, normal KV, exact canonical
+suffixes, and one persistent cache. At the 4K oracle boundary its turn-2
+suffix was 38 tokens with 1.0268 s TTFT and 11.4549 tok/s decode in the new
+run (the preserved earlier run measured 0.9800 s and 11.6337 tok/s). The
+full-transcript correctness-safe mode remains the fallback for contexts not
+yet scaled under this gate.
 
 ## Rejected configurations / hypotheses
 
@@ -71,20 +96,17 @@ unvalidated pending Phase 1.
 
 ## Current risks
 
-- Same-boundary fresh-segmented vs true-persistent recurrent state has not been
-  compared. A-vs-persistent divergence alone is not enough to reject exact
-  suffix; B-vs-C is the Phase 1 gate.
-- Long-context persistent scaling and endurance are unsafe to start until that
-  gate is resolved.
+- Phase 1 validated only the approximately-4K exact-suffix conversation;
+  long-context persistent scaling and endurance still need direct evidence.
+- The 4K A-vs-C token divergence is a measured segmentation sensitivity; it is
+  not a proven universal equivalence rule for all prompt lengths.
 - The archive-backed canonical launcher depends on protected external cache
   paths; each heavy command must retain the exact pinned versions and no-wired
   policy.
 
 ## Next action
 
-Implement and run the Phase 1 g128 cache-boundary oracle. Save complete token
-IDs/text and compact per-layer signatures at initial prefill, after turn 1,
-after the exact suffix, after the first turn-2 token, and after turn 2. Append
-machine-readable records and update this file before deciding whether Phase 2
-or Phase 3 is allowed.
-
+Re-read `AGENTS.md`, `TASK.md`, and this file, then run Phase 3 with g128,
+normal KV, exact suffixes, and a bounded realistic multi-turn prompt at about
+8K, 12K, and 16K (reusing the prior 4K evidence where appropriate). Save a
+fresh full-transcript semantic oracle at 8K and the largest successful context.
