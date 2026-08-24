@@ -81,3 +81,22 @@ EOS-boundary normalization are all recorded in `STATUS.md` and
 Raw artifacts: `research/stage3/persistent-scaling-final/`, with prior failed
 attempts preserved in sibling `persistent-scaling/`, `persistent-scaling-retry/`,
 and `persistent-scaling-retry2/` directories.
+
+## Phase 4 — long-session endurance
+
+The g128 normal-KV persistent session began from the validated 8K prompt and
+completed 16 coherent linked follow-ups plus the initial response. Every
+completed turn had exact cache-prefix/suffix equations, no stale replay, and a
+valid compact 64-layer state signature. Warm TTFT remained 1.549–1.624 s and
+decode remained 10.58–11.17 tok/s through turn 17; logical context grew from
+8,191 to 10,439 prompt tokens. Peak memory stayed at 13.983 GiB, RSS stayed
+approximately 6.68 GB, and periodic `memory_pressure` returned successfully
+without severe pressure; swap use decreased during the run.
+
+The gate stopped at turn 17 because the raw output was only four tokens:
+`The smallest worker` followed by EOS. This was not replay or a protocol
+accounting failure, but it was incomplete and therefore `BROKEN` under the
+quality oracle. The exact first-failing output, token IDs, prompt, suffix,
+cache diagnostics, and state signature are preserved under
+`research/stage3/endurance-final/`. The 20–30-turn endurance requirement is
+therefore **not passed**; no continuation was run.

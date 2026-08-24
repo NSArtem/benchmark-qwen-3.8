@@ -1,0 +1,1 @@
+Setup: Initialize a test PostgreSQL instance with the `idempotency_keys` table from `db/migrations/005_job_idempotency.sql` and the `jobs` table, then simulate two concurrent `POST /v1/jobs` requests with the same tenant, identical body, and the same idempotency key. Assertion: Verify that exactly one row exists in the

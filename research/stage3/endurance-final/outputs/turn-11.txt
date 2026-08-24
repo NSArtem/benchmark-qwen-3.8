@@ -1,0 +1,1 @@
+Setup: Create a job in the `running` state with a specific `lease_id` and a `lease_expires_at` timestamp in the past, then simulate a worker attempting to call `JobRepository.markSucceeded` using that

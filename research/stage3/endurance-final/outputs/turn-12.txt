@@ -1,0 +1,1 @@
+Moving the Redis enqueue inside the database transaction does not solve the durable outbox problem because it couples the transaction's commit to an external network call, increasing the risk of transaction rollback if Redis is unavailable, whereas the correct minimal interpretation is to keep the Redis enqueue outside

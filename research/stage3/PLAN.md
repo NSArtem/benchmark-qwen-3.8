@@ -51,3 +51,13 @@ offsets reached 8,676, 12,760, and 17,219 respectively, with peak memory
 averaged about 11.105, 10.803, and 10.409 tok/s. Corrected fresh semantic
 oracles passed at 8K turn 2 and 16K turn 5. Phase 4 endurance is authorized;
 KV8 remains gated to a later 16K safety comparison.
+
+## Phase 4 outcome
+
+The 25-turn endurance attempt stopped at the first BROKEN output, turn 17,
+after 17 sequential assistant turns and logical offset 10,443. Turns 1–16
+were coherent, non-replaying, and exactly suffix-accounted. Turn 17 generated
+only four tokens (`The smallest worker` plus EOS), so the 20–30-turn endurance
+gate did not pass. Memory, state signatures, and protocol accounting remained
+normal through the failure; this is recorded as a quality/early-termination
+failure rather than cache corruption. Do not continue this branch unattended.

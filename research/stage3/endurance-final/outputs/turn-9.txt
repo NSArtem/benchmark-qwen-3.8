@@ -1,0 +1,1 @@
+A browser can see a gap or regression if it reconnects with a `Last-Event-ID` that is higher than the highest sequence currently in the durable store, causing the replay phase to return no

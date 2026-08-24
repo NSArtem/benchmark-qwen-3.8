@@ -4,8 +4,9 @@ Last updated: 2026-08-24 — Phase 1 same-boundary oracle passed.
 
 ## Current phase
 
-Phase 1 complete with `VALIDATED_FOR_SCALING`; Phase 2 is skipped because the
-B-vs-C gate passed. Phase 3 exact-suffix scaling is next.
+Phase 1 same-boundary cache validation, Phase 3 exact-suffix scaling, and
+Phase 4 endurance are complete. Phase 2 was skipped because the B-vs-C gate
+passed. Phase 5 g64-vs-g128 quality comparison is next.
 
 ## Recovered baseline from raw artifacts
 
@@ -80,8 +81,7 @@ direct `generate_step`, default MLX wired state, normal KV, exact canonical
 suffixes, and one persistent cache. At the 4K oracle boundary its turn-2
 suffix was 38 tokens with 1.0268 s TTFT and 11.4549 tok/s decode in the new
 run (the preserved earlier run measured 0.9800 s and 11.6337 tok/s). The
-full-transcript correctness-safe mode remains the fallback for contexts not
-yet scaled under this gate.
+validated persistent ladder now covers 8K, 12K, and the 16K-class prompt.
 
 ## Rejected configurations / hypotheses
 
@@ -96,10 +96,11 @@ yet scaled under this gate.
 
 ## Current risks
 
-- Phase 1 validated only the approximately-4K exact-suffix conversation;
-  long-context persistent scaling and endurance still need direct evidence.
-- The 4K A-vs-C token divergence is a measured segmentation sensitivity; it is
-  not a proven universal equivalence rule for all prompt lengths.
+- The 25-turn endurance gate stopped at turn 17 on a four-token early-EOS
+  response; do not represent 20–30-turn endurance as passed.
+- The 4K and 16K fresh-oracle token divergences are measured segmentation
+  sensitivity; the semantic and same-boundary cache gates pass, but exact
+  one-shot token identity is not a goal for this hybrid recurrent model.
 - The archive-backed canonical launcher depends on protected external cache
   paths; each heavy command must retain the exact pinned versions and no-wired
   policy.
@@ -107,7 +108,7 @@ yet scaled under this gate.
 ## Current phase
 
 Phase 3 persistent scaling and both required semantic-oracle checks are
-complete. The bounded harness uses the same
+complete. Phase 4 endurance is now in progress. The bounded harness uses the same
 g128 / normal-KV / default-wired / direct-`generate_step` protocol at
 approximately 8K, 12K, and 16K. It records complete token IDs, exact
 canonical suffix accounting, per-turn cache offsets/state signatures, memory,
@@ -162,8 +163,26 @@ and exactly token-equal to the persistent turn-2 output (29/29); it measured
 116.796 s TTFT, 11.036 tok/s decode, and 13.986 GiB peak. The valid 16K
 turn-5 oracle measured 267.588 s TTFT and 10.231 tok/s decode.
 
+## Phase 4 outcome
+
+The g128 normal-KV endurance harness started from the validated 8K prompt and
+ran 17 sequential assistant turns before stopping at the first broken output.
+Turns 1–16 were coherent and non-replaying; every turn through the failure had
+exact suffix accounting, valid 64-layer state signatures, and no cache-offset
+anomaly. Warm TTFT was 1.549–1.624 s, decode was 10.58–11.17 tok/s, logical
+prompt context grew from 8,191 to 10,439 tokens, peak was 13.983 GiB, and RSS
+was approximately 6.68 GB. Periodic `memory_pressure` calls succeeded without
+severe pressure and swap use decreased.
+
+Turn 17 generated exactly four tokens (`The smallest worker` plus EOS) for the
+worker-method question. It did not replay a prior answer and its protocol
+equations remained true, but the response was incomplete, so the quality
+oracle classified it `BROKEN`. The exact first failing artifact is preserved
+under `research/stage3/endurance-final/`; the 20–30-turn endurance gate is
+`STOPPED_OR_UNRESOLVED`, not a pass, and no continuation was run.
+
 ## Next action
 
-Inspect all Phase 3 raw artifacts and `results.jsonl`, then commit the
-completed Phase 3 harness/results before starting the gated Phase 4 endurance
-run.
+Commit the completed Phase 4 harness/results separately, then re-read
+`AGENTS.md`, `TASK.md`, and this file before starting the independent Phase 5
+g64-vs-g128 quality suite.
