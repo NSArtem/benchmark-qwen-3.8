@@ -308,8 +308,8 @@ def persistent_run(args: argparse.Namespace) -> int:
     initial_text = prompt_path.read_text(encoding="utf-8")
     queries = [initial_text, *FOLLOW_UPS]
     result: dict[str, Any] = {
-        "experiment_id": f"P3-G128-PERSISTENT-SUFFIX-{context.upper()}",
-        "phase": 3,
+        "experiment_id": f"{getattr(args, 'experiment_prefix', 'P3-G128-PERSISTENT-SUFFIX')}-{context.upper()}",
+        "phase": getattr(args, "phase", 3),
         "context_label": context,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "git_commit": oracle_utils.current_commit(),
@@ -322,6 +322,9 @@ def persistent_run(args: argparse.Namespace) -> int:
         "follow_up_max_tokens": args.follow_up_max_tokens,
         "prefill_step_size": PREFILL_STEP_SIZE,
         "stop_peak_gib": args.stop_peak_gib,
+        "kv_bits": args.kv_bits,
+        "kv_group_size": args.kv_group_size,
+        "quantized_kv_start": args.quantized_kv_start,
         "protocol_mode": "persistent_exact_canonical_suffix",
         "model": None,
         "turns": [],
@@ -415,6 +418,9 @@ def persistent_run(args: argparse.Namespace) -> int:
                 max_tokens,
                 f"{context}:turn_{turn_index}",
                 started,
+                kv_bits=args.kv_bits,
+                kv_group_size=args.kv_group_size,
+                quantized_kv_start=args.quantized_kv_start,
             )
             actual_before = cache_offset(stage["cache_diagnostics"][0])
             actual_after = cache_offset(stage["cache_diagnostics"][-1])
@@ -585,7 +591,7 @@ def persistent_run(args: argparse.Namespace) -> int:
                 {
                     "timestamp": result["timestamp"],
                     "experiment_id": f"{result['experiment_id']}-T{turn['turn']}",
-                    "phase": 3,
+                    "phase": result["phase"],
                     "git_commit": result["git_commit"],
                     "python_version": (result.get("model") or {}).get("python_version"),
                     "mlx_version": (result.get("model") or {}).get("mlx_version"),
@@ -594,9 +600,15 @@ def persistent_run(args: argparse.Namespace) -> int:
                     "model_path": args.model,
                     "quant_bits": 3,
                     "quant_group_size": 128,
-                    "execution_mode": "persistent_exact_canonical_suffix",
+                    "execution_mode": (
+                        "persistent_exact_canonical_suffix_kv8"
+                        if args.kv_bits is not None
+                        else "persistent_exact_canonical_suffix"
+                    ),
                     "persistent_cache": True,
-                    "kv_bits": None,
+                    "kv_bits": args.kv_bits,
+                    "kv_group_size": args.kv_group_size,
+                    "quantized_kv_start": args.quantized_kv_start,
                     "prompt_path": str(prompt_path),
                     "prompt_sha256": result["prompt_sha256"],
                     "total_logical_tokens": turn["prompt_token_count"],
@@ -1000,6 +1012,14 @@ def main() -> None:
     parser.add_argument("--initial-max-tokens", type=int, default=INITIAL_MAX_TOKENS)
     parser.add_argument("--follow-up-max-tokens", type=int, default=FOLLOW_UP_MAX_TOKENS)
     parser.add_argument("--stop-peak-gib", type=float, default=STOP_PEAK_GIB)
+    parser.add_argument("--phase", type=int, default=3)
+    parser.add_argument(
+        "--experiment-prefix",
+        default="P3-G128-PERSISTENT-SUFFIX",
+    )
+    parser.add_argument("--kv-bits", type=int, default=None)
+    parser.add_argument("--kv-group-size", type=int, default=64)
+    parser.add_argument("--quantized-kv-start", type=int, default=0)
     args = parser.parse_args()
     if args.mode == "run":
         raise SystemExit(run_all(args))

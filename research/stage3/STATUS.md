@@ -1,16 +1,15 @@
 # Stage 3 status
 
-Last updated: 2026-08-24 — Phase 5 complete; Phase 6 KV8 persistent
-comparison is next.
+Last updated: 2026-08-24 — Phase 6 complete; final report is next.
 
 ## Current phase
 
-Phases 0, 1, 3, 4, and 5 are complete. Phase 2 was correctly skipped because
-the same-boundary B-vs-C cache gate passed. Phase 6 is authorized: run one
-serialized g128 normal-KV versus KV8 comparison at 16K-class persistent
-context. Phase 7 (20K) is optional and must be justified by measured headroom;
-Phase 8 acceleration is not authorized because the endurance gate did not
-pass and an unresolved quality question remains.
+Phases 0, 1, 3, 4, 5, and 6 are complete. Phase 2 was correctly skipped
+because the same-boundary B-vs-C cache gate passed. Phase 7 (20K) was
+conservatively skipped: no natural 20K prompt family exists, normal 16K is
+already near the unattended envelope, and synthetic padding would add little
+practical evidence. Phase 8 acceleration is skipped because the endurance
+gate did not pass.
 
 ## Recovered baseline
 
@@ -113,22 +112,38 @@ g64 and 13.673 GiB for g128; fresh-case median decode was approximately
 11.223 and 12.017 tok/s respectively. These are suite measurements, not the
 warm persistent-chat numbers above.
 
+## Phase 6 — persistent KV8 comparison
+
+Normal KV and KV8 were each run in a separate fresh g128 child process using
+the same 16K-class prompt family and five exact-suffix turns. Both modes
+completed with `PASS`: all turns were coherent, non-replaying, and exactly
+suffix-accounted. Normal KV measured 224.005 s cold TTFT, 1.169 s warm median
+TTFT, 10.513 tok/s mean warm decode, 11.418 GiB active+cache peak, and
+15.236 GiB peak. KV8 measured 223.990 s, 1.169 s, 9.522 tok/s, 11.390 GiB,
+and 14.771 GiB respectively.
+
+The measured KV8 saving was 0.465 GiB and the warm decode penalty was 9.4%.
+The KV8 state had 48 `ArraysCache` and 16 `QuantizedKVCache` layers at every
+saved boundary; offsets were internally consistent. This is
+`SELECTABLE_LONG_CONTEXT_MODE`: use it when 16K headroom matters, but keep
+normal KV as the default. Raw turn-5 answers differed in their implementation
+recommendations while remaining current-turn relevant; this is a quality
+sensitivity caveat, not evidence of cache corruption.
+
 ## Open decisions
 
-- KV8: prior one-shot 16K evidence measured 14.771 GiB versus 15.236 GiB
-  normal and 9.495 versus 10.641 tok/s, but persistent-chat confirmation is
-  still required. It remains a selectable safety lever, not a default.
-- 20K: not yet tested. Do not probe it unless the Phase 6 result leaves
-  clearly useful, conservative headroom; the 16K normal peak is already
-  15.236 GiB and endurance quality failed at turn 17.
-- Decode acceleration: not tested and should be skipped for this stage because
-  the Phase 4 endurance gate did not pass.
+- KV8: persistent correctness is now validated at 16K-class. It saves 0.465
+  GiB but costs 9.4% warm decode, so it is a selectable long-context safety
+  mode rather than the default.
+- 20K: not tested. The natural prompt family ends at 16,727 tokens, normal
+  peak is 15.236 GiB, and synthetic padding was not justified.
+- Decode acceleration: not tested because Phase 4 stopped at a broken
+  early-EOS turn and acceleration is optional only after endurance passes.
 
 ## Next action
 
-Before Phase 6, re-read `AGENTS.md`, `TASK.md`, and this file. Then run one
-serialized 16K-class persistent g128 comparison using the same exact-suffix
-conversation under normal KV and `KVCache` 8-bit/group-64/start-0 settings.
-Record cold and warm memory, TTFT, decode, all token IDs, suffix equations,
-state signatures, output classification, and system checks. Stop on OOM,
-pressure, accounting failure, or broken output.
+Create `research/stage3/FINAL_REPORT.md` from the saved raw artifacts, including
+the exact runtime recommendation, the measured normal/KV8 tradeoff, the
+quality caveat, the endurance stop, and the explicit 20K/acceleration skips.
+Then inspect `git status` and `git log`, commit the final report and Phase 6
+harness/results separately, and return the required concise summary.

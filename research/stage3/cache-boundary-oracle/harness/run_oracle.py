@@ -356,6 +356,10 @@ def generate_stage(
     max_tokens: int,
     label: str,
     started: float,
+    *,
+    kv_bits: int | None = None,
+    kv_group_size: int = 64,
+    quantized_kv_start: int = 0,
 ) -> dict[str, Any]:
     prompt_callbacks: list[dict[str, Any]] = []
 
@@ -383,6 +387,9 @@ def generate_stage(
         prompt_cache=cache,
         prefill_step_size=PREFILL_STEP_SIZE,
         prompt_progress_callback=callback,
+        kv_bits=kv_bits,
+        kv_group_size=kv_group_size,
+        quantized_kv_start=quantized_kv_start,
     )
     generated_ids: list[int] = []
     first_token_time: float | None = None

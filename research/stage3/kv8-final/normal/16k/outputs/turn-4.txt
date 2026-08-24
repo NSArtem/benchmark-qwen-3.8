@@ -1,0 +1,4 @@
+**Component:** `apps/api/src/application/job-service.ts` (specifically the `create` method)
+
+**Failure Path:**
+The method checks for an existing idempotency record before inserting a new one, but this check is not atomic with the subsequent insert operation. When two concurrent requests with the same key

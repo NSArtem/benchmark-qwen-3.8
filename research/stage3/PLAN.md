@@ -76,3 +76,27 @@ Prior 4K teacher-forced NLL also favored g64 by 1.6947 nats per target, as
 supplementary evidence. The decision is `PERFORMANCE/LONG-CONTEXT MODE` for
 g128: useful memory saving/speed, with measurable quality risk. Phase 6 is
 authorized as the final primary comparison.
+
+## Phase 6 outcome
+
+The real 16K-class persistent conversation was run in two separate fresh child
+processes with g128: normal KV and KV8/group-64/start-0. Both completed five
+coherent, non-replaying turns with exact suffix accounting and no exceptions.
+Normal KV peaked at 15.236 GiB; KV8 peaked at 14.771 GiB, saving 0.465 GiB.
+Warm median TTFT was effectively identical at 1.169 s, while mean warm decode
+fell from 10.513 to 9.522 tok/s (9.4% penalty). The 16 attention layers were
+`QuantizedKVCache` under KV8 and the 48 recurrent layers remained `ArraysCache`.
+The result is `SELECTABLE_LONG_CONTEXT_MODE`: useful as a 16K safety lever,
+not a normal default. The quality of the KV8 turn-5 answer was coherent and
+current-turn relevant, though its implementation recommendation diverged
+from normal KV; this is recorded as quantization sensitivity, not cache
+corruption.
+
+## Phase 7/8 gate outcome
+
+No 20K probe was run. The repository has no natural 20K prompt family, normal
+16K is already 15.236 GiB, and a synthetic extension would add an unsafe,
+low-value probe after the endurance quality stop. The stage therefore stops at
+the measured 16K-class envelope. Optional decode acceleration is skipped
+because the Phase 4 endurance gate did not pass and no urgent primary issue
+should be displaced by a bonus experiment.

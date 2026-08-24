@@ -133,3 +133,34 @@ the approximately 0.783-GiB tensor saving and observed decode advantage are
 useful, but the quality evidence is not a clean tie. The fresh-process suite
 had no inference exceptions; measured peak was 14.456 GiB for g64 and 13.673
 GiB for g128.
+
+## Phase 6 — KV8 long-context lever
+
+The same 16K-class prompt family and five exact-suffix follow-ups were run in
+separate fresh g128 child processes. The full comparison, per-turn token
+artifacts, compact state signatures, and OS snapshots are under
+`research/stage3/kv8-final/`.
+
+| mode | turns | cold TTFT | warm TTFT median | warm decode mean | active+cache peak | peak | correctness |
+|---|---:|---:|---:|---:|---:|---:|---|
+| normal KV | 5 | 224.005 s | 1.169 s | 10.513 tok/s | 11.418 GiB | 15.236 GiB | PASS |
+| KV8, group 64, start 0 | 5 | 223.990 s | 1.169 s | 9.522 tok/s | 11.390 GiB | 14.771 GiB | PASS |
+
+KV8 saved 0.465 GiB of peak (3.1% of the normal peak) and imposed a 9.4%
+warm-decode penalty. All offsets and suffix equations passed in both modes;
+KV8 used 48 `ArraysCache` plus 16 `QuantizedKVCache` layers. The mode is
+therefore **SELECTABLE LONG-CONTEXT MODE** when the extra headroom matters,
+but it is rejected as the normal small-context default. Raw outputs remained
+current-turn relevant and non-replaying; one KV8 recommendation differed
+substantially from the normal-KV recommendation, which is a quality-sensitivity
+caveat rather than a cache-state failure.
+
+## Phase 7/8 — conservative stop
+
+20K was **not tested**. There is no existing natural 20K prompt family in the
+repository, the validated normal-KV 16K-class peak is already 15.236 GiB, and
+synthetic padding would not answer the practical coding-agent question cleanly.
+The measured KV8 lever is documented without using it to justify a risky
+upward probe. Optional decode acceleration was also **not tested** because the
+20–30-turn endurance gate stopped at turn 17 and the task makes acceleration a
+bonus only after that gate passes.

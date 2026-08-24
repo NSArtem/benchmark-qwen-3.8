@@ -1,0 +1,2 @@
+**Invariant:** Atomic Commit of Job and Outbox
+**Enforcement Boundary:** Database Transaction
