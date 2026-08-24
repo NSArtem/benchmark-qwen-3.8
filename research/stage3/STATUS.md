@@ -1,10 +1,12 @@
 # Stage 3 status
 
-Last updated: 2026-08-24 — Phase 6 complete; final report is next.
+Last updated: 2026-08-24 — Stage 3 complete; final report written and awaiting
+the final documentation commit.
 
 ## Current phase
 
-Phases 0, 1, 3, 4, 5, and 6 are complete. Phase 2 was correctly skipped
+The required Stage 3 work is complete. Phases 0, 1, 3, 4, 5, and 6 are
+complete. Phase 2 was correctly skipped
 because the same-boundary B-vs-C cache gate passed. Phase 7 (20K) was
 conservatively skipped: no natural 20K prompt family exists, normal 16K is
 already near the unattended envelope, and synthetic padding would add little
@@ -142,8 +144,8 @@ sensitivity caveat, not evidence of cache corruption.
 
 ## Next action
 
-Create `research/stage3/FINAL_REPORT.md` from the saved raw artifacts, including
-the exact runtime recommendation, the measured normal/KV8 tradeoff, the
-quality caveat, the endurance stop, and the explicit 20K/acceleration skips.
-Then inspect `git status` and `git log`, commit the final report and Phase 6
-harness/results separately, and return the required concise summary.
+`research/stage3/FINAL_REPORT.md` now contains the exact runtime
+recommendation, measured normal/KV8 tradeoff, quality caveat, endurance stop,
+and explicit 20K/acceleration skips. No further heavy workload is authorized
+in this stage. Final action is to inspect `git status`/`git log`, commit this
+report and status update, and return the required concise summary.
