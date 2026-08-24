@@ -1,0 +1,3 @@
+**Invariant:** A job in a terminal state (e.g., `succeeded` or `failed`) must remain immutable; no subsequent events may alter its status.
+
+**Guard:** Reject any event if `job.status` is terminal, regardless of the `event.sequence` comparison.

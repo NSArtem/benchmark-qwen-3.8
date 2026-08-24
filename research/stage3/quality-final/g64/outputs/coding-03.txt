@@ -1,0 +1,6 @@
+### The Atomicity Failure
+
+The scenario described creates a **split-brain** or **partial failure** state, which violates the **Atomicity** principle of ACID (Atomicity, Consistency, Isolation, Durability).
+
+**Explanation:**
+1.  **Transaction 1 (Commit):** The API

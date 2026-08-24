@@ -1,0 +1,3 @@
+```json
+{"first": "invariant", "second": "lease"}
+```

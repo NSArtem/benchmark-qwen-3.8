@@ -1,0 +1,5 @@
+To determine the final version, we must track the state of the reducer as it processes the events in the order they arrive, applying the rule that "stale events are ignored."
+
+**1. Define the Rules:**
+*   **Initial State:** The reducer starts at version 1.
+*   **Processing

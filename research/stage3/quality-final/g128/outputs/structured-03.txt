@@ -1,0 +1,7 @@
+```json
+{
+  "tenant": "violet",
+  "job": "j-17",
+  "retryable": false
+}
+```

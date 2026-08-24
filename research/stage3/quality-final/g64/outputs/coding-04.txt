@@ -1,0 +1,6 @@
+To ensure the worker correctly validates its right to act before the critical "publish success" step, the completion predicate must verify that the lease held by the worker is still the current, valid lease for that specific job.
+
+### Minimal Completion Predicate
+
+The predicate checks two conditions simultaneously:
+1.  **Job State**:

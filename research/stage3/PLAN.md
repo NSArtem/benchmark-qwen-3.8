@@ -61,3 +61,18 @@ only four tokens (`The smallest worker` plus EOS), so the 20–30-turn endurance
 gate did not pass. Memory, state signatures, and protocol accounting remained
 normal through the failure; this is recorded as a quality/early-termination
 failure rather than cache corruption. Do not continue this branch unattended.
+
+## Phase 5 outcome
+
+The independent fresh-process suite completed 38 deterministic cases for each
+model across coding, instruction following, structured output, reasoning,
+retrieval, and prose continuity. Objective pass rates were 25/38 (65.8%) for
+g64 and 22/38 (57.9%) for g128. Instruction, structured, retrieval, and prose
+categories were tied; g128 trailed in coding (0/10 vs 2/10) and reasoning
+(3/6 vs 4/6). The coding evaluator used a 64-token cap, so several raw g128
+answers were relevant but truncated; this makes the suite a conservative
+objective signal rather than a claim of a 20-point intrinsic coding defect.
+Prior 4K teacher-forced NLL also favored g64 by 1.6947 nats per target, as
+supplementary evidence. The decision is `PERFORMANCE/LONG-CONTEXT MODE` for
+g128: useful memory saving/speed, with measurable quality risk. Phase 6 is
+authorized as the final primary comparison.

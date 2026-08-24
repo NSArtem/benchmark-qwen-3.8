@@ -1,0 +1,5 @@
+The race occurs because two concurrent requests pass the `SELECT` check before either executes `INSERT`. Both find no existing key, proceed to insert, and violate the unique constraint.
+
+**Fix:** Add a unique constraint on `(tenant_id, key)` in the `idempotency_keys` table.
+
+**Code

@@ -100,3 +100,36 @@ quality oracle. The exact first-failing output, token IDs, prompt, suffix,
 cache diagnostics, and state signature are preserved under
 `research/stage3/endurance-final/`. The 20–30-turn endurance requirement is
 therefore **not passed**; no continuation was run.
+
+## Phase 5 — g64 vs g128 diverse quality
+
+Both models were tested in separate fresh processes with the same 38 greedy
+prompts and 64-token output cap (shorter caps for selected retrieval cases).
+Complete generated token IDs, decoded text, hashes, first-token logprob
+summaries, repetition checks, objective checks, and cache signatures are in
+`research/stage3/quality-final/`.
+
+| category | cases | g64 pass | g128 pass | delta (g128-g64) |
+|---|---:|---:|---:|---:|
+| coding | 10 | 2 | 0 | -20.0 pp |
+| instruction | 6 | 6 | 6 | 0.0 pp |
+| structured | 6 | 6 | 6 | 0.0 pp |
+| reasoning | 6 | 4 | 3 | -16.7 pp |
+| retrieval | 5 | 3 | 3 | 0.0 pp |
+| prose | 5 | 4 | 4 | 0.0 pp |
+| **total** | **38** | **25** | **22** | **-7.9 pp** |
+
+The strict objective suite shows a measurable g128 disadvantage concentrated
+in coding and reasoning, while instruction, JSON structure, retrieval, and
+prose continuity are tied. Raw outputs show that many coding misses are
+relevant answers cut off by the 64-token cap, so the result should not be read
+as a standalone estimate of unconstrained coding quality. The prior 4K
+teacher-forced reference is directionally consistent: mean NLL was 4.1387
+nats for g64 and 5.8335 for g128, a +1.6947-nat g128 delta over 4,095
+targets; it is supplementary rather than the sole decision criterion.
+
+The g128 classification is **PERFORMANCE/LONG-CONTEXT MODE**, not DEFAULT:
+the approximately 0.783-GiB tensor saving and observed decode advantage are
+useful, but the quality evidence is not a clean tie. The fresh-process suite
+had no inference exceptions; measured peak was 14.456 GiB for g64 and 13.673
+GiB for g128.

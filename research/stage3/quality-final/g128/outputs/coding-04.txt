@@ -1,0 +1,3 @@
+Based on the scenario described, the worker is vulnerable to a **lease expiration race condition**. If the lease expires between the check and the publish, the worker may perform a duplicate or conflicting action, or the system may consider the job "orphaned" while the worker is still processing it.
+
+Here is the minimal

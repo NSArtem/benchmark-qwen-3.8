@@ -1,0 +1,3 @@
+No.
+
+**Citation:** In a state machine, a **terminal state** (such as `succeeded`) is defined as a state from which no further transitions are possible. Since `succeeded` is a terminal state, it has no outgoing transitions, making the transition `succeeded -> running` invalid.

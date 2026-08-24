@@ -1,188 +1,134 @@
 # Stage 3 status
 
-Last updated: 2026-08-24 — Phase 1 same-boundary oracle passed.
+Last updated: 2026-08-24 — Phase 5 complete; Phase 6 KV8 persistent
+comparison is next.
 
 ## Current phase
 
-Phase 1 same-boundary cache validation, Phase 3 exact-suffix scaling, and
-Phase 4 endurance are complete. Phase 2 was skipped because the B-vs-C gate
-passed. Phase 5 g64-vs-g128 quality comparison is next.
+Phases 0, 1, 3, 4, and 5 are complete. Phase 2 was correctly skipped because
+the same-boundary B-vs-C cache gate passed. Phase 6 is authorized: run one
+serialized g128 normal-KV versus KV8 comparison at 16K-class persistent
+context. Phase 7 (20K) is optional and must be justified by measured headroom;
+Phase 8 acceleration is not authorized because the endurance gate did not
+pass and an unresolved quality question remains.
 
-## Recovered baseline from raw artifacts
+## Recovered baseline
 
 | item | measured fact |
 |---|---|
-| g64 reference payload | 11,771,132,928 bytes = 10.9627218 GiB; affine 3-bit/group-64 |
-| g128 candidate payload | 10,930,715,648 bytes = 10.1800222 GiB; affine 3-bit/group-128; 1,847 tensors / 19 shards |
-| g128 cold 4K | 4,096 prompt tokens; peak 13.3595572 GiB; TTFT 51.2942 s in P9 repeat 2; decode 11.6228 tok/s |
-| g128 cold 8K | 8,191 prompt tokens; peak 13.9828330 GiB; TTFT median 105.9749 s across P9 repeats; decode median 11.2751 tok/s |
-| g128 cold 12K | 12,288 prompt tokens; peak 14.6091910 GiB; TTFT 158.2382 s; decode 10.8301 tok/s |
-| g128 cold 16K-ish | 16,727 prompt tokens; peak 15.2356711 GiB; TTFT 219.6105 s; decode 10.6409 tok/s |
-| exact-suffix g128 4K persistent turn 2 | 38-token suffix; TTFT 0.979969 s; decode 11.6337 tok/s; coherent/no stale replay in the saved run |
-| exact-suffix g128 4K fresh full-transcript turn 2 | 4,230-token prompt; TTFT 54.745441 s; decode 11.5998 tok/s; coherent |
-| exact-suffix unresolved comparison | persistent/fresh outputs shared a 42-token prefix then diverged; all compact final state signatures differed; no same-boundary fresh-segmented control exists yet |
-| prior g128 KV8 16K-ish | peak 14.7705832 GiB vs normal 15.2356711 GiB: -0.4650879 GiB; decode 9.4946 vs 10.6409 tok/s; coherent one-shot only |
+| g64 reference | affine 3-bit/group-64; tensor payload 11,771,132,928 bytes = 10.9627218 GiB |
+| g128 candidate | source-backed affine 3-bit/group-128; 1,847 tensors / 19 shards; payload 10,930,715,648 bytes = 10.1800222 GiB |
+| payload saving | 840,417,280 bytes = 0.7826996 GiB, approximately 7.14% |
+| canonical runtime | Python 3.14.7; MLX 0.32.1; mlx-lm 0.31.3 at pinned revision `254d153fdeb6f150edd4fc5a54f9828638481fa8` |
+| inference policy | direct `generate_step`; normal KV unless explicitly testing KV8; MLX wired state untouched |
 
-All memory values above are binary GiB from saved byte counters. The earlier
-decimal-GB observations remain labeled in their original artifacts.
+All new memory values use binary GiB. Model weights and the archive-backed
+environment are outside the repository and must not be committed.
 
-## Environment and safety state
+## Safety state
 
-- Worktree was clean at recovery (`main`); current HEAD at recovery was
-  `0992416` (`stage 3 prompts`).
-- g64 path exists at the exact Hugging Face snapshot recorded in `AGENTS.md`.
-- g128 path exists at `/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX`.
-- `envs/mlx-0.32.1` exists. Its `.venv` is bare, but the existing uv archive
-  contains MLX 0.32.1, mlx-metal 0.32.1, and mlx-lm 0.31.3 from pinned git
-  revision `254d153fdeb6f150edd4fc5a54f9828638481fa8`. A read-only archive
-  path plus the required `uv run --project ... --no-sync` prefix successfully
-  reported Python 3.14.7, MLX 0.32.1, GPU device, and the pinned mlx-lm
-  source. No dependency upgrade or environment mutation was performed.
-- No matching MLX/Qwen process was visible in the initial process check; all
-  workloads launched in this run remain serialized.
-- No wired-memory setting has been changed. Do not call `mx.set_wired_limit()`.
+- Canonical commands use `uv run --project envs/mlx-0.32.1 --no-sync ...`.
+- The read-only uv archive launcher is required because the project venv is
+  bare; it does not upgrade or mutate the canonical environment.
+- No `mx.set_wired_limit()` call has been made, and no system wired-memory
+  setting has been changed.
+- Heavy MLX/Qwen workloads launched for this run have been serialized.
+- Previous failed harness attempts and invalid cache artifacts remain
+  preserved in their original namespaces.
 
-## Completed experiments / decisions
+## Phase 1 — same-boundary cache oracle
 
-- Recovered and inspected Night-2 reports, raw suffix artifacts, context
-  ladder, performance repeats, KV8 result, and NLL records.
-- Preserved the Night-2 conclusion that the old 8K fragment protocol is
-  invalid; its replay artifacts are not reused as correctness evidence.
-- Reused the existing 4K exact-suffix result only as a pre-Phase-1 baseline.
-- Did not rerun any completed Night-2 workload during Phase 0.
-- Phase 1 attempt 1 stopped after model load while converting the first
-  bfloat16 logprob vector for the new diagnostic (`ValueError: bfloat16 is not
-  a valid PEP 3118 buffer format string`). This is recorded as a harness
-  compatibility failure, not inference/cache evidence; the path is patched to
-  cast logprobs to MLX float32 before host conversion.
-- `P1-SAME-BOUNDARY-G128` rerun completed A/B/C in 210.5768 s with no
-  exception or safety stop. B and C both generated the preserved turn-1 hash
-  `2090a312...` and turn-2 hash `810fea0c...`; both protocol equations held:
-  measured cached prefix 4,192 + exact suffix 38 = canonical turn-2 length
-  4,230. The final turn-2 B/C state signature was `1b123c1d...` at offset
-  4,294 in all 48 recurrent and 16 attention layers. The suffix boundary
-  callback showed offset 4,231; this is the pinned `generate_step` callback
-  after the first scheduled generation step, not a pure suffix-only snapshot.
-- B-vs-C state signatures and offsets matched at every required boundary;
-  turn-1/turn-2 token streams were identical; first-token logprob max and mean
-  absolute differences were both 0.0 for both generation stages, with 8/8
-  top-k overlap. Both turn-2 outputs were coherent with no replay. The Phase
-  1 gate is `PASS` and exact-suffix persistent cache is validated for scaling
-  under these same boundaries.
-- A's fresh full-transcript turn-2 output was also coherent and non-replaying,
-  but its token stream shared only the first 42 tokens with C. This is the
-  expected one-shot-versus-segmented sensitivity observation and is not a
-  B-vs-C failure.
+The 4K g128 B-vs-C gate passed. Fresh segmented and true persistent execution
+used the same token stream and call boundaries: all 48 `ArraysCache` and 16
+`KVCache` layers had equal signatures and offsets at every required boundary.
+Turn-1 and turn-2 token IDs matched exactly; first-token logprob max/mean
+absolute differences were 0.0 and top-8 overlap was 8/8. The logical equation
+`4,192 + 38 = 4,230` held. Both outputs were coherent and non-replaying.
 
-## Current best configuration
+Fresh full-transcript path A was also coherent but shared only 42 generated
+tokens with B/C. This is retained as one-shot/segmented numerical sensitivity,
+not persistent-cache corruption, so Phase 2 localization was skipped.
 
-The strongest validated warm-cache candidate is now source-backed g128 with
-direct `generate_step`, default MLX wired state, normal KV, exact canonical
-suffixes, and one persistent cache. At the 4K oracle boundary its turn-2
-suffix was 38 tokens with 1.0268 s TTFT and 11.4549 tok/s decode in the new
-run (the preserved earlier run measured 0.9800 s and 11.6337 tok/s). The
-validated persistent ladder now covers 8K, 12K, and the 16K-class prompt.
+## Phase 3 — persistent exact-suffix scaling
 
-## Rejected configurations / hypotheses
+The corrected protocol completed five coherent, non-replaying turns at every
+tested context. Exact suffix equations and complete token artifacts are under
+`research/stage3/persistent-scaling-final/`.
 
-- Historical 8K `P3-WARM8K` correctness label: rejected because turn 2 exactly
-  replayed the first 64 tokens of turn 1.
-- Old standalone user-fragment persistent protocol: invalid transcript
-  serialization; do not scale it.
-- Mixed 2-bit/6-bit g128, uniform 2-bit, DWQ, external drafts, MTP, and 32K
-  chasing are out of scope for this stage.
-- KV8 is not a default small-context mode; only its long-context safety value
-  remains open.
+| prompt | final offset | cold TTFT | warm TTFT range | warm decode | peak |
+|---|---:|---:|---:|---:|---:|
+| 8,191 tokens | 8,676 | 110.729 s | 0.735–1.098 s | 11.105 tok/s | 13.983 GiB |
+| 12,288 tokens | 12,760 | 193.462 s | 0.736–1.121 s | 10.803 tok/s | 14.609 GiB |
+| 16,727 tokens | 17,219 | 246.012 s | 0.807–1.223 s | 10.409 tok/s | 15.236 GiB |
 
-## Current risks
+The corrected 8K fresh semantic oracle used 8,352 prompt tokens, passed, and
+was exactly token-equal to the persistent turn (29/29 generated tokens). The
+corrected 16K-class oracle used 17,155 tokens, passed semantically, and shared
+50 initial output tokens with the persistent turn. The earlier 16,536-token
+8K oracle is explicitly invalid because it duplicated the initial user prompt.
 
-- The 25-turn endurance gate stopped at turn 17 on a four-token early-EOS
-  response; do not represent 20–30-turn endurance as passed.
-- The 4K and 16K fresh-oracle token divergences are measured segmentation
-  sensitivity; the semantic and same-boundary cache gates pass, but exact
-  one-shot token identity is not a goal for this hybrid recurrent model.
-- The archive-backed canonical launcher depends on protected external cache
-  paths; each heavy command must retain the exact pinned versions and no-wired
-  policy.
+## Phase 4 — endurance
 
-## Current phase
+The g128 normal-KV persistent session completed 17 sequential turns from an
+8K start; turns 1–16 were coherent, non-replaying, exactly suffix-accounted,
+and had valid 64-layer signatures. Warm TTFT was 1.549–1.624 s, decode
+10.58–11.17 tok/s, context grew to 10,439 tokens, peak was 13.983 GiB, RSS
+was approximately 6.68 GB, and periodic memory-pressure checks showed no
+severe pressure.
 
-Phase 3 persistent scaling and both required semantic-oracle checks are
-complete. Phase 4 endurance is now in progress. The bounded harness uses the same
-g128 / normal-KV / default-wired / direct-`generate_step` protocol at
-approximately 8K, 12K, and 16K. It records complete token IDs, exact
-canonical suffix accounting, per-turn cache offsets/state signatures, memory,
-and output classifications. It stops at a 15.6 GiB measured peak, on any
-accounting/correctness failure, or after a repeated broken output.
+Turn 17 generated only four tokens (`The smallest worker` plus EOS). It was
+not replay or cache corruption, but was incomplete and therefore `BROKEN`.
+The 20–30-turn endurance gate is `STOPPED_OR_UNRESOLVED`; no continuation was
+run. The first failing raw artifact is under
+`research/stage3/endurance-final/`.
 
-The first launch was stopped as harness-only evidence: the 8K child completed
-turn 1 with 13.983 GiB peak and coherent output, but the parent lacked the
-child `logs/` directory and failed while capturing stdout. The preserved child
-artifact then exposed a second harness bug: the candidate builder omitted the
-prior user query when pairing earlier assistant text. A tokenizer-only check
-showed both decoded variants actually reproduce the exact 8K cached prefix;
-both harness issues are patched before retrying in a separate output root.
+## Phase 5 — g64 versus g128 quality
 
-The second launch validated 8K turns 1 and 2, then stopped at turn 3. Raw
-token inspection found the harness had appended the current user query twice
-while building the turn-3 candidate; the resulting 57-token suffix visibly
-contained the same user message twice. The cache itself remained correctly
-accounted through offset 8,401. The candidate builder now receives only prior
-user turns and prior assistant candidates, with the current query appended
-once by the outer loop.
+The deterministic fresh-process suite completed 38 cases per model across six
+categories. Raw outputs, token IDs, hashes, checks, and first-token summaries
+are under `research/stage3/quality-final/`; the machine-readable ledger is
+`research/stage3/results.jsonl`.
 
-The third launch stopped after its child completed turn 1 because the parent
-report writer called `min()` on an empty warm-turn list after the child had
-already returned an error. The child artifact preserved the expected turn-2
-candidate failure from the previous slicing patch; no new inference result was
-lost. The candidate builder now includes all prior assistant answers while
-inserting only prior user turns, and the report writer handles partial runs.
+| category | cases | g64 pass | g128 pass | delta |
+|---|---:|---:|---:|---:|
+| coding | 10 | 2 | 0 | -20.0 pp |
+| instruction | 6 | 6 | 6 | 0.0 pp |
+| structured | 6 | 6 | 6 | 0.0 pp |
+| reasoning | 6 | 4 | 3 | -16.7 pp |
+| retrieval | 5 | 3 | 3 | 0.0 pp |
+| prose | 5 | 4 | 4 | 0.0 pp |
+| **total** | **38** | **25 (65.8%)** | **22 (57.9%)** | **-7.9 pp** |
 
-The harness also now normalizes a known Qwen boundary case: if a generated
-assistant turn ends in the retained EOS/control token, the chat template's
-automatic `<|im_end|>` is removed at that exact cached boundary rather than
-being supplied a second time. This is token-level suffix accounting, not a
-sampling change. Fresh full-transcript oracle records will separately report
-whether their serialized prompt tokens equal the exact persistent stream.
+The strict objective signal is concentrated in coding and reasoning. Several
+g128 coding answers were semantically on track but truncated at the 64-token
+cap, so this is not a claim that intrinsic coding quality is exactly 20 points
+lower. Prior 4K teacher-forced NLL nevertheless points the same direction:
+4.1387 nats for g64 versus 5.8335 for g128 over 4,095 targets (+1.6947 nats).
+The overall g128 verdict is `PERFORMANCE/LONG-CONTEXT MODE`: useful memory
+saving and decode speed, but not a clean quality tie and therefore not
+`DEFAULT`.
 
-The completed persistent ladder passed at all three contexts: 8K reached
-offset 8,676 at 13.983 GiB, 12K reached 12,760 at 14.609 GiB, and the
-16K-class prompt reached 17,219 at 15.236 GiB. Every context completed five
-coherent, non-replaying turns with exact suffix equations. Warm TTFTs were
-0.735–1.121 s at 8K, 0.736–1.121 s at 12K, and 0.807–1.223 s at 16K; warm
-decode averaged approximately 11.105, 10.803, and 10.409 tok/s respectively.
-The valid 16K turn-5 fresh oracle was coherent with semantic-oracle pass and
-17,155 prompt tokens; its output shared 50 initial tokens with the persistent
-turn, which is a numerical/segmentation difference rather than replay.
+The suite had no inference exceptions. Its measured peak was 14.456 GiB for
+g64 and 13.673 GiB for g128; fresh-case median decode was approximately
+11.223 and 12.017 tok/s respectively. These are suite measurements, not the
+warm persistent-chat numbers above.
 
-The parent-run 8K oracle is retained but marked invalid-for-oracle because it
-was launched before the transcript-construction fix and serialized 16,536
-tokens instead of the expected 8,352. The corrected suffixed 8K oracle is
-coherent, semantic-oracle PASS, prompt-token equal to the persistent stream,
-and exactly token-equal to the persistent turn-2 output (29/29); it measured
-116.796 s TTFT, 11.036 tok/s decode, and 13.986 GiB peak. The valid 16K
-turn-5 oracle measured 267.588 s TTFT and 10.231 tok/s decode.
+## Open decisions
 
-## Phase 4 outcome
-
-The g128 normal-KV endurance harness started from the validated 8K prompt and
-ran 17 sequential assistant turns before stopping at the first broken output.
-Turns 1–16 were coherent and non-replaying; every turn through the failure had
-exact suffix accounting, valid 64-layer state signatures, and no cache-offset
-anomaly. Warm TTFT was 1.549–1.624 s, decode was 10.58–11.17 tok/s, logical
-prompt context grew from 8,191 to 10,439 tokens, peak was 13.983 GiB, and RSS
-was approximately 6.68 GB. Periodic `memory_pressure` calls succeeded without
-severe pressure and swap use decreased.
-
-Turn 17 generated exactly four tokens (`The smallest worker` plus EOS) for the
-worker-method question. It did not replay a prior answer and its protocol
-equations remained true, but the response was incomplete, so the quality
-oracle classified it `BROKEN`. The exact first failing artifact is preserved
-under `research/stage3/endurance-final/`; the 20–30-turn endurance gate is
-`STOPPED_OR_UNRESOLVED`, not a pass, and no continuation was run.
+- KV8: prior one-shot 16K evidence measured 14.771 GiB versus 15.236 GiB
+  normal and 9.495 versus 10.641 tok/s, but persistent-chat confirmation is
+  still required. It remains a selectable safety lever, not a default.
+- 20K: not yet tested. Do not probe it unless the Phase 6 result leaves
+  clearly useful, conservative headroom; the 16K normal peak is already
+  15.236 GiB and endurance quality failed at turn 17.
+- Decode acceleration: not tested and should be skipped for this stage because
+  the Phase 4 endurance gate did not pass.
 
 ## Next action
 
-Commit the completed Phase 4 harness/results separately, then re-read
-`AGENTS.md`, `TASK.md`, and this file before starting the independent Phase 5
-g64-vs-g128 quality suite.
+Before Phase 6, re-read `AGENTS.md`, `TASK.md`, and this file. Then run one
+serialized 16K-class persistent g128 comparison using the same exact-suffix
+conversation under normal KV and `KVCache` 8-bit/group-64/start-0 settings.
+Record cold and warm memory, TTFT, decode, all token IDs, suffix equations,
+state signatures, output classification, and system checks. Stop on OOM,
+pressure, accounting failure, or broken output.

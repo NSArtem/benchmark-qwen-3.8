@@ -1,0 +1,8 @@
+### Security Bug Identification
+
+**Bug Type:** Insecure Direct Object Reference (IDOR) / Broken Access Control
+
+**Description:**
+The repository method retrieves a job record based **only** on the `id` parameter. It fails to include the `tenantId` in the query predicate.
+
+**Consequence:**

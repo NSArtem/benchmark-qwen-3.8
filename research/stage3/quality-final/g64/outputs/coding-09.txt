@@ -1,0 +1,6 @@
+Here is a focused integration test plan for the **timeout-after-commit race** (also known as the "double commit" or "phantom commit" problem).
+
+### **Test Name:** `test_timeout_after_commit_prevents_duplicate_outbox_entries`
+
+### **Scenario Context:**
+- Two identical `POST /api

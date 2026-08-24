@@ -1,0 +1,3 @@
+In a distributed system where multiple workers process the same job, the `jobs` table acts as the source of truth for the job's state. The fields `version` and `next_event_sequence` are critical for maintaining consistency. Here’s why a row lock is necessary and how it preserves event ordering:
+
+### 

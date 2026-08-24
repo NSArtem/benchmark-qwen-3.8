@@ -1,0 +1,3 @@
+Rejected
+
+The premise states that a retry is safe **only** when **both** the tenant and request hash match. This establishes a logical AND condition: both criteria must be satisfied simultaneously for the retry to be considered safe (and thus accepted). Since the hash differs, the condition "both match" fails. Therefore,

@@ -1,0 +1,1 @@
+g128 and normal KV are distinct memory management strategies.

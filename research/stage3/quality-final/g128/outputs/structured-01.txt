@@ -1,0 +1,6 @@
+```json
+{
+  "state": "queued",
+  "safe": true
+}
+```
