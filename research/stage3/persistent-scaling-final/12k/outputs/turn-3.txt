@@ -1,0 +1,5 @@
+**Test Name:** `enforces atomic commit of job state and outbox record`
+
+**Setup:**
+1.  Initialize a `Job` in state `queued` with `version: 0` and `nextEventSequence: 1`.
+2.  Initialize a `JobEvent` of type `

@@ -1,0 +1,5 @@
+**Test Name:** `JobService.create` commits atomically or not at all
+
+**Setup:**
+1.  Initialize an in-memory PostgreSQL mock (e.g., `pg-mem` or a real test container) with the `jobs` and `outbox` tables.
+2.  Configure the mock

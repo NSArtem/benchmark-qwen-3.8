@@ -104,9 +104,66 @@ yet scaled under this gate.
   paths; each heavy command must retain the exact pinned versions and no-wired
   policy.
 
+## Current phase
+
+Phase 3 persistent scaling and both required semantic-oracle checks are
+complete. The bounded harness uses the same
+g128 / normal-KV / default-wired / direct-`generate_step` protocol at
+approximately 8K, 12K, and 16K. It records complete token IDs, exact
+canonical suffix accounting, per-turn cache offsets/state signatures, memory,
+and output classifications. It stops at a 15.6 GiB measured peak, on any
+accounting/correctness failure, or after a repeated broken output.
+
+The first launch was stopped as harness-only evidence: the 8K child completed
+turn 1 with 13.983 GiB peak and coherent output, but the parent lacked the
+child `logs/` directory and failed while capturing stdout. The preserved child
+artifact then exposed a second harness bug: the candidate builder omitted the
+prior user query when pairing earlier assistant text. A tokenizer-only check
+showed both decoded variants actually reproduce the exact 8K cached prefix;
+both harness issues are patched before retrying in a separate output root.
+
+The second launch validated 8K turns 1 and 2, then stopped at turn 3. Raw
+token inspection found the harness had appended the current user query twice
+while building the turn-3 candidate; the resulting 57-token suffix visibly
+contained the same user message twice. The cache itself remained correctly
+accounted through offset 8,401. The candidate builder now receives only prior
+user turns and prior assistant candidates, with the current query appended
+once by the outer loop.
+
+The third launch stopped after its child completed turn 1 because the parent
+report writer called `min()` on an empty warm-turn list after the child had
+already returned an error. The child artifact preserved the expected turn-2
+candidate failure from the previous slicing patch; no new inference result was
+lost. The candidate builder now includes all prior assistant answers while
+inserting only prior user turns, and the report writer handles partial runs.
+
+The harness also now normalizes a known Qwen boundary case: if a generated
+assistant turn ends in the retained EOS/control token, the chat template's
+automatic `<|im_end|>` is removed at that exact cached boundary rather than
+being supplied a second time. This is token-level suffix accounting, not a
+sampling change. Fresh full-transcript oracle records will separately report
+whether their serialized prompt tokens equal the exact persistent stream.
+
+The completed persistent ladder passed at all three contexts: 8K reached
+offset 8,676 at 13.983 GiB, 12K reached 12,760 at 14.609 GiB, and the
+16K-class prompt reached 17,219 at 15.236 GiB. Every context completed five
+coherent, non-replaying turns with exact suffix equations. Warm TTFTs were
+0.735–1.121 s at 8K, 0.736–1.121 s at 12K, and 0.807–1.223 s at 16K; warm
+decode averaged approximately 11.105, 10.803, and 10.409 tok/s respectively.
+The valid 16K turn-5 fresh oracle was coherent with semantic-oracle pass and
+17,155 prompt tokens; its output shared 50 initial tokens with the persistent
+turn, which is a numerical/segmentation difference rather than replay.
+
+The parent-run 8K oracle is retained but marked invalid-for-oracle because it
+was launched before the transcript-construction fix and serialized 16,536
+tokens instead of the expected 8,352. The corrected suffixed 8K oracle is
+coherent, semantic-oracle PASS, prompt-token equal to the persistent stream,
+and exactly token-equal to the persistent turn-2 output (29/29); it measured
+116.796 s TTFT, 11.036 tok/s decode, and 13.986 GiB peak. The valid 16K
+turn-5 oracle measured 267.588 s TTFT and 10.231 tok/s decode.
+
 ## Next action
 
-Re-read `AGENTS.md`, `TASK.md`, and this file, then run Phase 3 with g128,
-normal KV, exact suffixes, and a bounded realistic multi-turn prompt at about
-8K, 12K, and 16K (reusing the prior 4K evidence where appropriate). Save a
-fresh full-transcript semantic oracle at 8K and the largest successful context.
+Inspect all Phase 3 raw artifacts and `results.jsonl`, then commit the
+completed Phase 3 harness/results before starting the gated Phase 4 endurance
+run.

@@ -51,3 +51,33 @@ complete generated IDs and decoded outputs are under `tokens/` and `outputs/`,
 and compact per-layer signatures are under `state_signatures/`. The first
 attempt's bfloat16 host-conversion failure is preserved in the same namespace
 and in `research/stage3/results.jsonl` as a harness error, not inference data.
+
+## Phase 3 — exact-suffix persistent scaling
+
+The source-backed g128 model passed a five-turn persistent exact-canonical-
+suffix conversation at every tested prompt size. All turns had exact cache
+offset equations, complete generated token IDs, coherent output, and no
+replay. The final logical offsets and peak binary GiB were:
+
+| context | final offset | peak | warm TTFT range | warm decode average |
+|---|---:|---:|---:|---:|
+| 8K | 8,676 | 13.983 GiB | 0.735–1.098 s | 11.105 tok/s |
+| 12K | 12,760 | 14.609 GiB | 0.736–1.121 s | 10.803 tok/s |
+| 16K-class | 17,219 | 15.236 GiB | 0.807–1.223 s | 10.409 tok/s |
+
+The corrected 8K turn-2 fresh full-transcript oracle used 8,352 prompt
+tokens, was coherent, had exact persistent/oracle output token equality for
+29/29 tokens, and measured 116.796 s TTFT and 11.036 tok/s decode. The
+corrected 16K turn-5 oracle used 17,155 prompt tokens, was coherent, and
+passed semantically; its output shared a 50-token prefix with the persistent
+turn. This is retained as segmentation/numerical sensitivity, not replay.
+
+The first parent-run 8K oracle is deliberately retained but excluded from
+evidence because a pre-fix transcript builder duplicated the initial user
+prompt and measured 16,536 tokens. The harness-only failures and subsequent
+EOS-boundary normalization are all recorded in `STATUS.md` and
+`results.jsonl`.
+
+Raw artifacts: `research/stage3/persistent-scaling-final/`, with prior failed
+attempts preserved in sibling `persistent-scaling/`, `persistent-scaling-retry/`,
+and `persistent-scaling-retry2/` directories.

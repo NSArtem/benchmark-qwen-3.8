@@ -1,0 +1,25 @@
+{
+  "context": "8k",
+  "exception": "RuntimeError: 8k turn 2: no canonical transcript candidate begins with logical cached stream",
+  "oracles": [],
+  "overall_classification": "ERROR",
+  "prompt_path": "/Users/artem/projects/benchmark-qwen-3.8/research/context-ladder/prompts/prompt-8192.txt",
+  "safety_stop_reason": null,
+  "target_prompt_tokens": 8192,
+  "turns": [
+    {
+      "active_plus_cache_gib": 11.390285121276975,
+      "classification": "COHERENT",
+      "decode_tps": 11.073193174754831,
+      "generated_tokens": 128,
+      "logical_prompt_tokens": 8191,
+      "peak_gib": 13.98283295892179,
+      "protocol_ok": true,
+      "replay_detected": false,
+      "suffix_tokens": 8191,
+      "ttft_seconds": 109.63464666699292,
+      "turn": 1
+    }
+  ],
+  "turns_completed": 1
+}

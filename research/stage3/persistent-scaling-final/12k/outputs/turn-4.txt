@@ -1,0 +1,3 @@
+The component where this invariant is violated is `apps/worker/src/worker.ts`.
+
+The failure path occurs because the worker commits the `job.started` state change in a separate transaction from the `markSucceeded` state change, allowing the job to remain in a `running` state in the database if the process

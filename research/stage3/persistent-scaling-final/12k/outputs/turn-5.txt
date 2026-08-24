@@ -1,0 +1,1 @@
+Wrap the job state update and outbox insert in a single database transaction to ensure atomicity, and enforce idempotency by checking the `idempotency_keys` table within that same transaction before committing.

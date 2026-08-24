@@ -1,0 +1,8 @@
+# Diagnosis
+
+The reported incident ("completed render returns to running" and "second retry creates a second render") stems from a combination of architectural gaps in transactional atomicity, idempotency enforcement, and event ordering.
+
+### 1. The "Second Render" (Idempotency Race)
+**Root Cause:** `JobService.create` uses a "check-then-insert" pattern for idempotency keys.
+*   **Trace:** Two concurrent requests (A and B) with the same `Idempotency-Key` arrive simultaneously.
+*   **Flaw:** Both requests execute `SELECT ...

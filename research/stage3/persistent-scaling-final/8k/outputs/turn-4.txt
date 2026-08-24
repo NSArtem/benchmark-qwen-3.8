@@ -1,0 +1,3 @@
+The component where this invariant is violated is `apps/api/src/application/job-service.ts`.
+
+The failure path occurs because the method executes `COMMIT` before calling `queue.enqueue`, meaning the job and outbox record are durably persisted in the database before the job is actually available in the Redis queue. If the Redis

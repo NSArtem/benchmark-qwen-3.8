@@ -41,3 +41,13 @@ authorized with the exact-suffix protocol and normal KV.
 - Large MLX/Qwen workloads are serialized. Fresh-process comparisons are kept
   separate from persistent-process measurements.
 - Model weights and environments remain outside commits.
+
+## Phase 3 outcome
+
+The corrected exact-suffix ladder passed at 8K, 12K, and 16K-class context
+with five coherent, non-replaying turns at each context. Persistent cache
+offsets reached 8,676, 12,760, and 17,219 respectively, with peak memory
+13.983, 14.609, and 15.236 GiB. Warm TTFT stayed below 1.224 s and decode
+averaged about 11.105, 10.803, and 10.409 tok/s. Corrected fresh semantic
+oracles passed at 8K turn 2 and 16K turn 5. Phase 4 endurance is authorized;
+KV8 remains gated to a later 16K safety comparison.

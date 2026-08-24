@@ -1,0 +1,1 @@
+Move the Redis `enqueue` call inside the database transaction by wrapping it in a `BEGIN`/`COMMIT` block, ensuring the job is not visible to workers until the idempotency record, job row, and outbox event are all durably committed.

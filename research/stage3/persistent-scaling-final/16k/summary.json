@@ -1,0 +1,87 @@
+{
+  "context": "16k",
+  "exception": null,
+  "oracles": [
+    {
+      "classification": "COHERENT",
+      "decode_tps": 10.231362019964815,
+      "persistent_vs_oracle_token_lcp": 50,
+      "prompt_tokens": 17155,
+      "semantic_oracle_pass": true,
+      "ttft_seconds": 267.58757433400024,
+      "turn": 5
+    }
+  ],
+  "overall_classification": "PASS",
+  "prompt_path": "/Users/artem/projects/benchmark-qwen-3.8/qwen38-mtp-smoke/coding-prompt.txt",
+  "safety_stop_reason": null,
+  "target_prompt_tokens": 16767,
+  "turns": [
+    {
+      "active_plus_cache_gib": 11.399852585047483,
+      "classification": "COHERENT",
+      "decode_tps": 10.534778284759224,
+      "generated_tokens": 128,
+      "logical_prompt_tokens": 16727,
+      "peak_gib": 15.235671093687415,
+      "protocol_ok": true,
+      "replay_detected": false,
+      "suffix_tokens": 16727,
+      "ttft_seconds": 246.0116055420076,
+      "turn": 1
+    },
+    {
+      "active_plus_cache_gib": 11.40423490293324,
+      "classification": "COHERENT",
+      "decode_tps": 10.336983756232337,
+      "generated_tokens": 28,
+      "logical_prompt_tokens": 16888,
+      "peak_gib": 15.235671093687415,
+      "protocol_ok": true,
+      "replay_detected": false,
+      "suffix_tokens": 33,
+      "ttft_seconds": 0.8072243329952471,
+      "turn": 2
+    },
+    {
+      "active_plus_cache_gib": 11.40441800840199,
+      "classification": "COHERENT",
+      "decode_tps": 10.409118420741954,
+      "generated_tokens": 64,
+      "logical_prompt_tokens": 16950,
+      "peak_gib": 15.235671093687415,
+      "protocol_ok": true,
+      "replay_detected": false,
+      "suffix_tokens": 34,
+      "ttft_seconds": 1.1926922909915447,
+      "turn": 3
+    },
+    {
+      "active_plus_cache_gib": 11.404616372659802,
+      "classification": "COHERENT",
+      "decode_tps": 10.406198811774027,
+      "generated_tokens": 64,
+      "logical_prompt_tokens": 17052,
+      "peak_gib": 15.235671093687415,
+      "protocol_ok": true,
+      "replay_detected": false,
+      "suffix_tokens": 38,
+      "ttft_seconds": 1.2180049159796908,
+      "turn": 4
+    },
+    {
+      "active_plus_cache_gib": 11.418486611917615,
+      "classification": "COHERENT",
+      "decode_tps": 10.482776216862527,
+      "generated_tokens": 64,
+      "logical_prompt_tokens": 17155,
+      "peak_gib": 15.235671093687415,
+      "protocol_ok": true,
+      "replay_detected": false,
+      "suffix_tokens": 39,
+      "ttft_seconds": 1.2231895000149962,
+      "turn": 5
+    }
+  ],
+  "turns_completed": 5
+}

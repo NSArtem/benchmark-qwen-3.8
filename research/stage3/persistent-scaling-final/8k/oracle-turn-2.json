@@ -1,0 +1,160 @@
+{
+  "cache_state_signature": "f4da1d97500ed703d14477e26824c952c26199663f8f64d974169a1bc9eb0463",
+  "classification": "COHERENT",
+  "context_label": "8k",
+  "decode_tps": 9.703565883737511,
+  "decoded_output": "**Invariant:** `jobs.id` must be globally unique across all tenants.\n**Enforcement Boundary:** `jobs` table (Primary Key)",
+  "exception": null,
+  "experiment_id": "P3-G128-ORACLE-8K-T2",
+  "full_transcript_prompt_token_sha256": "615bf84db25e559aa571f8d35148e231d74ce6bbe9fde9a8fbe24c2fa87be025",
+  "generated_token_hash": "21756f1125e8f187350b94588e5963b6cee67ad3a9d77e1e080a12ebcf62fcef",
+  "generated_token_ids": [
+    332,
+    74001,
+    64700,
+    1510,
+    30087,
+    1702,
+    63,
+    1902,
+    381,
+    29458,
+    4752,
+    3808,
+    660,
+    38592,
+    13,
+    198,
+    332,
+    1642,
+    10608,
+    73802,
+    64700,
+    1510,
+    30087,
+    63,
+    1898,
+    318,
+    15500,
+    5141,
+    8
+  ],
+  "generated_tokens": 29,
+  "git_commit": "acc8fad8d742376f38580dfc3d76e8b0aa223397",
+  "memory_after_generation": {
+    "active_bytes": 12177243146,
+    "active_gib": 11.34094143845141,
+    "active_plus_cache_bytes": 12240631168,
+    "active_plus_cache_gib": 11.399976134300232,
+    "cache_bytes": 63388022,
+    "cache_gib": 0.059034695848822594,
+    "elapsed_seconds": 264.5759203750058,
+    "label": "8k:oracle_turn_2:after_generation",
+    "peak_bytes": 16359177270,
+    "peak_gib": 15.235671093687415,
+    "rss_max_bytes": 6516539392
+  },
+  "memory_after_model_load": {
+    "active_bytes": 10931338248,
+    "active_gib": 10.180602081120014,
+    "active_plus_cache_bytes": 10931348812,
+    "active_plus_cache_gib": 10.180611919611692,
+    "cache_bytes": 10564,
+    "cache_gib": 9.838491678237915e-06,
+    "elapsed_seconds": 5.086327666998841,
+    "label": "after_model_load",
+    "peak_bytes": 10931338248,
+    "peak_gib": 10.180602081120014,
+    "rss_max_bytes": 6516539392
+  },
+  "model": {
+    "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+    "mlx_lm_version": "0.31.3",
+    "mlx_version": "0.32.1",
+    "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+    "python_executable": "/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.1/.venv/bin/python3",
+    "python_version": "3.14.7",
+    "quantization": {
+      "bits": 3,
+      "group_size": 128,
+      "mode": "affine"
+    },
+    "wired_policy": "direct generate_step; MLX wired state untouched"
+  },
+  "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+  "oracle_turn": 2,
+  "os_memory_after": {
+    "memory_pressure": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 24%\n"
+    },
+    "vm_stat": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                7722.\nPages active:                            135215.\nPages inactive:                          130979.\nPages speculative:                         2916.\nPages throttled:                              0.\nPages wired down:                        854617.\nPages purgeable:                            318.\n\"Translation faults\":                 200265436.\nPages copy-on-write:                    4980089.\nPages zero filled:                    699114432.\nPages reactivated:                      7718267.\nPages purged:                            893345.\nFile-backed pages:                        93260.\nAnonymous pages:                         175850.\nPages stored in compressor:              257640.\nPages occupied by compressor:              7740.\nDecompressions:                       283536918.\nCompressions:                         288454209.\nPageins:                              105448515.\nPageouts:                                 57874.\nSwapins:                               57571509.\nSwapouts:                              57909561.\n"
+    },
+    "vm_swapusage": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "vm.swapusage: total = 3072.00M  used = 1592.50M  free = 1479.50M  (encrypted)\n"
+    }
+  },
+  "os_memory_before": {
+    "memory_pressure": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 89%\n"
+    },
+    "vm_stat": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                              754698.\nPages active:                            136086.\nPages inactive:                          127026.\nPages speculative:                         8491.\nPages throttled:                              0.\nPages wired down:                        102692.\nPages purgeable:                          12124.\n\"Translation faults\":                 198744565.\nPages copy-on-write:                    4942229.\nPages zero filled:                    687598344.\nPages reactivated:                      7484940.\nPages purged:                            871928.\nFile-backed pages:                        94222.\nAnonymous pages:                         177381.\nPages stored in compressor:              273615.\nPages occupied by compressor:              9707.\nDecompressions:                       276778297.\nCompressions:                         281668540.\nPageins:                              104733643.\nPageouts:                                 56644.\nSwapins:                               54350194.\nSwapouts:                              54689822.\n"
+    },
+    "vm_swapusage": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "vm.swapusage: total = 3072.00M  used = 1710.81M  free = 1361.19M  (encrypted)\n"
+    }
+  },
+  "output_checks": {
+    "classification": "COHERENT",
+    "max_prefix_overlap_fraction": 0.0,
+    "pathological_low_entropy_tail": false,
+    "previous_turns": [
+      {
+        "exact_prefix_replay": false,
+        "longest_common_prefix_tokens": 0,
+        "prefix_overlap_fraction": 0.0,
+        "previous_tokens": 128,
+        "previous_turn": 1
+      }
+    ],
+    "replay_detected": false,
+    "supporting_terms_all_present": true,
+    "term_presence": {
+      "enforce": true,
+      "invariant": true
+    },
+    "text_nonempty": true
+  },
+  "persistent_output_hash": "db276b6e2f5e74b48d3e8c91cf4297fd9a6391116237cbfb96e04f2bc1250d74",
+  "persistent_prompt_token_equal_full_transcript": false,
+  "persistent_prompt_token_sha256": "4368d1c0791d1881926edbea35390c4b9a167ceaa9b374a749aaa3812999ecd1",
+  "persistent_vs_oracle_token_equal": false,
+  "persistent_vs_oracle_token_lcp": 3,
+  "phase": 3,
+  "prompt_path": "/Users/artem/projects/benchmark-qwen-3.8/research/context-ladder/prompts/prompt-8192.txt",
+  "prompt_sha256": "6880143f65b1160bdccca8ec594454473c6549be6ea7a4f0f8cfa7b90237fffb",
+  "prompt_token_sha256": "615bf84db25e559aa571f8d35148e231d74ce6bbe9fde9a8fbe24c2fa87be025",
+  "prompt_tokens": 16536,
+  "prompt_tps": 64.49830227555883,
+  "protocol_mode": "fresh_full_transcript_semantic_oracle",
+  "replay_detected": false,
+  "safety_stop_reason": null,
+  "semantic_oracle_pass": true,
+  "timestamp": "2026-08-24T18:34:59+0400",
+  "total_elapsed_seconds": 264.61226320901187,
+  "total_seconds": 259.2643784159736,
+  "ttft_seconds": 256.3788412499998
+}

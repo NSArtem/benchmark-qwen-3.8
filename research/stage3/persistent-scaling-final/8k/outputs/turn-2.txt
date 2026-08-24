@@ -1,0 +1,2 @@
+**Invariant:** Atomicity of the job state transition and the corresponding outbox event insertion.
+**Enforcement Boundary:** The database transaction.
