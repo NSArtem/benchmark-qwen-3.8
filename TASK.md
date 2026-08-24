@@ -1,935 +1,966 @@
-# Stage 3 — Persistent Qwen3.8 Runtime Validation
+# Stage 4 — Quality-Guided Quantization and Runtime Productionization
 
 ## Mission
 
-Run a focused 6-8 hour research stage that determines whether the current
-Qwen3.8-27B MLX work can be promoted from "promising experiment" to
-"practical interactive runtime".
+Run an approximately 10-hour autonomous research stage.
 
-Primary goals:
+Stage 3 solved the main persistent-cache problem.
 
-1. close persistent-cache correctness;
-2. scale correct exact-suffix chat from 4K to 8K/12K/16K;
-3. test long-session endurance;
-4. measure g64 vs g128 quality across a diverse suite;
-5. evaluate KV8 only as a long-context safety lever;
-6. if justified, probe 20K practical persistent use;
-7. only if the primary work finishes early, investigate one decode-speed
-   optimization with no extra model-memory requirement.
+Stage 4 must now answer:
 
-This is a gated research program.
+> What is the best practical Qwen3.8-27B quant/runtime configuration for this
+> 18 GB M3 Pro, balancing quality, model size, context capacity, and speed?
 
-Do NOT blindly execute every phase.
+The critical path is:
 
-Use the decision gates.
+    recover state
+    -> Quality Suite V2
+    -> early-EOS targeted control
+    -> quantization sensitivity map
+    -> at most 2-3 smart quant candidates
+    -> mini tournament
+    -> full finalist quality comparison
+    -> persistent runtime validation
+    -> productionize qwen38-chat
+    -> optional learned-quant feasibility
+
+This is a gated program.
+
+Do NOT run every possible branch.
 
 ---
 
-# Phase 0 — Recover State
+# Phase 0 — Recover Stage 3 State
 
-Target: 15-30 minutes.
+Target: short.
 
 Start with:
 
     git status
-    git log --oneline -20
+    git log --oneline -25
 
 Inspect:
 
-    research/
-    research/night2/
-    qwen38-persistent-suffix-4k/
-    previous g128 conversion artifacts
-    previous g64/g128 benchmark outputs
-    previous KV8 results
-
-Do not rerun completed experiments before inspecting them.
-
-Confirm both model paths:
-
-    g64 reference
-    g128 candidate
-
-Confirm g128 exists at:
-
-    /Users/artem/models/Qwen3.8-27B-3bit-g128-MLX
-
-Confirm canonical environment:
-
-    envs/mlx-0.32.1
-
-Inspect whether another heavy MLX process is active.
-
-Create/update:
-
-    research/stage3/PLAN.md
+    research/stage3/FINAL_REPORT.md
     research/stage3/STATUS.md
     research/stage3/RESULTS.md
     research/stage3/results.jsonl
 
-In STATUS.md record the exact facts recovered from prior artifacts.
+Inspect raw artifacts for:
 
-Do not paraphrase old results from memory when raw files exist.
+    cache oracle
+    8K/12K/16K scaling
+    endurance turn 17
+    Stage 3 quality suite
+    KV8 results
 
-### Phase 0 deliverable
+Confirm:
 
-A compact baseline table containing at least:
+    g64 path
+    g128 path
+    high-precision source availability
+    bounded converter availability
 
-    g64 model size
-    g128 model size
-    known 4K/8K/12K/16K-ish memory
-    known exact-suffix 4K TTFT
-    known fresh 4K oracle TTFT
-    known KV8 16K-ish tradeoff
-    current unresolved questions
+Do not rerun Stage 3 cache validation.
 
-Then proceed.
+Create:
 
----
+    research/stage4/PLAN.md
+    research/stage4/STATUS.md
+    research/stage4/RESULTS.md
+    research/stage4/results.jsonl
 
-# Phase 1 — Same-Boundary Cache Correctness Oracle
+Record current facts explicitly.
 
-Target: 60-90 minutes.
-
-This is the highest-priority phase.
-
-The current unresolved observation is:
-
-- exact-suffix persistent chat at ~4K is coherent and fast;
-- fresh full-transcript chat is coherent but much slower;
-- their generated outputs diverge after ~42 tokens;
-- their cache-state signatures also diverge.
-
-We need to determine whether this is merely segmentation sensitivity or a true
-persistent-state error.
-
-## Required paths
-
-Implement a diagnostic that compares THREE paths over the SAME intended
-canonical conversation.
-
-### Path A — Fresh one-shot
-
-Start from empty cache.
-
-Build the complete canonical turn-2 transcript as one token stream.
-
-Process it as a normal cold full-transcript generation.
-
-This is the semantic correctness oracle.
-
-### Path B — Fresh segmented
-
-Start from a NEW empty cache.
-
-Feed the token stream with the SAME logical/model-call boundaries that occurred
-in the persistent conversation.
-
-Conceptually:
-
-    initial canonical user prompt tokens
-    -> assistant generation tokens one by one
-    -> exact canonical turn-2 suffix
-    -> turn-2 generation tokens
-
-Important:
-
-Path B must reproduce Path C's boundaries as exactly as the harness/API allows.
-
-Do not use the state produced by Path C.
-
-This path tests segmentation/batching sensitivity.
-
-### Path C — True persistent
-
-Run the real conversation:
-
-    initial prompt
-    -> assistant generation
-    -> persistent cache remains alive
-    -> build complete canonical turn-2 transcript
-    -> calculate exact missing suffix from the logical cached prefix
-    -> feed suffix only
-    -> generate turn 2
-
-Use the already-working exact-suffix protocol.
-
-## Token-accounting rule
-
-Do not assume which generated token is or is not already represented by cache.
-
-Instrument the actual path.
-
-Record:
-
-    canonical logical tokens
-    cache offsets where meaningful
-    generated token sequence
-    exact prefix length represented by cache
-    exact suffix token IDs
-
-If a final predicted token exists but has not yet been evaluated into cache,
-account for it explicitly.
-
-The equation must be true at the logical protocol level:
-
-    cached_prefix_tokens + supplied_suffix
-        == canonical intended prefix before next assistant generation
-
-## Compare at boundaries
-
-At useful boundaries compare Path B vs Path C.
+### Required Phase 0 summary
 
 At minimum:
 
-    after initial prompt prefill
-    after turn-1 generation
-    after turn-2 suffix prefill
-    after first turn-2 generated token
-    after final turn-2 generated token
+    g64 size
+    g128 size
+    g128 persistent 8K/12K/16K performance
+    Stage 3 endurance status
+    Stage 3 quality-suite limitations
+    existing rejected quant candidates
+    existing converter paths
+    high-precision source path/revision
 
-For each layer record compact state signatures:
-
-    layer index
-    cache class
-    offset if available
-    state shape(s)
-    deterministic hash/signature
-
-Do not serialize huge arrays.
-
-Where practical, also compare logits at the next-token boundary:
-
-    max absolute logit diff
-    mean absolute logit diff
-    top-1 token
-    top-k overlap
-
-## Decision gate
-
-### CASE 1
-
-If:
-
-    Path B ~= Path C
-
-at state/logit/output level, while A may differ,
-
-then conclude:
-
-    persistent exact-suffix state is consistent with identical segmented
-    execution;
-
-    A-vs-B/C divergence is segmentation/numerical sensitivity, not evidence of
-    persistent-cache corruption.
-
-Mark persistent cache VALIDATED FOR SCALING.
-
-Do not keep digging for bitwise one-shot equivalence.
-
-Proceed to Phase 3.
-
-### CASE 2
-
-If:
-
-    Path B != Path C
-
-materially under identical token stream and identical segmentation boundaries,
-
-then there is evidence of a persistent-state-specific problem.
-
-Proceed to Phase 2.
-
-### CASE 3
-
-If the harness cannot actually make B and C segmentation-equivalent,
-
-document the exact limitation.
-
-Do not falsely claim validation.
-
-Perform the best narrower control available, then proceed to Phase 2 only if
-there is actual suspicious evidence.
-
-## Artifact directory
-
-Create something like:
-
-    research/stage3/cache-boundary-oracle/
-
-Save:
-
-    harness/
-    tokens/
-    state_signatures/
-    outputs/
-    results.json
-    results.md
-
-Commit this phase.
-
-Suggested commit:
-
-    experiment: validate segmented Qwen3.8 cache state
+Commit only if new project scaffolding is meaningful.
 
 ---
 
-# Phase 2 — Root-Cause Persistent Divergence
-
-Target: up to 90 minutes.
-
-ONLY run this phase if Phase 1 finds material B-vs-C divergence.
-
-Do not enter it merely because A differs from B/C.
-
-Goal:
-
-    identify the FIRST layer / state component / model-call boundary where
-    persistent state diverges from fresh segmented state.
-
-## Localization
-
-Find the earliest boundary where state differs.
-
-Then identify:
-
-    layer index
-    layer type
-    cache type
-
-For ArraysCache/recurrent layers distinguish state slots where possible:
-
-    convolution state
-    recurrent/delta state
-    metadata/offset-like state
-
-For attention layers inspect:
-
-    KV shapes
-    offsets
-    token count represented
-
-Use small deterministic probes.
-
-Do not dump full tensors.
-
-## Controlled hypotheses
-
-Test only evidence-driven possibilities such as:
-
-- one generated token is logically counted but not evaluated into cache;
-- end-of-turn token handling is wrong;
-- tokenizer transcript contains a boundary token missing from persistent path;
-- ArraysCache state is mutated differently across generator teardown/reentry;
-- mx.clear_cache / evaluation timing changes lazy state materialization;
-- persistent path reuses a cache object differently from a fresh segmented path.
-
-Do NOT jump immediately to upstream PR patches.
-
-## Upstream inspection
-
-If the divergence points at ArraysCache, inspect current upstream source and
-current status of relevant issues/PRs.
-
-Useful references:
-
-    issue #980
-    PR #1253 / #1254
-    issue #1641 / PR #1642
-
-Do not assume a closed PR is the right fix.
-
-## Patch rule
-
-If a minimal local fix is strongly supported by the localized evidence:
-
-- patch only the experiment/helper copy if practical;
-- keep canonical installed environment unchanged;
-- rerun Phase 1 oracle.
-
-If the fix requires invasive upstream surgery:
-
-- document a minimal reproduction;
-- do not spend the entire stage implementing speculative redesign;
-- preserve evidence;
-- mark persistent cache NOT YET VALIDATED;
-- skip unsafe scaling phases and continue with Phase 5 quality work.
-
-### Phase 2 success gate
-
-Only promote persistent cache to validated if a post-fix Phase 1 oracle passes.
-
-Commit any useful reproduction/harness/fix separately.
-
----
-
-# Phase 3 — Persistent Exact-Suffix Scaling
-
-Target: 60-90 minutes.
-
-ONLY run if Phase 1/2 validates the persistent exact-suffix protocol.
-
-Primary model:
-
-    g128
-
-Do not use KV8 yet.
-
-Use one realistic coding-agent prompt family.
-
-Test:
-
-    ~4K   existing result may be reused
-    ~8K
-    ~12K
-    ~16K
-
-Do not require exact powers of two if canonical chat-template token counts
-naturally differ.
-
-For each context use a real multi-turn conversation, not a single follow-up.
-
-Suggested shape:
-
-    initial substantial coding/repository prompt
-
-    assistant turn 1:
-        128-256 tokens
-
-    user turn 2:
-        short question asking to prioritize one invariant
-
-    assistant turn 2:
-        64-128 tokens
-
-    user turn 3:
-        ask to modify/correct one part of the previous answer
-
-    assistant turn 3:
-        64-128 tokens
-
-    user turn 4:
-        ask a question that references information from turn 1
-
-    assistant turn 4:
-        64-128 tokens
-
-    user turn 5:
-        ask for one concise implementation recommendation
-
-    assistant turn 5:
-        64-128 tokens
-
-The follow-ups must make stale replay or lost conversation state obvious.
-
-## Metrics per turn
-
-Record:
-
-    logical transcript tokens
-    exact incremental suffix tokens
-    TTFT
-    decode tok/s
-    generated tokens
-    active memory
-    cache memory
-    active + cache
-    peak memory
-    output classification
-    replay detected?
-    transcript consistency?
-
-Measure initial cold prefill separately from warm turns.
-
-## Practical expectations
-
-Do not hardcode pass/fail solely to these values, but the desired behavior is
-approximately:
-
-    4K follow-up  ~1 s
-    8K follow-up  ~1 s
-    12K follow-up near-second-scale
-    16K follow-up ideally <= a few seconds
-
-If follow-up TTFT grows approximately with TOTAL conversation length, investigate
-why; that suggests hidden reprefill.
-
-## Correctness oracle
-
-For at least ONE follow-up at 8K and ONE at the largest successful context,
-also run a fresh full-transcript semantic oracle.
-
-The persistent and fresh outputs need not be token-identical.
-
-They must:
-
-- answer the same current question;
-- use the same conversation facts;
-- avoid stale replay/corruption.
-
-## Stop conditions
-
-Stop upward scaling if:
-
-- Metal OOM;
-- severe system instability;
-- persistent turn is BROKEN twice at the same context;
-- clear hidden full reprefill makes persistence ineffective;
-- memory enters a clearly unsafe zone with no useful headroom.
-
-Do NOT automatically go beyond ~16K in this phase.
-
-## Deliverable
-
-A table:
-
-    context
-    cold TTFT
-    warm TTFT median
-    warm TTFT max
-    decode t/s
-    memory
-    correctness
-    verdict
-
-Classify each context:
-
-    PRACTICAL
-    USABLE
-    MARGINAL
-    UNSAFE
-    BROKEN
-
-Commit.
-
-Suggested commit:
-
-    benchmark: scale exact-suffix Qwen3.8 chat
-
----
-
-# Phase 4 — Long-Session Endurance
-
-Target: 45-75 minutes.
-
-ONLY run if persistent exact-suffix chat is validated and 8K works.
-
-Use g128, normal cache.
-
-Start with approximately:
-
-    8K initial context
-
-Run:
-
-    20-30 sequential user/assistant turns
-
-Use realistic but bounded turns:
-
-    user input ~50-150 tokens
-    assistant output ~64-128 tokens
-
-The conversation must exercise references to older context.
-
-Examples:
-
-- ask to remember a constraint from the initial prompt;
-- revise an earlier decision;
-- ask about an earlier file/component;
-- ask to compare current recommendation to turn 2;
-- ask for a concise final patch summary.
-
-Do not make every turn independent.
-
-## Measure
-
-Per turn:
-
-    total logical context
-    suffix tokens
-    TTFT
-    decode t/s
-    generated tokens
-    active/cache/peak
-    cache offsets/signatures
-    replay/corruption flag
-
-Also periodically record:
-
-    process RSS
-    vm_stat / memory pressure if useful
-
-## Look for trends
-
-Analyze:
-
-    TTFT vs turn number
-    TTFT vs suffix size
-    memory vs logical context
-    decode speed vs turn number
-    state-signature anomalies
-    output-quality degradation
-    accidental full reprefill
-
-Do not expect exact constant memory because attention KV grows with context.
-
-We are looking for UNEXPECTED growth/drift.
-
-## Upstream leak awareness
-
-Current upstream has reported ArraysCache metadata/resource issues primarily in
-BatchGenerator/server-style paths.
-
-Our direct generate_step path may not share that mechanism.
-
-Do not import the conclusion from upstream.
-
-Measure our actual process.
-
-## Gate
-
-PASS if:
-
-- no stale replay;
-- no catastrophic corruption;
-- TTFT remains governed primarily by suffix size, not full history;
-- memory growth is explainable by context/cache;
-- no severe unexplained leak;
-- decode remains practically stable.
-
-If endurance fails, preserve exact first failing turn and stop.
-
-Commit.
-
-Suggested commit:
-
-    benchmark: test Qwen3.8 persistent-chat endurance
-
----
-
-# Phase 5 — g64 vs g128 Quality Suite
+# Phase 1 — Quality Suite V2
 
 Target: 90-120 minutes.
 
-This phase is independent of persistent-cache success.
+This is P0.
 
-If persistent-cache work becomes blocked, proceed here.
+The Stage 3 quality suite is not sufficient for final quant decisions.
 
-Goal:
+Build a corrected, compact, diverse evaluation suite.
 
-> Determine whether g128's ~0.78 GiB saving and speed advantage causes a
-> meaningful practical quality loss vs g64.
+Target:
 
-Do not decide from one perplexity number.
+    ~30-40 total cases
 
-## Build a diverse deterministic suite
+Do not optimize for quantity.
 
-Target approximately 30-50 cases.
+Optimize for:
 
-Keep it small enough to complete on this machine.
+    correctness
+    diversity
+    objective scoring
+    enough output budget
 
-Suggested categories:
+## Split
 
-### Coding / repository reasoning: ~10
+Create:
 
-- bug diagnosis
-- race-condition analysis
-- patch planning
-- API invariant reasoning
-- code review
-- identify likely root cause from supplied snippets
+    calibration/
+    evaluation/
 
-### Instruction following: ~5
+Do NOT calibrate dynamic/mixed quant selection on the exact same full evaluation
+set.
 
-- strict formatting
-- concise constraints
-- ordered requirements
-- exclusion constraints
+A reasonable split might be:
 
-### Structured output: ~5
+    ~10-12 calibration items
+    ~24-30 evaluation items
 
-- valid JSON
-- simple schema adherence
-- exact requested keys
-- short table/record generation
+The exact count may differ.
 
-### General reasoning: ~5
+## Suggested categories
 
-- deterministic logic/reasoning tasks
-- avoid trivia dependent on web freshness
+### Coding / repository reasoning: ~8-10
 
-### Long-context retrieval / consistency: ~5
+Examples:
 
-- retrieve details from a few-thousand-token supplied context
-- compare two distant facts
-- obey an early constraint near the end
+- race-condition diagnosis;
+- invariant selection;
+- patch plan;
+- SQL/transaction correctness;
+- API idempotency;
+- code-review defect identification;
+- minimal regression test design.
 
-### TTRPG / prose continuity: ~5
+Output budget:
 
-- maintain names/facts
-- continue a scene under explicit constraints
-- summarize state without inventing facts
+    usually 256-512 tokens
 
-Favor tasks with objective or semi-objective evaluation.
+Objective scoring should focus on:
 
-Do not build a huge benchmark framework.
+- whether the root cause is identified;
+- whether required invariant/check is present;
+- whether proposed fix addresses the actual bug;
+- whether an explicitly requested test condition is included.
 
-## Generation comparison
+Do not require a magic keyword if equivalent language is acceptable.
 
-For each case:
+### Instruction following: ~4-5
 
-    same prompt
-    fresh process where practical
-    greedy decoding
-    same max tokens
-    g64
-    g128
+Examples:
+
+- strict requested format;
+- requested exclusions;
+- exact number of items;
+- required final phrase where appropriate;
+- preserve supplied terminology.
+
+Score mechanically where possible.
+
+### Structured output: ~4-5
+
+Examples:
+
+- JSON object with exact keys;
+- JSON list under a schema;
+- table-like machine-readable record.
+
+Check:
+
+    parse success
+    required keys
+    types
+    semantic constraints
+
+### General reasoning/arithmetic: ~4-5
+
+Use questions with unambiguous expected answers.
+
+Manually verify every expected answer before the benchmark.
+
+Avoid vague temporal/lease semantics unless fully specified.
+
+### Context retrieval/consistency: ~4-5
+
+Supply several-thousand-token local contexts.
+
+Ask about:
+
+- an early constraint;
+- two distant facts;
+- a comparison;
+- a deliberately similar distractor.
+
+Objective fact matching is preferred.
+
+### TTRPG/prose continuity: ~3-5
+
+Use supplied fictional state.
+
+Check:
+
+- names/facts preserved;
+- no contradiction;
+- requested tone/constraint observed;
+- no invented critical facts.
+
+Subjective judgment may be used only as a supplement.
+
+## Generation settings
+
+Default:
+
+    greedy / deterministic
+    enable_thinking=False if appropriate for the model template
+
+Use output budgets large enough to complete.
 
 Record:
 
-    outputs
-    token IDs
-    first divergence position
-    repetition
-    parse/schema validity
-    objective pass/fail where available
+    finish reason
+    generated tokens
+    EOS vs max-token stop
+    wall time
+    decode rate
 
-## Teacher-forced metrics
+## Teacher-forced subset
 
-On a representative subset compute where practical:
+Select a representative subset.
+
+Compute for g64 and g128:
 
     mean NLL
+    per-case NLL
     token-level top-1 agreement
-    KL or logit similarity if inexpensive
+    optionally KL/logit similarity
 
-Do not over-weight perplexity.
+Do not aggregate away category-level differences.
 
-Report per-category distributions, not only one global mean.
+## Stage 1 validation gate
 
-## Blind pairwise assessment
+Before using this suite to judge new quants:
 
-For subjective outputs, optionally create anonymized A/B pairs.
+1. run g64;
+2. inspect all objective failures;
+3. correct wrong/ambiguous expected answers;
+4. ensure obvious coherent answers are not failing due to harness mistakes;
+5. run g128;
+6. manually inspect all cases where g64/g128 disagree.
 
-The Codex agent may produce a blind rubric-based comparison as a SUPPLEMENTARY
-signal.
+Only then freeze:
 
-Do not treat its own preference judgment as ground truth.
+    evaluation_v2.jsonl
+    calibration_v2.jsonl
 
-Prefer objective checks whenever possible.
-
-## Decision categories
-
-At the end classify g128 as:
-
-### DEFAULT
-
-No meaningful systematic quality loss found.
-
-### PERFORMANCE/LONG-CONTEXT MODE
-
-Some measurable quality loss, but often acceptable in exchange for memory/speed.
-
-### EXPERIMENTAL ONLY
-
-Large or systematic practical degradation.
-
-The report must clearly explain which evidence drove the classification.
+Store hashes.
 
 Commit.
 
 Suggested commit:
 
-    benchmark: compare Qwen3.8 g64 and g128 quality
+    benchmark: build Qwen3.8 quality suite v2
 
 ---
 
-# Phase 6 — KV8 as a Long-Context Lever
-
-Target: 45-60 minutes.
-
-ONLY run after persistent chat is validated.
-
-Do not test KV8 at 4K simply to produce more rows.
-
-Primary question:
-
-> At 16K-class persistent context, does KV8 provide enough extra headroom to
-> justify its decode penalty?
-
-Use g128.
-
-Compare:
-
-    normal KV
-    KV8
-
-At:
-
-    ~16K persistent conversation
-
-Use the same conversation shape where possible.
-
-Measure:
-
-    cold peak
-    warm-turn peak
-    follow-up TTFT
-    decode t/s
-    correctness
-    system responsiveness
-
-Existing prior evidence suggests around:
-
-    ~0.465 GiB saving
-    ~10-11% decode penalty
-
-Confirm or update this under REAL persistent chat.
-
-## Decision
-
-KV8 should become a selectable long-context mode only if the memory saving is
-operationally meaningful.
-
-Examples:
-
-- makes 16K materially safer;
-- prevents swap/system pressure;
-- enables a useful larger context;
-- reduces peak enough to create comfortable OS headroom.
-
-If it merely saves memory that we do not need, reject it as default.
-
-Commit if useful.
-
----
-
-# Phase 7 — Optional 20K Practical Probe
+# Phase 2 — Turn-17 Early-EOS Targeted Study
 
 Target: 30-45 minutes.
 
-ONLY run if ALL are true:
+Do not turn this into another endurance campaign.
 
-- exact-suffix persistent cache is validated;
-- 16K persistent is coherent;
-- system remained responsive;
-- memory measurements predict meaningful safety headroom;
-- no unexplained endurance leak;
-- this experiment still provides useful information.
+Recover the exact Stage 3 context and turn-17 user prompt.
 
-First try:
+Compare, where practical:
 
+    g128 persistent
+    g128 fresh full-transcript
+    g64 persistent
+    g64 fresh full-transcript
+
+Use the same logical transcript.
+
+For each path capture:
+
+    next-token top-k logits/probabilities
+    EOS rank/probability
+    first 16 generated tokens
+    finish reason
+    generated length
+    cache accounting
+    output
+
+Repeat only as useful.
+
+Greedy should be deterministic; repetitions are not required just to prove that.
+
+## Decision
+
+### If early EOS occurs in fresh and persistent similarly
+
+Classify:
+
+    model/quant generation-quality event
+
+Close runtime-cache concern.
+
+### If only g128 shows it
+
+Record as g128 quality evidence.
+
+### If only persistent shows it
+
+This contradicts the current Stage 3 runtime conclusion.
+
+Preserve evidence and perform one narrow follow-up.
+
+Do NOT automatically reopen the full cache investigation unless state/token
+accounting evidence points there.
+
+Commit if useful.
+
+Suggested commit:
+
+    experiment: diagnose Qwen3.8 endurance early EOS
+
+---
+
+# Phase 3 — Quantization Sensitivity Study
+
+Target: 60-120 minutes.
+
+This is the main new research branch.
+
+Goal:
+
+> identify which quantizable modules are most sensitive, so additional precision
+> can be spent selectively.
+
+First inspect the current pinned and upstream mlx-lm implementations of:
+
+    dynamic_quant
+    quantize_model
+    quant predicates
+    mixed recipes
+
+Also inspect the existing bounded converter.
+
+Do not blindly run upstream Dynamic Quantization if it would require loading an
+unsafe full model/teacher into 18 GB.
+
+## Preferred outcome
+
+Produce a reusable sensitivity artifact, e.g.:
+
+    research/stage4/quant/sensitivities.json
+
+containing:
+
+    module path
+    sensitivity score
+    module type/category
+    layer index
+    tensor dimensions
+    parameter count
+
+## Calibration data
+
+Use ONLY the frozen Stage 4 calibration split or a documented subset.
+
+Do not use the full evaluation split.
+
+## Safety gate
+
+Before a full sensitivity pass:
+
+1. run a small representative subset/modules;
+2. measure memory;
+3. verify the algorithm is bounded enough for this machine.
+
+If unsafe:
+
+    STOP that implementation path.
+
+Then implement/adapt a bounded sensitivity analysis using existing
+layer-oriented infrastructure.
+
+A slower bounded method is preferable to an unsafe full-model method.
+
+## Analysis
+
+Aggregate sensitivity by:
+
+    early / middle / late layers
+    attention vs GatedDelta/recurrent layers
+    q_proj
+    k_proj
+    v_proj
+    o_proj
+    gate_proj
+    up_proj
+    down_proj
+    lm_head
+    any architecture-specific projections
+
+Create:
+
+    sensitivity ranking
+    cumulative parameter curve
+    cumulative estimated BPW/size curve
+
+Answer:
+
+> If we can afford +100 MiB, +200 MiB, +400 MiB over g128, where should those
+> extra bits go first?
+
+## Cross-check
+
+Where feasible, compare sensitivity ranking with actual g64-vs-g128 logit/NLL
+degradation on calibration items.
+
+Sensitivity that has no relationship to observed error should not be trusted
+blindly.
+
+Commit.
+
+Suggested commit:
+
+    experiment: map Qwen3.8 quantization sensitivity
+
+---
+
+# Phase 4 — Create Smart Quant Candidates
+
+Target: 45-75 minutes.
+
+Create at most THREE serious candidates.
+
+Do not create a quant zoo.
+
+Use the high-precision source and bounded converter.
+
+All candidates should default to group_size=128 unless the evidence strongly
+supports another choice.
+
+## Candidate A — Built-in/simple mixed 3/4 control
+
+Purpose:
+
+    establish a standard mixed-bit reference.
+
+Use semantics equivalent to mlx-lm mixed_3_4 where practical:
+
+    low precision = 3-bit
+    high precision = 4-bit
+
+Adapt the existing bounded converter rather than using an unsafe whole-model
+conversion.
+
+Record exactly which modules receive 4-bit.
+
+Call it something unambiguous, e.g.:
+
+    qwen38-mixed34-control-g128
+
+## Candidate B — Sensitivity-guided 3/4
+
+This is the primary candidate.
+
+Base:
+
+    affine 3-bit group128
+
+Promote the most sensitive modules to:
+
+    affine 4-bit group128
+
+Choose a target budget informed by the sensitivity curve.
+
+Preferred target region:
+
+    ~10.3-10.6 GiB
+
+Do not force that size if the sensitivity structure suggests a better nearby
+tradeoff.
+
+Record:
+
+    promoted modules
+    promoted parameter count
+    final payload
+    effective BPW
+
+## Candidate C — Optional
+
+Only create if Candidate B leaves a clear unresolved quality gap AND the
+sensitivity data shows a small extreme-outlier set.
+
+Possible form:
+
+    3-bit group128 base
+    6-bit group128 only for the most sensitive modules
+
+or an equivalent targeted 3/6 scheme.
+
+Do NOT create Candidate C just because time exists.
+
+## Immediate smoke gate for each candidate
+
+Before broader benchmark:
+
+    load
+    33-token prompt
+    ~768 prompt
+    one 4K coding prompt
+    128-256 output tokens
+
+Reject immediately for:
+
+    incoherence
+    deterministic repetition loop
+    loading/config mismatch
+    pathological memory
+    obviously unusable decode
+
+Record conversion stats and smoke result.
+
+Commit conversion/harness changes separately from giant model outputs.
+
+Do not commit weights.
+
+Suggested commit:
+
+    experiment: build quality-guided Qwen3.8 quants
+
+---
+
+# Phase 5 — Mini Quant Tournament
+
+Target: 60-90 minutes.
+
+Compare:
+
+    g64
     g128
-    normal cache
-    ~20K initial context
-    3 short follow-up turns
+    Candidate A
+    Candidate B
+    Candidate C if it exists
 
-If normal cache is too close to the safety limit but KV8 was validated and
-clearly useful, ONE KV8 20K attempt is allowed.
+Do NOT run full evaluation suite on every weak candidate.
+
+Use a mini subset:
+
+    ~10-12 evaluation_v2 cases
+
+chosen to include:
+
+    coding
+    arithmetic/reasoning
+    structured output
+    context retrieval
+    instruction following
+
+Also run teacher-forced metrics on a small representative subset.
+
+For each model record:
+
+    model payload GiB
+    effective BPW
+    4K peak
+    8K peak if useful
+    decode t/s
+    objective mini-suite score
+    per-category result
+    NLL delta vs g64
+    top-1 agreement vs g64
+    repetition/collapse
+    finish reason anomalies
+
+## Tournament gate
+
+Advance at most ONE new candidate to the full final comparison.
+
+Select based on:
+
+1. practical quality;
+2. size;
+3. decode;
+4. memory.
+
+Do not select by average score alone.
+
+If no new candidate clearly improves the Pareto frontier, advance none.
+
+Possible valid outcome:
+
+    no new quant beats g64/g128 tradeoff
+
+That is a useful result.
+
+Commit.
+
+Suggested commit:
+
+    benchmark: run Qwen3.8 quant mini tournament
+
+---
+
+# Phase 6 — Full Finalist Quality Comparison
+
+Target: 90-120 minutes.
+
+Compare:
+
+    g64
+    g128
+    best new candidate if one advanced
+
+Run full frozen evaluation_v2.
+
+Do not change expected answers after seeing one model's output unless the test
+is objectively broken.
+
+If a broken test is discovered:
+
+- document the correction;
+- rerun that case for ALL models.
+
+## Metrics
+
+Report separately:
+
+### Objective
+
+    total objective pass rate
+    per-category pass rate
+    JSON/schema validity
+    arithmetic/retrieval correctness
+    instruction compliance
+
+### Teacher-forced
+
+    mean NLL
+    median NLL delta vs g64
+    per-category NLL
+    top-1 agreement
+
+### Behavioral
+
+    early EOS
+    repetition
+    malformed structure
+    severe hallucination/contradiction
+    first divergence token where useful
+
+### Subjective supplementary
+
+For selected prose/coding answers create blind A/B/C labels.
+
+Judge under a fixed rubric.
+
+Do not allow the judge to know model identity.
+
+Treat this as supplementary, not ground truth.
+
+## Final quant classification
+
+Choose one of:
+
+### DEFAULT
+
+Best overall practical model.
+
+### QUALITY MODE
+
+A larger/slower model with meaningfully better quality.
+
+### PERFORMANCE/LONG-CONTEXT MODE
+
+A smaller/faster model with an accepted quality tradeoff.
+
+### REJECTED
+
+No useful practical role.
+
+It is acceptable to end with:
+
+    g64 = quality mode
+    g128 = performance mode
+
+It is also acceptable for a new sensitivity-guided model to replace one or
+both.
+
+Commit.
+
+Suggested commit:
+
+    benchmark: finalize Qwen3.8 quant quality tradeoffs
+
+---
+
+# Phase 7 — Persistent Runtime Validation of Winner(s)
+
+Target: 45-60 minutes.
+
+Do NOT repeat all Stage 3 experiments.
+
+For the model selected as DEFAULT:
+
+Run:
+
+    ~8K persistent, 5 turns
+    ~16K persistent, 5 turns
+
+Use exact-suffix runtime.
 
 Measure:
 
     cold TTFT
     warm TTFT
     decode
-    active+cache
     peak
-    correctness
-    system stability
+    active+cache
+    output correctness
+    replay flag
 
-Do NOT automatically test:
+If Stage 6 establishes a separate QUALITY MODE and PERFORMANCE MODE, one shorter
+validation for the secondary mode is allowed.
 
-    24K
-    32K
+## Regression requirements
 
-If 20K is surprisingly comfortable, record that 24K is a future experiment.
+Must pass:
 
-Do not pursue it in this stage unless the entire primary program finished early
-and the measured headroom is clearly large.
+    no stale replay
+    correct transcript token accounting
+    short follow-ups remain near-second-scale
+    no model-config/quant loading bug
+    no deterministic collapse
 
-Default action: STOP at 20K.
+If the new quant has materially different memory from g128/g64, record updated
+practical context guidance.
+
+Commit.
+
+Suggested commit:
+
+    benchmark: validate Stage 4 Qwen3.8 runtime winner
 
 ---
 
-# Phase 8 — OPTIONAL Decode Acceleration Study
+# Phase 8 — Productionize qwen38-chat
+
+Target: 60-90 minutes.
+
+The runtime is now allowed to become a normal tool.
+
+Create or clean up a user-facing runtime, e.g.:
+
+    qwen38-chat
+
+or:
+
+    research/runtime/qwen38_chat.py
+
+Prefer a location consistent with the repository structure.
+
+## Required features
+
+### Model
+
+    --model PATH
+
+Provide a documented default only if it is stable and sensible.
+
+### Chat
+
+Canonical tokenizer chat template.
+
+Maintain complete logical conversation.
+
+Use validated exact-suffix persistent cache.
+
+### Commands
+
+At minimum:
+
+    /reset
+    /quit
+
+Optional useful commands:
+
+    /stats
+    /context
+
+### Generation
+
+Support:
+
+    deterministic/greedy mode
+
+and:
+
+    practical sampling mode
+
+Do not silently enable thinking if the intended default is non-thinking chat.
+
+### Memory/cache
+
+Optional:
+
+    --kv-bits 8
+
+if supported by the existing runtime.
+
+Print compact stats such as:
+
+    logical context tokens
+    processed suffix tokens
+    TTFT
+    decode tok/s
+    peak memory
+
+### Safety
+
+Never call mx.set_wired_limit().
+
+Do not change system wired settings.
+
+Handle:
+
+    EOS
+    Ctrl-C
+    reset
+    basic generation exceptions
+
+without corrupting the next turn.
+
+### Regression tests
+
+Add automated tests where practical for:
+
+1. no new BOS on later turns;
+2. exact suffix calculation;
+3. cached logical prefix accounting;
+4. stale-replay regression with a lightweight/mock/token-level harness;
+5. reset clears logical transcript/cache.
+
+Tests should not require loading the full 27B model unless explicitly marked as
+integration tests.
+
+## Optional single-user server
+
+Only if the CLI/runtime is complete and stable:
+
+A single-request-at-a-time OpenAI-compatible endpoint may be added.
+
+Do NOT implement:
+
+    concurrent batching
+    shared prefix cache across clients
+    rotating multi-user cache
+    cache trimming across unrelated prompts
+
+Keep it single-user/single-conversation or serialized.
+
+Commit.
+
+Suggested commit:
+
+    feat: productionize Qwen3.8 persistent chat runtime
+
+---
+
+# Phase 9 — Optional Learned-Quant Feasibility
 
 Target: remaining time only.
 
-Run ONLY if:
+Do this only if the primary Stage 4 goals are complete.
 
-- Phase 1 correctness is closed;
-- Phase 3 scaling is useful;
-- Phase 4 endurance passes;
-- Phase 5 quality classification is complete;
-- no urgent unresolved failure remains.
+Investigate whether a Stage 5 experiment with:
 
-Do NOT use an external draft model because memory is constrained.
+    Dynamic Quantization
+    DWQ
+    AWQ
+    GPTQ
 
-Investigate ONE low-memory decode optimization.
+is practical on this machine.
 
-Preferred candidate:
+Do not automatically run all methods.
 
-    n-gram self-speculative decoding / self-spec decode
+## Dynamic Quant
 
-Current upstream issue to inspect:
+If Stage 3 already adapted equivalent sensitivity logic successfully, compare
+it against upstream's current Dynamic Quant algorithm.
 
-    mlx-lm #1497
+Determine:
 
-The proposal is specifically interesting for Qwen hybrid GDN/attention models
-because it uses CPU n-gram drafting and recurrent-state checkpoint/rollback
-rather than loading another model.
+    whether our sensitivity map is equivalent in spirit
+    whether upstream target-BPW selection offers value
+    whether bounded conversion can reproduce it
 
-Do not assume the upstream patch is correct or current.
+## DWQ
 
-First do static feasibility analysis against our pinned revision and Qwen3.8.
+Perform a feasibility analysis.
 
-Only if implementation looks small and safe:
+Questions:
 
-- apply/adapt it locally, not by upgrading canonical dependencies;
-- test short correctness;
-- require greedy token equivalence where the algorithm promises it;
-- measure decode improvement at 4K/8K;
-- measure memory overhead.
+- can the teacher be an 8-bit or otherwise memory-safe model?
+- can training/distillation be done layer-wise/bounded-memory?
+- what is the minimum sample/sequence setup worth testing?
+- what memory does a tiny dry-run use?
+- can g128 or a dynamic 3/4 candidate be refined without full-model teacher
+  residency?
 
-Stop if it threatens primary runtime correctness.
+A tiny bounded dry-run is allowed if safe.
 
-This phase is a bonus, not a required deliverable.
+Do not launch hours of unsafe training simply because Stage 4 still has time.
+
+## AWQ/GPTQ
+
+Static feasibility plus at most one tiny calibration smoke if easy.
+
+The deliverable is a ranked Stage 5 recommendation, not a complete study.
 
 ---
 
 # Explicitly Out of Scope
 
-Do NOT spend this stage on:
+Do not spend Stage 4 on:
 
-- new weight quant formats;
-- mixed_2_6;
-- uniform 2-bit;
-- DWQ;
-- MXFP4;
-- NVFP4;
-- 32K chasing;
-- mlx_lm.server productionization;
-- concurrency/batching;
-- external draft models;
-- DSpark;
-- MTP experiments;
-- system wired-memory tuning.
+    uniform 2-bit
+    mixed_2_6
+    generic uniform 4-bit
+    MXFP4/NVFP4 zoo
+    24K/32K context chasing
+    DSpark
+    MTP
+    external draft models
+    multi-user batching
+    system wired-memory tuning
 
-Do not broaden the project because an interesting tangent appears.
+Optional n-gram self-speculative decode is lower priority than quant quality and
+runtime productionization.
 
-Record tangents under:
-
-    Future work
-
-and continue.
+Only touch it if every primary deliverable is complete and substantial time
+remains.
 
 ---
 
-# Results Format
+# Machine-Readable Results
 
-Append one JSON object per meaningful run to:
+Append meaningful runs to:
 
-    research/stage3/results.jsonl
+    research/stage4/results.jsonl
 
 Suggested fields:
 
@@ -938,35 +969,37 @@ Suggested fields:
     phase
     git_commit
 
-    python_version
-    mlx_version
-    mlx_lm_revision
-
     model_name
     model_path
-    quant_bits
+    quant_recipe
+    quant_bits_base
     quant_group_size
+    promoted_modules_count
+    model_payload_bytes
+    effective_bpw
 
-    execution_mode
-    persistent_cache
-    kv_bits
+    calibration_hash
+    evaluation_hash
+    case_id
+    category
 
-    prompt_path
-    prompt_sha256
-    total_logical_tokens
-    processed_suffix_tokens
-
+    prompt_tokens
     generated_tokens
-    generated_token_hash
+    finish_reason
+    output_hash
 
-    classification
+    objective_pass
+    structured_valid
     replay_detected
-    structured_output_valid
+    early_eos
+
+    nll
+    nll_delta_vs_g64
+    top1_agreement
 
     ttft_seconds
-    prompt_tps
     decode_tps
-    total_seconds
+    prompt_tps
 
     active_memory_bytes
     cache_memory_bytes
@@ -974,55 +1007,54 @@ Suggested fields:
     peak_memory_bytes
     rss_bytes
 
-    cache_state_signature
+    classification
     exception
     safety_stop_reason
 
-Use null for unavailable values.
+Use null when unavailable.
 
-Never invent measurements.
+Never invent values.
 
 ---
 
-# Research Notes
+# Research Memory
 
-Maintain:
+After every major phase update:
 
-    research/stage3/STATUS.md
+    research/stage4/STATUS.md
 
-after every major experiment or decision gate.
+Keep:
 
-Maintain:
+    current best model
+    current best quant tradeoff
+    frozen suite hashes
+    candidate model paths
+    model sizes
+    rejected candidates
+    current runtime status
+    next action
 
-    research/stage3/RESULTS.md
+Keep human-readable synthesis in:
 
-as a human-readable running synthesis.
-
-Before each new phase re-read:
-
-    AGENTS.md
-    TASK.md
-    research/stage3/STATUS.md
-
-If the agent context becomes long, STATUS.md is the canonical compressed
-working state.
+    research/stage4/RESULTS.md
 
 ---
 
 # Git
 
-Prefer logical commits such as:
+Prefer logical commits:
 
-    experiment: validate segmented Qwen3.8 cache state
-    fix: preserve exact Qwen3.8 persistent chat state
-    benchmark: scale exact-suffix Qwen3.8 chat
-    benchmark: test Qwen3.8 persistent-chat endurance
-    benchmark: compare Qwen3.8 g64 and g128 quality
-    benchmark: evaluate KV8 at long context
-    benchmark: probe Qwen3.8 20K persistent context
-    experiment: test ngram self-spec decode
+    benchmark: build Qwen3.8 quality suite v2
+    experiment: diagnose Qwen3.8 endurance early EOS
+    experiment: map Qwen3.8 quantization sensitivity
+    experiment: build quality-guided Qwen3.8 quants
+    benchmark: run Qwen3.8 quant mini tournament
+    benchmark: finalize Qwen3.8 quant quality tradeoffs
+    benchmark: validate Stage 4 Qwen3.8 runtime winner
+    feat: productionize Qwen3.8 persistent chat runtime
+    research: assess learned quantization feasibility
 
-Do not commit model weights or unrelated changes.
+Do not commit model weights.
 
 ---
 
@@ -1030,83 +1062,108 @@ Do not commit model weights or unrelated changes.
 
 Create:
 
-    research/stage3/FINAL_REPORT.md
+    research/stage4/FINAL_REPORT.md
 
-The final report must distinguish:
+It must clearly distinguish:
 
     MEASURED FACT
     INFERENCE
     FUTURE HYPOTHESIS
 
-It must answer:
+Answer:
 
-1. Is exact-suffix persistent cache validated?
+1. What defects in Stage 3 quality evaluation were corrected?
 
-2. Did same-boundary fresh-segmented execution match the true persistent path?
+2. What is the frozen Quality Suite V2 composition and hash?
 
-3. If not, where did divergence first occur?
+3. What did the turn-17 early-EOS experiment show?
 
-4. What persistent contexts were actually tested?
+4. Is g128 materially worse than g64 on corrected objective quality?
 
-5. What is the largest correctness-safe persistent context?
+5. What are g64 vs g128 teacher-forced differences?
 
-6. What is the recommended practical context?
+6. What did sensitivity analysis reveal?
+   Which module families/layers are most sensitive?
 
-7. What are follow-up TTFTs at 4K/8K/12K/16K?
+7. What quant candidates were built?
 
-8. Does follow-up TTFT depend mainly on suffix size or full history?
+8. What are their:
+       payload sizes
+       effective BPW
+       decode speeds
+       memory footprints
 
-9. Did the 20-30 turn endurance test pass?
+9. Which candidates were rejected at smoke/mini-tournament stage, and why?
 
-10. Was any unexplained memory/state drift found?
+10. What are the final full-suite results for:
+        g64
+        g128
+        best new candidate if any
 
-11. How does g128 compare with g64 on the diverse quality suite?
-
-12. Should g128 be:
+11. What model should be:
         DEFAULT
+        QUALITY MODE
         PERFORMANCE/LONG-CONTEXT MODE
-        EXPERIMENTAL ONLY
 
-13. Is KV8 useful as a real long-context mode?
+12. Did the final winner pass 8K and 16K persistent validation?
 
-14. Was 20K tested?
-    If yes, is it practical?
+13. What are the recommended 8K and 16K runtime commands?
 
-15. Was optional decode acceleration tested?
-    If yes, what was the measured gain and correctness result?
+14. What is the current role of KV8?
 
-16. What exact runtime configuration should the user run TODAY?
+15. Is qwen38-chat productionized?
+    What exact command should the user run?
 
-17. What are the three highest-value remaining follow-ups?
+16. Is a single-user OpenAI-compatible endpoint available?
 
-Include compact tables.
+17. Which learned quantization methods are worth a Stage 5?
 
-Do not claim a configuration was tested if it was only estimated.
+18. What are the three highest-value next experiments?
+
+Include a final Pareto table:
+
+    model
+    size GiB
+    effective BPW
+    quality verdict
+    8K peak
+    16K peak
+    decode
+    warm TTFT
+    recommended role
+
+Do not claim untested configurations.
 
 ---
 
 # Completion Condition
 
-The stage is complete when:
+Stage 4 is complete when:
 
-- the highest-value correctness question has been resolved as far as practical;
-- scaling/endurance have been tested if correctness permits;
-- g64 vs g128 quality has been materially clarified;
-- FINAL_REPORT.md exists;
-- STATUS.md reflects the final state;
-- useful harness changes/results are committed.
+- Quality Suite V2 is frozen and validated;
+- g64 vs g128 quality is materially clarified;
+- sensitivity-guided quantization has been investigated;
+- no more than three new serious quant candidates were built;
+- the best candidate(s) have a final quality classification;
+- the selected default model has been validated in persistent runtime;
+- qwen38-chat is usable/documented;
+- FINAL_REPORT.md and STATUS.md are complete;
+- useful code/results are committed.
 
-Do not start another open-ended research program after writing FINAL_REPORT.md.
+Do not start Stage 5 automatically.
 
-At the end return a concise summary with:
+At the end return a concise summary containing:
 
-    cache verdict
-    best practical context
-    warm TTFT
-    decode speed
-    g128 quality verdict
-    KV8 verdict
-    20K verdict
-    optional acceleration result
+    default model
+    quality mode
+    performance mode
+    model sizes
+    quality result
+    8K/16K runtime numbers
+    early-EOS verdict
+    qwen38-chat command
+    learned-quant recommendation
     FINAL_REPORT.md path
     commit SHAs
+
+Then STOP.

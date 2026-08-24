@@ -1,18 +1,18 @@
-# Qwen3.8 MLX Investigation — Project Instructions
+# Qwen3.8 MLX Investigation — Stage 4 Project Instructions
 
-This repository is an empirical investigation of running Qwen3.8-27B correctly,
-quickly, and interactively on an 18 GB Apple Silicon Mac.
+This repository is an empirical engineering project for running Qwen3.8-27B
+well on an 18 GB Apple Silicon Mac.
 
-The project is now past the exploratory "does the model run?" stage.
+Stage 3 established that the exact-suffix persistent chat protocol is correct
+and practical. Stage 4 therefore shifts focus from "can persistent chat work?"
+to:
 
-The primary engineering goal is:
+1. quality validation;
+2. quantization quality/memory tradeoffs;
+3. productionizing the validated runtime.
 
-> Build and validate a practical Qwen3.8-27B MLX runtime for long-lived,
-> multi-turn coding-agent and conversational workloads on an 18 GB M3 Pro.
-
-Treat saved artifacts and raw measurements as the source of truth.
-
-Do not rely on conversational memory when an experiment can be inspected directly.
+The goal is not to maximize novelty. The goal is to identify the best practical
+Qwen3.8 configuration for daily local use.
 
 ---
 
@@ -25,24 +25,22 @@ Primary machine:
 - 18 GB unified memory
 - macOS 15.7.8
 
-The practical objective is NOT maximum context at any cost.
-
-Prioritize, in order:
+Priority order:
 
 1. correctness;
 2. system stability;
-3. persistent/incremental chat correctness;
-4. useful context length;
-5. follow-up TTFT;
-6. decode throughput;
-7. cold-prefill throughput.
+3. practical output quality;
+4. persistent chat correctness;
+5. useful context length;
+6. follow-up latency;
+7. decode throughput;
+8. model size.
 
-A configuration that technically reaches a larger context but makes normal
-interactive use unpleasant is not the winner.
+A smaller/faster quant is not a win if it materially damages real task quality.
 
 ---
 
-## Canonical MLX Environment
+## Canonical Environment
 
 Use ONLY:
 
@@ -57,7 +55,7 @@ Expected:
     Python 3.14.7
     mlx == 0.32.1
 
-Pinned mlx-lm Git revision:
+Pinned mlx-lm revision:
 
     254d153fdeb6f150edd4fc5a54f9828638481fa8
 
@@ -68,551 +66,558 @@ Do NOT:
     uv update
     uvx
 
-Do not silently upgrade mlx, mlx-lm, transformers, tokenizers, or other
-inference dependencies.
+Do not silently upgrade inference dependencies.
 
-Upstream code may be inspected, copied into a local experimental helper, or
-tested in an isolated environment when TASK.md explicitly asks for it.
-
-The canonical environment itself must remain pinned unless TASK.md explicitly
-creates a separate comparison environment.
+A separate isolated comparison environment may be created only if TASK.md
+explicitly calls for one. The canonical environment must remain unchanged.
 
 ---
 
 ## Canonical Models
 
-### Quality/reference baseline: g64
+### g64 reference / quality baseline
 
-Model:
-
-    lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly
-
-Exact local snapshot:
+Path:
 
     /Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7
 
 Quantization:
 
-    affine
-    bits = 3
+    affine 3-bit
     group_size = 64
 
 Measured model payload:
 
     ~10.963 GiB
 
-Use this as the quality/reference baseline.
+Treat g64 as the current quality/reference baseline.
 
-### Main performance candidate: g128
+### g128 performance/memory candidate
 
-Persistent path:
+Path:
 
     /Users/artem/models/Qwen3.8-27B-3bit-g128-MLX
 
 Quantization:
 
-    affine
-    bits = 3
+    affine 3-bit
     group_size = 128
 
 Measured model payload:
 
     ~10.18 GiB
 
-This model was converted from the original high-precision Qwen3.8-27B weights,
-not by re-quantizing the g64 checkpoint.
+Approximate advantage vs g64:
 
-Observed saving vs g64:
+    ~0.783 GiB smaller
 
-    ~0.783 GiB
+Observed practical decode advantage in prior controlled runs:
 
-This is currently the main practical candidate, but its quality relative to
-g64 is NOT yet considered fully validated.
+    roughly 7-8% in several 4K-12K comparisons
 
-Do not move/delete either checkpoint.
+g128 is the current practical performance candidate, but its quality relative
+to g64 is NOT yet finally classified.
 
 ---
 
-## Original High-Precision Source
+## High-Precision Source
 
 A high-precision Qwen3.8-27B source snapshot was previously downloaded into the
 Hugging Face cache.
 
-Inspect the local cache and previous conversion artifacts before assuming an
-exact path.
+Inspect existing conversion artifacts and local cache before downloading
+anything.
 
-Do not re-download it unless it is genuinely absent.
+A bounded-memory layer-oriented converter already exists in the repository:
 
-A bounded-memory conversion tool already exists in this repository from the
-previous research phase.
+    research/harness/convert_qwen38_textonly_g128.py
 
-Do not write another converter unless TASK.md explicitly requires it.
+or a closely related path from previous stages.
 
----
+Reuse/extend the existing bounded-memory infrastructure.
 
-## Critical Wired-Memory Safety Rule
+Do not write a completely separate model conversion system without first
+inspecting what already exists.
 
-NEVER modify:
-
-    sudo sysctl iogpu.wired_limit_mb
-
-or any equivalent system-wide wired/GPU-memory setting.
-
-A previous experiment changing the system iGPU wired limit froze/rebooted the
-machine.
-
-Do not recommend it.
-Do not test it.
-Do not automate it.
-
-Also do not explicitly raise MLX's wired limit.
-
-The canonical runtime leaves MLX wired state untouched/default.
+Do not re-download ~52 GB of source weights if already present.
 
 ---
 
-## Known mlx-lm Wired-Limit Problem
+## Validated Persistent Chat Result
 
-The pinned mlx-lm generation wrapper uses a `wired_limit()` context that calls
-approximately:
+Stage 3 validated the exact-suffix protocol.
 
-    mx.set_wired_limit(
-        mx.device_info()["max_recommended_working_set_size"]
-    )
+The critical control compared:
 
-On this machine that recommended working set is around 12 GiB.
+    A. fresh one-shot
+    B. fresh segmented with the same model-call boundaries
+    C. true persistent cache
 
-This was experimentally shown to trigger Metal OOM for Qwen3.8 even around
-~768 prompt tokens.
+For B vs C:
 
-Controlled result:
-
-    direct generate_step
-    default wired state
-    ~768 prompt tokens
-        -> PASS
-
-    same basic prefill
-    wired limit forced to recommended working set
-        -> Metal OOM
+- token streams matched;
+- all 64 cache layers matched;
+- 48/48 ArraysCache matched;
+- 16/16 KVCache matched;
+- first-token logprobs matched exactly;
+- generated turn outputs matched token-for-token.
 
 Therefore:
 
-- do not use the stock forced-wired behavior for canonical Qwen3.8 experiments;
-- use the existing no-wired helper / direct generate_step path;
-- never call mx.set_wired_limit() in the canonical runtime;
-- never alter the system wired limit.
+> exact-suffix persistent state is validated against identical segmented
+> execution.
+
+A-vs-B/C differences are segmentation/numerical sensitivity, not evidence of
+persistent cache corruption.
+
+Do NOT re-open this issue without new contradictory evidence.
 
 ---
 
-## Known-Good Core Inference Path
+## Validated Persistent Performance
 
-Current known-good core path:
+Representative Stage 3 g128 results:
 
-    MLX 0.32.1
-    Qwen3.8
-    direct generate_step
-    default wired state
-    greedy/argmax decoding
-    no MTP
-    no external speculative model
-    no activation quantization
+    ~4K warm TTFT   ~1.0 s
+    ~8K warm TTFT   ~1.1 s
+    ~12K warm TTFT  ~1.1 s
+    ~16.7K warm TTFT ~1.2 s
 
-A prior controlled alignment test ran 18 independent fresh-process cases across
-512/513, 640/641, and 768/769 final prompt tokens.
+Representative decode:
 
-Result:
+    ~8K   ~11.1 tok/s
+    ~12K  ~10.8 tok/s
+    ~16K  ~10.4 tok/s
 
-    18 / 18 COHERENT
-    0 OOM
-    deterministic token sequences within each condition
+Representative peak memory:
 
-Therefore the old small-length alignment hypothesis is rejected.
+    ~8K   ~13.98 GiB
+    ~12K  ~14.61 GiB
+    ~16K  ~15.24 GiB
 
----
+The persistent protocol therefore already satisfies the main interactive
+runtime objective.
 
-## Long-Context Cold Baseline
-
-A real coding-agent prompt around 16.7K tokens has been demonstrated coherent.
-
-For the original g64 checkpoint, a manual no-wired run showed approximately:
-
-    prompt = 16,767 tokens
-    prompt throughput = 63.35 tok/s
-    decode = 4.12 tok/s in that specific run
-    MLX reported peak = 17.20 GB decimal
-    output = coherent
-
-Later controlled g128 runs were materially better.
-
-Representative g128 cold measurements:
-
-    4K peak      ~13.36 GiB
-    8K peak      ~13.98 GiB
-    12K peak     ~14.61 GiB
-    ~16.7K peak  ~15.24 GiB
-    ~16.7K decode ~10.6 tok/s
-
-Treat units carefully:
-
-    GB decimal != GiB
-
-Do not compare them as if they were identical.
-
-Historical UI flicker occurred in an older MLX 0.32.0 run near an extremely
-high memory state. Do not reproduce old 0.32.0 stress tests.
+Do not spend Stage 4 re-proving it from scratch.
 
 ---
 
-## Persistent Chat: Current State
+## Stage 3 Endurance Result
 
-The old warm-chat harness was WRONG.
+An 8K persistent endurance conversation completed 16 sequential follow-up turns
+without replay/cache/accounting failure.
 
-It effectively appended each follow-up as a fresh standalone chat-template
-fragment, including a new BOS/user framing, on top of an already-cached
-conversation.
+Observed:
 
-At ~8K this produced a stale replay where turn 2 repeated the beginning of
-turn 1 token-for-token.
+    warm TTFT ~1.55-1.62 s late in the session
+    decode ~10.6-11.2 tok/s
+    peak memory stable around the expected range
+    no stale replay
+    no cache-accounting error
 
-A fresh process given the same malformed token stream reproduced the same stale
-replay.
+At turn 17 the model emitted a very short incomplete response and EOS.
 
-Therefore that original replay was explained by an invalid incremental token
-protocol, not by persistent cache alone.
+This is currently classified as:
 
-A later exact-suffix experiment fixed the protocol:
+    unresolved EARLY-EOS / generation-quality event
 
-- build the full canonical transcript with the tokenizer;
-- determine the exact logical token prefix already represented by cache;
-- append ONLY the canonical missing suffix;
-- do not inject a new BOS;
-- do not template the new user message independently.
+NOT:
 
-At ~4K the exact-suffix persistent path worked:
+    proven persistent-cache corruption
 
-    initial prompt ~4K
-    cached logical prefix after turn 1 = 4192 tokens in that experiment
-    turn-2 exact suffix = 38 tokens
-    persistent turn-2 TTFT ~0.98 s
-    persistent decode ~11.6 tok/s
-    fresh full-transcript turn-2 TTFT ~54.7 s
-    stale replay = NO
-    both outputs coherent
-
-Persistent and fresh outputs shared the first ~42/64 generated tokens and then
-diverged.
-
-Cache-state summaries also differed after the full turn.
-
-This divergence is NOT yet classified as a correctness bug.
-
-The next required question is whether it is merely a normal segmentation /
-floating-point sensitivity of GatedDeltaNet recurrent state or a true
-persistent-cache state error.
+Stage 4 should perform one targeted reproduction/control study and then close
+the question unless evidence points back to runtime state.
 
 ---
 
-## Persistent Cache Correctness Standard
+## Stage 3 g64 vs g128 Quality Result Is NOT Final
 
-Do not require token-identical output between:
+The Stage 3 quality suite was useful but flawed.
 
-    one-shot full prefill
+Known problems:
 
-and:
+1. many coding tasks used a 64-token cap, so correct answers were often cut
+   before required keywords/checks could appear;
 
-    an identical token stream split across multiple model calls
+2. at least one reasoning task had an arguably wrong/ambiguous expected answer;
 
-unless an experiment proves the runtime should be bitwise-equivalent.
+3. some aggregated pass-rate differences therefore reflect harness design
+   rather than model quality.
 
-For hybrid recurrent models, small numerical differences may eventually change
-greedy output.
+Existing evidence is mixed:
 
-Correctness requires:
+- both models produce coherent outputs on many coding prompts;
+- one teacher-forced comparison showed a large NLL gap against g128;
+- another code-heavy subset showed only a small gap;
+- at least one clear arithmetic/reasoning error was observed from g128.
 
-- same intended conversation token stream;
-- correct message boundaries;
-- response to the CURRENT user turn;
-- no stale replay;
-- no catastrophic corruption;
-- no permanent loss of conversation state;
-- stable long-session behavior.
+Therefore Stage 4 must build QUALITY SUITE V2 before making final quant decisions.
 
-However, when comparing two paths with IDENTICAL token stream and IDENTICAL
-segmentation boundaries, state/output differences are much more suspicious and
-must be investigated.
+Do not claim:
 
----
+    g128 == g64
 
-## Cache Types
+or:
 
-Qwen3.8 uses a hybrid architecture.
+    g128 is materially worse than g64
 
-The model has:
-
-- full-attention layers with context-growing KV cache;
-- recurrent / GatedDeltaNet layers using ArraysCache-like recurrent state.
-
-Do not treat every layer as a standard KV cache.
-
-When debugging cache behavior, inspect layer types separately.
-
-Useful compact per-layer observations include:
-
-    layer index
-    cache class
-    offset where available
-    state shapes
-    small deterministic hashes/signatures
-
-Do not dump giant tensors into logs.
+until Stage 4's corrected suite is complete.
 
 ---
 
-## Upstream Hybrid-Cache Context
+## Quantization Work Already Performed
 
-Current upstream mlx-lm has known/open work around hybrid-model prompt cache
-reuse and ArraysCache behavior.
+Previous stages explored:
 
-Relevant historical/current references include:
+### 3-bit affine group 64
 
-    mlx-lm issue #980
-        prefix cache reuse broken for hybrid architectures
+Working.
+Current quality/reference baseline.
 
-    mlx-lm PR #1253 / #1254
-        attempted ArraysCache trim/reuse support
-        closed without merge
+### 3-bit affine group 128
 
-    mlx-lm issue #1641 / PR #1642
-        ArraysCache metadata lazy-graph / Metal-buffer-object leak
-        primarily relevant to BatchGenerator/server decode paths
+Working.
+Saves ~0.783 GiB.
+Main performance candidate.
 
-    mlx-lm issue #1497
-        proposed n-gram self-speculative decoding with recurrent-state rollback
+### mixed_2_6
 
-Treat these as upstream evidence and ideas, not as automatically correct fixes
-for our direct-generate exact-suffix runtime.
+Rejected.
 
-Before relying on upstream status, inspect current GitHub state.
+A source-backed mixed 2/6 model was created and loaded, but produced
+deterministic pathological repetition / semantic collapse.
 
-Do not blindly cherry-pick a closed PR into the canonical environment.
+Do not retest unless a new mechanism directly explains why that exact result
+was invalid.
+
+### uniform 2-bit
+
+Previously showed unacceptable quality.
+
+Do not revisit in Stage 4.
+
+### 4-bit class
+
+Too large to be the default target on this 18 GB machine at useful long
+contexts.
+
+Do not spend Stage 4 rebuilding generic uniform 4-bit models.
+
+### KV8
+
+Validated as an independent long-context lever:
+
+around 16K:
+
+    ~0.465 GiB memory saving
+    ~9-11% decode penalty
+    warm TTFT nearly unchanged
+    correctness passed
+
+Treat KV8 as an optional context/headroom mode, not a weight-quant substitute.
+
+---
+
+## Relevant Upstream Quantization Options
+
+Current mlx-lm supports:
+
+- standard affine quantization;
+- built-in mixed recipes:
+    mixed_2_6
+    mixed_3_4
+    mixed_3_6
+    mixed_4_6
+- Dynamic Quantization;
+- Distilled Weight Quantization (DWQ);
+- Activation-aware Weight Quantization (AWQ);
+- GPTQ.
+
+Current upstream documentation describes:
+
+Dynamic Quantization
+- measures sensitivity of quantizable layers;
+- uses higher precision for more sensitive layers;
+- saves per-layer sensitivity results;
+- is the fastest learned-quant option.
+
+DWQ
+- distills quantized weights/parameters against a higher-precision teacher;
+- generally slower;
+- often better quality;
+- particularly relevant in the 2-4 bit range.
+
+AWQ/GPTQ
+- calibration-based;
+- can require substantial runtime;
+- not mandatory Stage 4 branches.
+
+Use current upstream source as reference, but keep canonical runtime pinned.
+
+Do not blindly upgrade mlx-lm to access a helper if the equivalent logic can be
+adapted locally.
+
+---
+
+## Stage 4 Quantization Philosophy
+
+Do not create a quant zoo.
+
+The primary quantization question is:
+
+> Can we recover g64-like practical quality while retaining most of g128's
+> memory/speed advantage?
+
+Preferred strategy:
+
+    3-bit g128 base
+    +
+    selectively allocate more bits to the most sensitive tensors/modules
+
+rather than:
+
+    globally increase all weights.
+
+Target region for a promising new candidate:
+
+    roughly 10.3-10.6 GiB
+
+This is a TARGET REGION, not a hard requirement.
+
+A candidate is valuable if it spends only a fraction of the ~0.78 GiB saved by
+g128 but materially recovers quality.
+
+---
+
+## Quant Candidate Limit
+
+Stage 4 may create at most THREE serious new weight-quant candidates.
+
+Preferred order:
+
+1. one built-in/simple mixed 3/4 control;
+2. one sensitivity-guided 3/4 candidate;
+3. only if justified, one higher-precision-outlier candidate such as
+   sensitivity-guided 3/6.
+
+Do not create every recipe available.
+
+A candidate that fails a mini quality gate should be rejected without full
+benchmarking.
+
+---
+
+## Bounded-Memory Conversion Rule
+
+Any new 27B conversion must use bounded-memory/layer-wise processing.
+
+Do not load the complete high-precision model into unified memory.
+
+Record:
+
+    conversion wall time
+    process RSS
+    MLX peak
+    active+cache when relevant
+    output tensor payload
+    shard count
+
+Conversion safety matters.
+
+If an upstream quant helper assumes loading the entire teacher/source model and
+is unsafe on 18 GB, do not run it directly.
+
+Instead:
+
+- inspect the algorithm;
+- determine whether sensitivity can be computed in a bounded/layer-wise way;
+- adapt only the required logic.
+
+---
+
+## Quality Suite Rules
+
+The quality suite must distinguish:
+
+    OBJECTIVE CHECKS
+    SEMI-OBJECTIVE RUBRIC
+    SUBJECTIVE PAIRWISE JUDGMENT
+    TEACHER-FORCED METRICS
+
+Do not collapse all signals into one naive score.
+
+Objective checks should dominate where possible.
+
+Examples:
+
+- arithmetic answer;
+- JSON parse/schema validity;
+- explicit instruction compliance;
+- retrieval of supplied facts;
+- code invariant identification;
+- presence/absence of required structural elements.
+
+Subjective model judging is supplementary only.
+
+---
+
+## Output-Length Rule
+
+Do not repeat Stage 3's 64-token truncation mistake.
+
+For coding/reasoning tasks use enough room to finish:
+
+    usually 256-512 generated tokens
+
+Use shorter caps only where the answer is intentionally short and the expected
+answer fits comfortably.
+
+A model must not be marked wrong merely because the harness truncated a
+correctly progressing answer before its required conclusion.
+
+Track finish reason / EOS / length cap.
+
+---
+
+## Learned-Quant Calibration Rule
+
+Calibration data must be local and reproducible.
+
+Do not depend on live web content.
+
+Prefer:
+
+- the Stage 4 quality-suite prompts;
+- selected coding-agent prompt segments;
+- representative prose/reasoning contexts;
+- a compact fixed calibration corpus checked into the repo when licensing
+  permits.
+
+Record hashes/seeds.
+
+Do not optimize on the exact full evaluation set and then pretend it is an
+independent evaluation.
+
+Separate:
+
+    calibration subset
+    evaluation subset
 
 ---
 
 ## Memory Measurement
 
-Do NOT use mx.get_peak_memory() alone.
-
-For important experiments capture when practical:
+For important experiments capture where practical:
 
     mx.get_active_memory()
     mx.get_cache_memory()
     mx.get_peak_memory()
 
-Calculate:
+Compute:
 
     active + cache
 
-When useful also capture:
+Also record RSS when useful.
 
-    RSS / process footprint
-    vm_stat
-    memory_pressure
+Do not compare decimal GB and GiB as if identical.
 
-Do not require sudo.
-
-Do not let monitoring itself materially distort benchmark performance.
-
-Memory units must be explicit:
-
-    bytes
-    GB decimal
-    GiB
+Do not use one memory number from an old phase if a new candidate materially
+changes weights.
 
 ---
 
-## System Stability
+## System Safety
 
-Swap usage alone is NOT failure.
-Pageouts alone are NOT failure.
+NEVER modify:
+
+    sudo sysctl iogpu.wired_limit_mb
+
+or any equivalent system GPU/wired-memory setting.
+
+Never explicitly increase MLX wired limit.
+
+Canonical runtime leaves wired state untouched/default.
 
 Hard stop conditions:
 
 - Metal OOM;
 - GPU timeout;
-- repeated severe system memory pressure;
-- substantial machine unresponsiveness;
-- WindowServer/UI instability if observable;
-- repeated failed allocation at the same configuration;
-- runaway memory growth without new information.
+- WindowServer/UI instability;
+- major machine unresponsiveness;
+- repeated allocation failure;
+- runaway unexplained memory growth.
 
-Do not repeatedly hammer a configuration that already failed.
+Do not repeatedly reproduce an unsafe condition.
 
----
-
-## Heavy Workload Concurrency
-
-Never run two large Qwen/MLX inference workloads concurrently.
-
-Before starting a heavy phase inspect relevant running processes.
-
-Static analysis, report writing, source inspection, and small CPU-only analysis
-may proceed while another heavy job is active.
+Never run two heavy Qwen inference/conversion jobs concurrently.
 
 ---
 
-## Fresh-Process Rule
+## Runtime Productionization Rule
 
-Cold benchmarks and quality comparisons should use fresh Python processes per
-configuration unless a phase explicitly measures persistence.
+Stage 4 may productionize the validated direct runtime.
 
-Persistent chat/endurance experiments intentionally reuse one process/cache.
+The production runtime should preserve:
 
-Do not mix cold and persistent measurements in the same result without labeling
-them clearly.
+- exact canonical chat transcript;
+- exact-suffix persistent cache;
+- no forced wired-limit behavior;
+- optional KV8;
+- reset support;
+- deterministic mode;
+- practical sampling mode;
+- metrics;
+- safe failure handling.
 
----
+Do not productionize:
 
-## Correctness Classification
+- multi-user batching;
+- concurrent request scheduling;
+- server-wide prefix reuse;
+- speculative cache trimming.
 
-For generated text use:
+Those are separate upstream-hard problems.
 
-COHERENT
-- meaningful response to the actual task/current turn;
-- normal syntax and progression;
-- no pathological repetition.
-
-DEGRADED
-- partly meaningful but visibly corrupted/repetitive/structurally damaged.
-
-BROKEN
-- token soup;
-- repeated punctuation;
-- repeated one-token/substring loops;
-- stale response replay;
-- failure to respond to the current turn;
-- structurally unusable output.
-
-For structured-output tests also record schema/parse validity.
-
-Technical imperfection is not catastrophic inference corruption.
+A simple single-user CLI or single-request-at-a-time OpenAI-compatible server is
+acceptable.
 
 ---
 
-## g128 Quality Status
-
-g128 is currently promising but NOT yet fully quality-cleared.
-
-Existing evidence is mixed:
-
-- several generated coding outputs are coherent;
-- one teacher-forced evaluation showed a large NLL/PPL degradation vs g64;
-- another code-heavy comparison showed only a very small difference.
-
-Therefore do not claim "g128 is quality-equivalent to g64" until a broader suite
-is completed.
-
-Likewise do not reject g128 based on one synthetic perplexity result.
-
-Use diverse tasks and multiple metrics.
-
----
-
-## KV8 Status
-
-KV8 is an independent context-memory lever.
-
-At around 16.7K on g128, one prior measurement was approximately:
-
-    memory saving ~0.465 GiB
-    decode penalty ~10-11%
-
-Therefore KV8 is NOT interesting as a default for small contexts.
-
-It may be worthwhile for 16K+ if the extra headroom materially improves system
-stability or enables a larger practical context.
-
-Do not use KV8 in quality/reference measurements unless a phase explicitly
-tests it.
-
----
-
-## Rejected / Low-Priority Weight Quantization Work
-
-A mixed_2_6 g128-style candidate was created previously and produced
-deterministic pathological repetition.
-
-Treat that candidate as rejected.
-
-Do not spend this stage on:
-
-- mixed_2_6;
-- uniform 2-bit;
-- DWQ;
-- MXFP4;
-- NVFP4;
-- another weight-quant zoo.
-
-The current project bottleneck is runtime correctness/usability, not lack of
-weight formats.
-
----
-
-## Experimental Discipline
-
-Every experiment must have:
-
-1. a question;
-2. controlled variables;
-3. a predeclared decision gate;
-4. raw artifacts;
-5. an explicit comparison baseline;
-6. a conclusion that distinguishes:
-       measured fact
-       inference
-       hypothesis
-
-Do not silently tune until something works.
-
-Negative results are valuable and must be recorded.
-
----
-
-## Persistent Research Memory
+## Persistent Stage 4 Research Memory
 
 Maintain:
 
-    research/stage3/PLAN.md
-    research/stage3/STATUS.md
-    research/stage3/RESULTS.md
-    research/stage3/results.jsonl
-    research/stage3/FINAL_REPORT.md
+    research/stage4/PLAN.md
+    research/stage4/STATUS.md
+    research/stage4/RESULTS.md
+    research/stage4/results.jsonl
+    research/stage4/FINAL_REPORT.md
 
-Before each major phase re-read:
+Before every major phase re-read:
 
     AGENTS.md
     TASK.md
-    research/stage3/STATUS.md
+    research/stage4/STATUS.md
 
-STATUS.md should always contain:
+STATUS.md must contain:
 
-    Current phase
-    Completed experiments
-    Key measurements
-    Current best configuration
-    Rejected configurations/hypotheses
-    Current risks
-    Next action
-
-Do not rely on the conversational transcript as the sole project memory.
+    current phase
+    completed experiments
+    validated facts
+    candidate models and sizes
+    rejected candidates
+    current best configuration
+    active risks
+    next action
 
 ---
 
 ## Git Discipline
 
-Always start with:
+Always begin with:
 
     git status
+    git log --oneline -20
 
 Preserve unrelated changes.
 
@@ -622,55 +627,37 @@ Never:
     git clean -fd
     discard unrelated modifications
 
-Prefer focused commits after meaningful phases.
-
-Do not commit:
-
-- model weights;
-- Hugging Face cache;
-- virtual environments;
-- huge raw temporary files;
-- unrelated changes.
+Do not commit model weights or huge source checkpoints.
 
 Commit:
 
 - harnesses;
-- small output samples;
-- JSON/JSONL measurements;
-- Markdown analysis;
-- reproduction commands.
+- quant recipes/configuration;
+- sensitivity JSON if reasonably sized;
+- result summaries;
+- small representative outputs;
+- runtime code;
+- tests;
+- documentation.
 
----
-
-## Unattended Operation
-
-This stage may run for 6-8 hours.
-
-Do not stop for ordinary clarification questions.
-
-If one branch is blocked, record why and continue to an independent useful phase
-when safe.
-
-Do not improvise around a safety rule.
-
-Do not define success as "every planned phase ran".
-
-Success means the highest-value uncertainties were reduced with reliable
-evidence.
+Prefer one logical commit per completed phase.
 
 ---
 
 ## Final Standard
 
-The ideal end state of this stage is a measured answer to:
+Stage 4 should finish with a measured answer to:
 
-> Can Qwen3.8-27B on this 18 GB Mac sustain a correctness-safe 8K-16K
-> persistent conversation where short follow-up turns have near-second-scale
-> TTFT and ~10+ tok/s decode?
+1. Is g128 actually materially worse than g64 on a corrected quality suite?
 
-And:
+2. If yes, can a targeted 3/4 or 3/6 mixed quant recover most of that quality
+   while staying materially smaller/faster than g64?
 
-> Is g128 good enough to be the practical default, or should g64 remain the
-> quality mode?
+3. What model should the user run by default TODAY?
 
-Everything else is secondary.
+4. Is the validated persistent runtime ready to be used as a normal local chat /
+   coding-agent backend?
+
+5. Which quantization ideas deserve a Stage 5, if any?
+
+Do not continue open-ended exploration after these questions are answered.
