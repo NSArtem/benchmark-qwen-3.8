@@ -1,0 +1,52 @@
+{
+  "experiment_id": "P9-MTP-STATIC-HEADER-INSPECTION",
+  "classification": "WEIGHTS_PRESENT_RUNTIME_INCOMPATIBLE",
+  "source_model_path": "/Users/artem/.cache/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "source_revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "source_config_model_type": "qwen3_5",
+  "source_architecture": "Qwen3_5ForConditionalGeneration",
+  "source_shard": "model-00018-of-00018.safetensors",
+  "header_only": true,
+  "mtp_tensor_count": 15,
+  "mtp_dtype": "BF16",
+  "mtp_payload_bytes": 849398784,
+  "mtp_payload_gib": 0.7910642623901367,
+  "ideal_payload_estimates_excluding_scales_metadata": {
+    "8bit_bytes": 424699392,
+    "8bit_gib": 0.39553213119506836,
+    "4bit_bytes": 212349696,
+    "4bit_gib": 0.19776606559753418,
+    "3bit_bytes": 159262272,
+    "3bit_gib": 0.14832454919815063
+  },
+  "tensors": {
+    "mtp.fc.weight": {"dtype": "BF16", "shape": [5120, 10240], "nbytes": 104857600},
+    "mtp.layers.0.input_layernorm.weight": {"dtype": "BF16", "shape": [5120], "nbytes": 10240},
+    "mtp.layers.0.mlp.down_proj.weight": {"dtype": "BF16", "shape": [5120, 17408], "nbytes": 178257920},
+    "mtp.layers.0.mlp.gate_proj.weight": {"dtype": "BF16", "shape": [17408, 5120], "nbytes": 178257920},
+    "mtp.layers.0.mlp.up_proj.weight": {"dtype": "BF16", "shape": [17408, 5120], "nbytes": 178257920},
+    "mtp.layers.0.post_attention_layernorm.weight": {"dtype": "BF16", "shape": [5120], "nbytes": 10240},
+    "mtp.layers.0.self_attn.k_norm.weight": {"dtype": "BF16", "shape": [256], "nbytes": 512},
+    "mtp.layers.0.self_attn.k_proj.weight": {"dtype": "BF16", "shape": [1024, 5120], "nbytes": 10485760},
+    "mtp.layers.0.self_attn.o_proj.weight": {"dtype": "BF16", "shape": [5120, 6144], "nbytes": 62914560},
+    "mtp.layers.0.self_attn.q_norm.weight": {"dtype": "BF16", "shape": [256], "nbytes": 512},
+    "mtp.layers.0.self_attn.q_proj.weight": {"dtype": "BF16", "shape": [12288, 5120], "nbytes": 125829120},
+    "mtp.layers.0.self_attn.v_proj.weight": {"dtype": "BF16", "shape": [1024, 5120], "nbytes": 10485760},
+    "mtp.norm.weight": {"dtype": "BF16", "shape": [5120], "nbytes": 10240},
+    "mtp.pre_fc_norm_embedding.weight": {"dtype": "BF16", "shape": [5120], "nbytes": 10240},
+    "mtp.pre_fc_norm_hidden.weight": {"dtype": "BF16", "shape": [5120], "nbytes": 10240}
+  },
+  "pinned_runtime": {
+    "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+    "model_file": "/Users/artem/.cache/uv/archive-v0/GD4ii1Q6IhKy2-zq/mlx_lm/models/qwen3_5.py",
+    "mtp_keys_stripped": true,
+    "native_qwen38_mtp_path": false,
+    "speculative_draft_path_is_mtp": false
+  },
+  "runtime_work": {
+    "conversion_attempted": false,
+    "decode_smoke_attempted": false,
+    "acceptance_rate": null,
+    "reason": "The pinned text runtime strips top-level mtp.* keys and has no native Qwen3.8 MTP head or reference decode path; no head was fabricated."
+  }
+}

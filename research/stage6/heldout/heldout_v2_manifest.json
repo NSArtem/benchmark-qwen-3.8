@@ -1,0 +1,78 @@
+{
+  "case_count": 24,
+  "corrections": {
+    "h5-coding-01": {
+      "new_max_tokens": 1024,
+      "new_rule": "same prompt, scorer, and semantic answer; only max_tokens is 1024",
+      "old_max_tokens": 384,
+      "old_rule": "verbose coding answer had a 384-token generation budget",
+      "reason_invalid": "Stage 5 raw outputs for this coding family included length-finished answers; affected outputs must not be treated as clean semantic failures"
+    },
+    "h5-coding-02": {
+      "new_max_tokens": 1024,
+      "new_rule": "same prompt, scorer, and semantic answer; only max_tokens is 1024",
+      "old_max_tokens": 384,
+      "old_rule": "verbose coding answer had a 384-token generation budget",
+      "reason_invalid": "Stage 5 raw outputs for this coding family included length-finished answers; affected outputs must not be treated as clean semantic failures"
+    },
+    "h5-coding-03": {
+      "new_max_tokens": 1024,
+      "new_rule": "same prompt, scorer, and semantic answer; only max_tokens is 1024",
+      "old_max_tokens": 384,
+      "old_rule": "verbose coding answer had a 384-token generation budget",
+      "reason_invalid": "Stage 5 raw outputs for this coding family included length-finished answers; affected outputs must not be treated as clean semantic failures"
+    },
+    "h5-coding-04": {
+      "new_max_tokens": 1024,
+      "new_rule": "same prompt, scorer, and semantic answer; only max_tokens is 1024",
+      "old_max_tokens": 384,
+      "old_rule": "verbose coding answer had a 384-token generation budget",
+      "reason_invalid": "Stage 5 raw outputs for this coding family included length-finished answers; affected outputs must not be treated as clean semantic failures"
+    },
+    "h5-coding-05": {
+      "new_max_tokens": 1024,
+      "new_rule": "same prompt, scorer, and semantic answer; only max_tokens is 1024",
+      "old_max_tokens": 384,
+      "old_rule": "verbose coding answer had a 384-token generation budget",
+      "reason_invalid": "Stage 5 raw outputs for this coding family included length-finished answers; affected outputs must not be treated as clean semantic failures"
+    },
+    "h5-coding-06": {
+      "new_max_tokens": 1024,
+      "new_rule": "same prompt, scorer, and semantic answer; only max_tokens is 1024",
+      "old_max_tokens": 384,
+      "old_rule": "verbose coding answer had a 384-token generation budget",
+      "reason_invalid": "Stage 5 raw outputs for this coding family included length-finished answers; affected outputs must not be treated as clean semantic failures"
+    },
+    "h5-reasoning-01": {
+      "new_max_tokens": 1024,
+      "new_rule": "same prompt, answer_regex, and expected answer; only max_tokens is 1024",
+      "old_max_tokens": 256,
+      "old_rule": "arithmetic/state answer had a 256-token generation budget",
+      "reason_invalid": "Stage 5 raw outputs included length-finished reasoning answers before the required final sentinel"
+    },
+    "h5-reasoning-02": {
+      "new_max_tokens": 1024,
+      "new_rule": "same prompt, answer_regex, and expected answer; only max_tokens is 1024",
+      "old_max_tokens": 256,
+      "old_rule": "arithmetic/state answer had a 256-token generation budget",
+      "reason_invalid": "Stage 5 raw outputs included length-finished reasoning answers before the required final sentinel"
+    },
+    "h5-reasoning-04": {
+      "new_max_tokens": 1024,
+      "new_rule": "same prompt, answer_regex, and expected answer; only max_tokens is 1024",
+      "old_max_tokens": 256,
+      "old_rule": "arithmetic/state answer had a 256-token generation budget",
+      "reason_invalid": "Stage 5 raw outputs included length-finished reasoning answers before the required final sentinel"
+    }
+  },
+  "scorer_changed": false,
+  "selection_policy": "final-selection evidence only; not used for calibration, sensitivity, or allocation",
+  "semantic_answers_changed": false,
+  "source_sha256": "6fe7bd7da6732e9057a75764292b18b29c3262a96eb39391b700f038f641851b",
+  "source_suite": "/Users/artem/projects/benchmark-qwen-3.8/research/stage5/heldout/heldout_v1.jsonl",
+  "suite": "Qwen3.8 Stage 6 corrected held-out quality suite",
+  "suite_path": "/Users/artem/projects/benchmark-qwen-3.8/research/stage6/heldout/heldout_v2.jsonl",
+  "suite_sha256": "1749a8b47e99bb3e0e04347d75e24d7022ed3ab8d5ffa5bc56926b9cf02cbcbd",
+  "unchanged_case_count": 15,
+  "version": 2
+}

@@ -194,6 +194,11 @@ def main() -> int:
     parser.add_argument("--output", required=True)
     parser.add_argument("--case-ids", nargs="*", default=None)
     parser.add_argument("--max-layers", type=int, default=None)
+    parser.add_argument(
+        "--module-selection-reference",
+        default=None,
+        help="Stage 5 ranking JSON used to select top-25, middle-10, and low-10 modules",
+    )
     parser.add_argument("--memory-budget-gib", type=float, default=15.0)
     args = parser.parse_args()
 
@@ -291,6 +296,27 @@ def main() -> int:
             source / "model.safetensors.index.json"
         )
 
+        selected_paths: set[str] | None = None
+        if args.module_selection_reference:
+            reference_path = Path(args.module_selection_reference).resolve()
+            reference = json.loads(reference_path.read_text(encoding="utf-8"))
+            reference_order = [item["path"] for item in reference["records"]]
+            rank_indices = (
+                list(range(min(25, len(reference_order))))
+                + list(range(244, min(254, len(reference_order))))
+                + list(range(488, min(498, len(reference_order))))
+            )
+            selected_paths = {reference_order[index] for index in rank_indices}
+            missing = selected_paths - set(module_by_path)
+            if missing:
+                raise ValueError(f"module selection contains unknown paths: {sorted(missing)}")
+            result["module_selection"] = {
+                "reference": str(reference_path),
+                "rank_bands_zero_based": [[0, min(25, len(reference_order))], [244, min(254, len(reference_order))], [488, min(498, len(reference_order))]],
+                "selected_count": len(selected_paths),
+                "selected_paths": sorted(selected_paths),
+            }
+
         base_outputs: dict[str, Any] = {}
         base_metrics_total: dict[str, float] = {}
         for case_id in selected_ids:
@@ -332,6 +358,8 @@ def main() -> int:
             q4_by_path = {entry["path"]: entry for entry in active.values()}
 
             for path, metadata_item in sorted(metadata.items()):
+                if selected_paths is not None and path not in selected_paths:
+                    continue
                 module = module_by_path[path]
                 state.active = {id(module): q4_by_path[path]}
                 state.promote_path = path
@@ -413,7 +441,9 @@ def main() -> int:
             key=lambda item: (-item["quality_recovery_per_byte"], item["path"]),
         )
         result["processed_module_count"] = len(result["records"])
-        result["complete"] = len(result["records"]) == len(qkeys)
+        expected_module_count = len(selected_paths) if selected_paths is not None else len(qkeys)
+        result["expected_module_count"] = expected_module_count
+        result["complete"] = len(result["records"]) == expected_module_count
         result["ranking"] = [
             {
                 "rank": index,

@@ -51,4 +51,7 @@ qwen38-mlx-threshold/**/*.safetensors
 qwen38-mlx-threshold/**/*.bin
 qwen38-mlx-threshold/**/*.gguf
 qwen38-mlx-threshold/**/__pycache__/
+
+# Stage 6 local benchmark outputs and partial model artifacts
+research/stage6/artifacts/
 qwen38-mlx-threshold/**/*.py[cod]
