@@ -1,17 +1,17 @@
 # Stage 5 Status
 
-Last updated: 2026-08-25 — static acceleration gates recorded; backend and final synthesis remain.
+Last updated: 2026-08-25 — Stage 5 complete; final report and focused commits recorded.
 
 ## Current phase
 
-Phase 0, the safety-limited Phase 1 cliff study, the Phase 2 baseline
-comparison, Phase 3's bounded g64-teacher/g128-student KL/logit ranking, the
-Phase 4 Q1/Q2/Q3 conversions, the Phase 5/7 tournament safety gates, the Phase
-6 bounded DWQ feasibility gate, and the static Phase 8/9/10 acceleration gates
-are complete. Candidate smoke validation is safety-limited after Q1's first
-short run drove encrypted swap to 12.2 GiB. The exact cliff onset below 16K is
-intentionally unmeasured because repeated 27B prefills accumulated dangerous
-swap pressure.
+Stage 5 is complete. Phase 0, the safety-limited Phase 1 cliff study, the Phase
+2 baseline comparison, Phase 3's bounded g64-teacher/g128-student KL/logit
+ranking, the Phase 4 Q1/Q2/Q3 conversions, the Phase 5/7 tournament safety
+gates, the Phase 6 bounded DWQ feasibility gate, and the static Phase 8/9/10
+acceleration gates are recorded. Candidate smoke validation is safety-limited
+after Q1's first short run drove encrypted swap to 12.2 GiB. The exact cliff
+onset below 16K is intentionally unmeasured because repeated 27B prefills
+accumulated dangerous swap pressure.
 
 ## Completed experiments
 
@@ -163,10 +163,11 @@ but stripped by the pinned runtime and lack a native Qwen3.8 path.
   It exposes serialized OpenAI-compatible chat, reset, health, models, and
   metrics routes; a real model-backed agent smoke remains deferred by the swap
   gate.
+- Final raw-artifact/hash/path audit passed. `research/stage5/FINAL_REPORT.md`
+  is complete. Focused commits are `9fc9724` (sensitivity/frontier) and
+  `7bb17f7` (final report, safety gates, DWQ/MTP evidence, backend).
 
 ## Next action
 
-Perform the final raw-artifact audit and report. If a safe single-process
-window returns before finalization, validate Q1 first; otherwise keep
-g128/mixed34 as the only advanced quality/runtime roles and report Q1/Q2/Q3 as
-unvalidated research checkpoints.
+No further Stage 5 action. `FINAL_REPORT.md` is the handoff; Stage 6 is not
+started automatically.
