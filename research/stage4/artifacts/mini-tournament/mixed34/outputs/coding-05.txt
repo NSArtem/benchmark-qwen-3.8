@@ -1,0 +1,16 @@
+To ensure data integrity during SSE disconnections, implement a robust cursor-based recovery mechanism using `Last-Event-ID`.
+
+1.  **Monotonic Sequence**: Assign a strictly increasing, unique sequence number to every event in the durable PostgreSQL store. This sequence acts as the global cursor, ensuring a total order across all data sources.
+
+2.  **Hybrid Read Strategy**:
+    *   **Initial Connection**: The client sends `Last-Event-ID` (the last sequence number received).
+    *   **PostgreSQL Catch-up**: The server queries PostgreSQL for all events where `sequence > Last-Event-ID`. This recovers any durable events missed during the disconnect.
+    *   **Redis Subscription**: Simultaneously, the server subscribes to the Redis Stream starting from the same `Last-Event-ID` offset.
+
+3.  **Overlap De-duplication**:
+    *   The disconnect gap creates an overlap: events written to PostgreSQL but not yet propagated to Redis, or vice versa.
+    *   **Deduplication Logic**: As events stream from Redis, the server checks if the event’s sequence number is less than or equal to the maximum sequence number already delivered from the PostgreSQL catch-up phase.
+    *   If `redis_event.sequence <= pg_max_sequence`, discard the Redis event (it was already sent).
+    *   If `redis_event.sequence > pg_max_sequence`, forward it to the client.
+
+This approach guarantees no data loss (via PostgreSQL catch-up) and no duplicate delivery (via sequence-based filtering), providing an exactly-once semantic for the client.

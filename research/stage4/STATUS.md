@@ -1,18 +1,20 @@
 # Stage 4 Status
 
-Last updated: 2026-08-25 — Phases 0–2 complete; Phase 3 in progress.
+Last updated: 2026-08-25 — Phases 0–5 complete; Phase 6 in progress.
 
 ## Current phase
 
-Phase 3: bounded quantization sensitivity mapping. Phases 0–2, including the
-Quality Suite V2 validation gate and the focused early-EOS control, are complete.
+Phase 6: full frozen-suite finalist comparison. Phases 0–5 are complete,
+including the Quality Suite V2 validation gate, focused early-EOS control,
+bounded sensitivity map, two candidate conversions, and the mini tournament.
 
 ## Completed experiments
 
 Phase 0 recovery, the bounded converter self-test, Quality Suite V2, the
-teacher-forced subset, and the early-EOS control are complete. Raw model runs
-are under `research/stage4/artifacts/`; rubric-only rescoring is separated from
-the preserved generation runs.
+teacher-forced subset, the early-EOS control, sensitivity mapping, candidate
+conversion, and the mini tournament are complete. Raw model runs are under
+`research/stage4/artifacts/`; rubric-only rescoring is separated from the
+preserved generation runs.
 
 ## Phase 1 — Quality Suite V2
 
@@ -60,6 +62,57 @@ the preserved generation runs.
   segmentation-sensitive event, not persistent-cache corruption. Do not reopen
   the validated cache oracle.
 
+## Phase 3 — Bounded sensitivity map
+
+- Upstream/pinned Dynamic Quantization was inspected. Its estimator deep-copies
+  the full teacher/model/layer set and was not run on this 27B/18 GB machine.
+- The bounded calibration-activated proxy measured temporary affine 4-bit/g128
+  module output distortion against the resident g128 module over all 12 frozen
+  calibration cases. It is a promotion-ranking proxy, not a full-teacher KL or
+  perplexity sensitivity.
+- Complete map: 498 modules, 64 layers, 18 source shards; calibration SHA-256
+  `e856f39622c48f29f913d65d55f18d4ff9fb9bca16b0b23736361347472b9558`.
+- Map wall time was 617.7 seconds; maximum MLX peak was 13.807 GiB and maximum
+  active+cache was 11.439 GiB. No memory guard or safety stop fired.
+- Highest normalized proxy sensitivities were concentrated in selected late
+  self-attention `o_proj`/`k_proj`, late linear-attention `out_proj` and
+  `in_proj_a`, selected late MLP `up_proj`/`down_proj`, plus the embedding
+  output path. Family means and full rankings are in
+  `artifacts/sensitivity/sensitivity-summary.json`.
+- The pinned mixed-3/4 predicate selected 41 modules and predicted 10.665 GiB;
+  the budgeted sensitivity rank selected 135 modules and predicted 10.555 GiB
+  at a 384 MiB extra-payload budget.
+
+## Phase 4 — Candidate conversions
+
+- Candidate A, `mixed-3-4-control-g128`,
+  `/Users/artem/models/Qwen3.8-27B-mixed-3-4-control-g128`: 11,451,399,168
+  bytes = 10.664947 GiB, effective 3.4061 bpw, 41×4-bit and 457×3-bit
+  modules, 21 shards. Conversion took 27.2 seconds; max RSS was 3.10 GiB and
+  MLX peak was 3.478 GiB.
+- Candidate B, `sensitivity-3-4-gain-per-parameter`,
+  `/Users/artem/models/Qwen3.8-27B-sensitivity-3-4-g128`: 11,333,362,688
+  bytes = 10.555017 GiB, effective 3.3710 bpw, 135×4-bit and 363×3-bit
+  modules, 21 shards. Conversion took 27.7 seconds; max RSS was 3.44 GiB and
+  MLX peak was 3.478 GiB.
+- No Candidate C (targeted 3/6) was justified: corrected V2 showed no g128
+  quality gap requiring an outlier repair, and the mini gate already rejected
+  the guided 3/4 candidate.
+- One invalid diagnostic conversion briefly produced an all-3-bit copy because
+  of the corrected manifest suffix check; it is preserved as
+  `Qwen3.8-27B-sensitivity-3-4-g128-invalid-base` and is not a candidate.
+
+## Phase 5 — Mini tournament
+
+- Fixed subset: 8 evaluation cases spanning coding, instruction, structured,
+  reasoning, retrieval, and prose. g64 and g128 each scored 6/7 objective and
+  1/1 semi-objective; both missed only `reasoning-03`.
+- Candidate A scored 7/7 objective and 1/1 semi-objective, with all cases ending
+  in EOS, and advanced to the full finalist comparison.
+- Candidate B scored 6/7 objective and 0/1 semi-objective: it repeated the
+  known arithmetic miss and changed the supplied west-room fact to east. It is
+  rejected without a full suite run.
+
 ## Validated facts from Stage 3
 
 - Hardware: Apple M3 Pro, 18 GB unified memory, macOS 15.7.8.
@@ -95,20 +148,26 @@ the preserved generation runs.
 
 ## Candidate models and sizes
 
-No Stage 4 candidates built yet. Do not count the existing g64/g128 baselines
-as new candidates.
+- g64 reference: 11,771,132,928 bytes = 10.962722 GiB, effective 3.5012 bpw.
+- g128 baseline: 10,930,715,648 bytes = 10.180022 GiB, effective 3.2513 bpw.
+- Candidate A: 11,451,399,168 bytes = 10.664947 GiB, effective 3.4061 bpw.
+- Candidate B: 11,333,362,688 bytes = 10.555017 GiB, effective 3.3710 bpw.
 
 ## Rejected candidates
 
 Stage 3: uniform 2-bit and mixed_2_6 were rejected for unacceptable quality /
-pathological repetition. Stage 4 has not added any rejection.
+pathological repetition. Stage 4 Candidate B was rejected at the mini gate for
+the prose fact-preservation failure and no objective improvement. The invalid
+all-3-bit manifest diagnostic is excluded from candidate counts. No targeted
+3/6 candidate was built.
 
 ## Current best configuration
 
-Pending sensitivity/candidate work, g128 normal KV remains the practical
-performance baseline for approximately 8K initial context; g64 remains the
-quality/reference baseline. Quality Suite V2 currently shows no objective-rate
-or teacher-forced penalty for g128, so the default role remains provisional.
+Candidate A is the provisional full-suite finalist. Until Phase 6 and runtime
+validation complete, g128 normal KV remains the practical performance baseline
+for approximately 8K initial context; g64 remains the quality/reference
+baseline. Corrected V2 currently shows no objective-rate or teacher-forced
+penalty for g128.
 
 ## Active risks
 
@@ -116,11 +175,12 @@ or teacher-forced penalty for g128, so the default role remains provisional.
 - the source snapshot is local and must not be re-downloaded or committed.
 - the sensitivity proxy must be clearly labeled if it is weight-distortion
   rather than activation-aware; calibration ranking must not be overclaimed.
+- the full finalist suite and 8K/16K persistent validation remain outstanding.
+- production CLI regression coverage and the learned-quant feasibility memo
+  remain outstanding.
 
 ## Next action
 
-Inspect pinned/upstream quantization predicates and the existing bounded
-converter, then run a representative bounded per-tensor/layer sensitivity
-pass using local calibration metadata only. Produce the sensitivity ranking,
-budget curve, and a smoke-tested conversion plan before creating any new
-candidate.
+Run the full frozen evaluation suite for g64, g128, and Candidate A; compute the
+final objective/teacher-forced comparison, then validate the selected runtime at
+8K and 16K before productionizing `qwen38-chat`.

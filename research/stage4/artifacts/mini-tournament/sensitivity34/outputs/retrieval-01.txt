@@ -1,0 +1,6 @@
+Based on the provided ledger, here are the details for Record 017:
+
+*   **Owner:** Iris
+*   **Shard:** amber
+*   **Retry Window:** 37
+*   **Checksum:** A7C9

@@ -156,6 +156,12 @@ def evaluate_case(spec: dict[str, Any], text: str, token_ids: list[int]) -> dict
 def run_model(args: argparse.Namespace) -> int:
     split_path = SUITE_ROOT / ("calibration/calibration_v2.jsonl" if args.split == "calibration" else "evaluation/evaluation_v2.jsonl")
     specs = read_jsonl(split_path)
+    if args.case_ids:
+        selected = set(args.case_ids)
+        specs = [spec for spec in specs if spec["case_id"] in selected]
+        missing = selected - {spec["case_id"] for spec in specs}
+        if missing:
+            raise ValueError(f"unknown case IDs: {sorted(missing)}")
     output_root = Path(args.output_root)
     output_root.mkdir(parents=True, exist_ok=True)
     (output_root / "outputs").mkdir(exist_ok=True)
@@ -174,6 +180,7 @@ def run_model(args: argparse.Namespace) -> int:
         "suite_path": str(split_path),
         "suite_sha256": sha256_text(split_path.read_text(encoding="utf-8")),
         "case_count": len(specs),
+        "selected_case_ids": [spec["case_id"] for spec in specs],
         "model": None,
         "cases": [],
         "exception": None,
@@ -285,6 +292,7 @@ def main() -> int:
     parser.add_argument("--model", required=True)
     parser.add_argument("--split", choices=("calibration", "evaluation"), default="evaluation")
     parser.add_argument("--output-root", required=True)
+    parser.add_argument("--case-ids", nargs="*", default=None)
     args = parser.parse_args()
     return run_model(args)
 

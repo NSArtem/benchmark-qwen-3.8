@@ -1,0 +1,18 @@
+**Diagnosis:**
+The current implementation suffers from a classic check-then-act race condition. Two concurrent requests (R1, R2) execute the `SELECT` simultaneously. Since neither job exists yet, both return "not found." Both then attempt the `INSERT`. Without a unique constraint on the idempotency key, the database allows both inserts to succeed, creating duplicate jobs and violating idempotency.
+
+**Smallest Database-Level Fix:**
+Add a **UNIQUE constraint** on the `idempotency_key` column in the `jobs` table.
+
+```sql
+ALTER TABLE jobs ADD CONSTRAINT uq_idempotency_key UNIQUE (idempotency_key);
+```
+
+**How Retry Returns Original Result:**
+1.  **Concurrent Execution:** R1 and R2 attempt the `INSERT` concurrently.
+2.  **Conflict:** The database enforces the unique constraint. One request (e.g., R1) succeeds. The other (R2) fails with a unique constraint violation error (e.g., `SQLSTATE 23505` in PostgreSQL).
+3.  **Retry Logic:** The application catches this specific error code.
+4.  **Recovery:** Instead of re-executing the business logic, the application performs a `SELECT` on the existing row using the same idempotency key.
+5.  **Result:** It retrieves the status and response payload stored by the *first* successful request (R1) and returns that original result to the client.
+
+This ensures exactly-once semantics: the side effect happens once, but the response is consistent for all retries.

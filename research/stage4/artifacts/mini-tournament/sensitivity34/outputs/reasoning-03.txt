@@ -1,0 +1,3 @@
+The client receives events 8, 9, 9, and 10. Using sequence-based de-duplication, the repeated event 9 is ignored. The distinct events are 8 and 10. Therefore, the client applies 2 unique events.
+
+Final: 2

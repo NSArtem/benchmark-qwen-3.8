@@ -6,7 +6,9 @@ the exact Qwen/Qwen3.8-27B source layout and the existing text-only MLX model:
 source tensors are loaded one transformer layer at a time, sanitized with the
 pinned Qwen3.5 implementation, quantized, and flushed to small safetensor
 shards. It supports the primary affine 3-bit g128 candidate and one explicitly
-selected mixed_2_6 g128 candidate. It must run in the canonical MLX environment.
+selected mixed_2_6 g128 candidate. Stage 4 additionally supports the pinned
+mixed_3_4 control and a manifest-selected sensitivity_3_4 candidate. It must
+run in the canonical MLX environment.
 
 No model arrays are loaded by --self-test.  The converter never changes the
 MLX wired-memory policy.
@@ -38,6 +40,8 @@ DEFAULT_GROUP_SIZE = 128
 DEFAULT_BITS = 3
 MIXED_LOW_BITS = 2
 MIXED_HIGH_BITS = 6
+MIXED_34_LOW_BITS = 3
+MIXED_34_HIGH_BITS = 4
 DEFAULT_SHARD_BYTES = 512 * (1 << 20)
 SENTINEL_FRAGMENT = "__qwen38_chunk_sentinel__"
 LAYER_RE = re.compile(r"^model\.language_model\.layers\.(\d+)\.")
@@ -129,9 +133,55 @@ def mixed_2_6_params(path: str, num_layers: int = 64) -> dict[str, Any]:
     }
 
 
-def quant_params(path: str, recipe: str, num_layers: int) -> dict[str, Any]:
+def mixed_3_4_params(path: str, num_layers: int = 64) -> dict[str, Any]:
+    """Match pinned mlx-lm mixed_quant_predicate_builder('mixed_3_4')."""
+
+    if "lm_head" in path:
+        use_more_bits = True
+    else:
+        match = re.search(r"\.layers\.(\d+)\.", path)
+        index = int(match.group(1)) if match else 0
+        use_more_bits = (
+            index < num_layers // 8
+            or index >= 7 * num_layers // 8
+            or (index - num_layers // 8) % 3 == 2
+        )
+    high = use_more_bits and (
+        "v_proj" in path
+        or "v_a_proj" in path
+        or "v_b_proj" in path
+        or "down_proj" in path
+        or "lm_head" in path
+    )
+    return {
+        "group_size": DEFAULT_GROUP_SIZE,
+        "bits": MIXED_34_HIGH_BITS if high else MIXED_34_LOW_BITS,
+        "mode": "affine",
+    }
+
+
+def quant_params(
+    path: str,
+    recipe: str,
+    num_layers: int,
+    promoted_paths: set[str] | None = None,
+) -> dict[str, Any]:
     if recipe == "mixed_2_6":
         return mixed_2_6_params(path, num_layers)
+    if recipe == "mixed_3_4_control":
+        return mixed_3_4_params(path, num_layers)
+    if recipe == "sensitivity_3_4":
+        if promoted_paths is None:
+            raise ValueError("sensitivity_3_4 requires --promotion-manifest")
+        return {
+            "group_size": DEFAULT_GROUP_SIZE,
+            "bits": (
+                MIXED_34_HIGH_BITS
+                if path.removesuffix(".weight") in promoted_paths
+                else MIXED_34_LOW_BITS
+            ),
+            "mode": "affine",
+        }
     return {
         "group_size": DEFAULT_GROUP_SIZE,
         "bits": DEFAULT_BITS,
@@ -201,6 +251,29 @@ def load_json(path: Path) -> dict[str, Any]:
         return json.load(stream)
 
 
+def load_promotion_manifest(path: Path, candidate_name: str | None) -> set[str]:
+    value = load_json(path)
+    if "selected_paths" in value:
+        paths = value["selected_paths"]
+    else:
+        candidates = value.get("candidates", [])
+        if candidate_name is None:
+            if len(candidates) != 1:
+                raise ValueError(
+                    "promotion manifest contains multiple candidates; pass --candidate-name"
+                )
+            candidate = candidates[0]
+        else:
+            matching = [item for item in candidates if item.get("name") == candidate_name]
+            if len(matching) != 1:
+                raise ValueError(f"candidate not found in promotion manifest: {candidate_name}")
+            candidate = matching[0]
+        paths = candidate.get("selected_paths", [])
+    if not isinstance(paths, list) or not all(isinstance(item, str) for item in paths):
+        raise ValueError("promotion manifest selected_paths must be a list of strings")
+    return set(paths)
+
+
 def self_test(baseline: Path) -> dict[str, Any]:
     config = load_json(baseline / "config.json")
     model = build_model(config)
@@ -253,6 +326,11 @@ def self_test(baseline: Path) -> dict[str, Any]:
         mixed_counts[mixed_2_6_params(key)["bits"]] += 1
     if mixed_counts != {2: 457, 6: 41}:
         raise AssertionError(f"unexpected mixed_2_6 module counts: {mixed_counts}")
+    mixed_34_counts = {3: 0, 4: 0}
+    for key in qkeys:
+        mixed_34_counts[mixed_3_4_params(key)["bits"]] += 1
+    if mixed_34_counts != {3: 457, 4: 41}:
+        raise AssertionError(f"unexpected mixed_3_4 module counts: {mixed_34_counts}")
 
     return {
         "model_type": config.get("model_type"),
@@ -262,6 +340,7 @@ def self_test(baseline: Path) -> dict[str, Any]:
         "chunk_plan_test": [layer for layer, _ in chunks],
         "global_norm_shift_test": shifted_value,
         "mixed_2_6_module_counts": mixed_counts,
+        "mixed_3_4_module_counts": mixed_34_counts,
         "wired_limit_calls": 0,
     }
 
@@ -390,7 +469,18 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
     cast_predicate = getattr(model, "cast_predicate", lambda _: True)
     text_config = config.get("text_config", config)
     num_layers = int(text_config.get("num_hidden_layers", 64))
-    quantization_counts = {"2": 0, "3": 0, "6": 0}
+    promoted_paths: set[str] | None = None
+    if args.quant_recipe == "sensitivity_3_4":
+        if not args.promotion_manifest:
+            raise ValueError("sensitivity_3_4 requires --promotion-manifest")
+        promoted_paths = load_promotion_manifest(
+            Path(args.promotion_manifest).resolve(), args.candidate_name
+        )
+        qmodule_paths = {key.removesuffix(".weight") for key in qkeys}
+        if not promoted_paths <= qmodule_paths:
+            missing = sorted(promoted_paths - qmodule_paths)
+            raise ValueError(f"promotion manifest contains unknown module paths: {missing[:5]}")
+    quantization_counts = {"2": 0, "3": 0, "4": 0, "6": 0}
     output_map: dict[str, str] = {}
     shard_weights: dict[str, Any] = {}
     shard_bytes = 0
@@ -420,7 +510,7 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
                 weight = weight.astype(target_dtype)
 
             if key in qkeys:
-                params = quant_params(key, args.quant_recipe, num_layers)
+                params = quant_params(key, args.quant_recipe, num_layers, promoted_paths)
                 if weight.ndim < 2 or weight.shape[-1] % params["group_size"]:
                     raise ValueError(
                         f"invalid g128 quantization shape for {key}: {weight.shape}"
@@ -507,7 +597,18 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
             {
                 # mlx-lm's class_predicate receives module paths, not the
                 # serialized `.weight` tensor paths used by qkeys.
-                key.removesuffix(".weight"): quant_params(key, args.quant_recipe, num_layers)
+                key.removesuffix(".weight"): quant_params(
+                    key, args.quant_recipe, num_layers, promoted_paths
+                )
+                for key in sorted(qkeys)
+            }
+        )
+    elif args.quant_recipe in {"mixed_3_4_control", "sensitivity_3_4"}:
+        quantization.update(
+            {
+                key.removesuffix(".weight"): quant_params(
+                    key, args.quant_recipe, num_layers, promoted_paths
+                )
                 for key in sorted(qkeys)
             }
         )
@@ -563,9 +664,17 @@ def main() -> None:
     )
     parser.add_argument(
         "--quant-recipe",
-        choices=("affine_3_g128", "mixed_2_6"),
+        choices=("affine_3_g128", "mixed_2_6", "mixed_3_4_control", "sensitivity_3_4"),
         default="affine_3_g128",
-        help="g128 recipe; mixed_2_6 mirrors pinned mlx-lm's built-in predicate",
+        help="g128 recipe; Stage 4 candidates use mixed_3_4_control or sensitivity_3_4",
+    )
+    parser.add_argument(
+        "--promotion-manifest",
+        help="JSON summary containing selected_paths for sensitivity_3_4",
+    )
+    parser.add_argument(
+        "--candidate-name",
+        help="candidate name inside --promotion-manifest when it contains multiple candidates",
     )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()

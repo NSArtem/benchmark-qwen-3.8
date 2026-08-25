@@ -1,0 +1,14 @@
+**Diagnosis**
+The race condition arises from a classic check-then-act pattern. Both concurrent requests execute the initial `SELECT` before either has committed its `INSERT`. Since the key does not exist yet, both threads see an empty result set. Consequently, both proceed to insert the job and the idempotency key. Without a unique constraint on the idempotency key, the database allows both inserts to succeed, resulting in duplicate jobs for the same logical operation.
+
+**Smallest Database-Level Fix**
+Add a **unique constraint** (or unique index) on the idempotency key column in the jobs table.
+
+```sql
+ALTER TABLE jobs ADD CONSTRAINT uk_idempotency_key UNIQUE (idempotency_key);
+```
+
+This enforces uniqueness at the storage engine level. When the second concurrent request attempts to insert the same key, the database rejects the operation with a unique constraint violation error (e.g., `SQLIntegrityConstraintViolationException` in Java, or error 23505 in PostgreSQL).
+
+**Retry Mechanism**
+The application must catch this specific unique constraint violation exception. Upon catching it, the request is treated as a duplicate. Instead of failing, the handler performs a `SELECT` query using the same idempotency key to retrieve the data from the **original** job record that was successfully inserted by the first request. The application then returns this stored response (status, headers, and body) to the client, ensuring the client receives the exact same result as the first request, thereby preserving idempotency.

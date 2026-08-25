@@ -1,0 +1,3280 @@
+{
+  "case_count": 8,
+  "cases": [
+    {
+      "cache_state_signature": "4886cb3ec2362c68852d8ac00dd56ecd59a7baf9ba541ee8b32ad13b1942332a",
+      "case_id": "coding-01",
+      "category": "coding",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 4,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.595835897325488,
+      "decoded_output": "The race condition stems from a classic \"check-then-act\" anti-pattern. Two concurrent requests execute the `SELECT` simultaneously before either `INSERT` completes. Since the key does not exist yet, both threads see \"not found\" and proceed to insert. This results in duplicate job rows for the same idempotency key, violating the uniqueness constraint or causing data corruption.\n\nThe smallest database-level fix is to enforce a **Unique Constraint** on the idempotency key column in the `jobs` table. Instead of relying on application logic to prevent duplicates, let the database handle the integrity check atomically.\n\nModify the code to attempt the `INSERT` directly. If the insert fails due to a unique constraint violation (e.g., SQL error 1062 in MySQL or 23505 in PostgreSQL), catch that specific exception. Upon catching the duplicate key error, the code must then perform a `SELECT` to retrieve the existing job row associated with that key.\n\nThis approach ensures that only one concurrent request succeeds in creating the new job. The losing request detects the conflict and falls back to reading the winner's data. By returning the original job's result (status, ID, and payload) from the existing row, the retry mechanism guarantees that the client receives the exact same response as the first request, preserving idempotency semantics without requiring complex distributed locks or transactions.",
+      "decoded_output_sha256": "3f90a703033c966c759ce1872be576cb4b20d472b678a533f0f3c00bb4b4450d",
+      "early_eos": false,
+      "elapsed_seconds": 26.32690349998302,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "ddaf2a5af77e98df4ba9ababe68a57ada34f54bbcf49487979f5d03beb090dba",
+        "top1_id": 760,
+        "top_k_ids": [
+          760,
+          332,
+          1206,
+          13962,
+          550,
+          16,
+          1073,
+          1919
+        ],
+        "top_k_logprobs": [
+          -0.625,
+          -0.875,
+          -5.0,
+          -5.5,
+          -5.75,
+          -5.875,
+          -6.375,
+          -6.375
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "b9991c2013d0801d0b4696d813ab7660346fc7b32ca0bfafb1832d354e9befed",
+      "generated_tokens": 287,
+      "max_tokens": 512,
+      "memory_after_generation": {
+        "active_bytes": 11522948106,
+        "active_gib": 10.731581697240472,
+        "active_plus_cache_bytes": 11569351348,
+        "active_plus_cache_gib": 10.774798084050417,
+        "cache_bytes": 46403242,
+        "cache_gib": 0.043216386809945107,
+        "elapsed_seconds": 30.89037950002239,
+        "label": "stage4:evaluation:sensitivity34-mini:coding-01:after_generation",
+        "peak_bytes": 11836929174,
+        "peak_gib": 11.02399935387075,
+        "rss_max_bytes": 7616774144
+      },
+      "prompt_sha256": "61f04fd85d0e97c2813dca1d65c382dee5ab10f139bf0fbf0b55164ec99363b9",
+      "prompt_token_sha256": "4bdc6cf2451bbe85cf85c027b3d6a28d911dda128d1d6caee65901a0dee0cbf8",
+      "prompt_tokens": 93,
+      "prompt_tps": 60.661062103128494,
+      "raw_output_path": "research/stage4/artifacts/mini-tournament/sensitivity34/outputs/coding-01.txt",
+      "raw_token_path": "research/stage4/artifacts/mini-tournament/sensitivity34/tokens/coding-01.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/mini-tournament/sensitivity34/state_signatures/coding-01.json",
+      "total_seconds": 26.19713483302621,
+      "ttft_seconds": 1.5331086660153233
+    },
+    {
+      "cache_state_signature": "a3c8634292605f7d622318df76276e72d3a4f80f0f07b2c94bdb3f3aa41d8cb5",
+      "case_id": "coding-05",
+      "category": "coding",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 8,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.594939174337291,
+      "decoded_output": "To resolve the race condition where a client disconnects after reading durable events but before subscribing to Redis Streams, implement a cursor-based resumption strategy.\n\n1.  **Monotonic Sequence**: Assign a strictly increasing, unique sequence number (e.g., `seq_id`) to every event in PostgreSQL. This provides a total order independent of timestamps, which can be skewed or duplicated.\n\n2.  **Last-Event-ID**: Use the standard SSE header `Last-Event-ID` to carry this `seq_id`. When a client reconnects, it sends the last `seq_id` it successfully processed.\n\n3.  **Overlap De-duplication**: Upon reconnection, the server must not simply resume from `Last-Event-ID + 1`. Instead, it must re-read durable events from `Last-Event-ID - N` (where N is a small overlap window, e.g., 10) to capture any events that were committed to PostgreSQL but missed during the disconnect window.\n\n    *   **Phase 1**: Query PostgreSQL for events where `seq_id > (Last-Event-ID - N)`.\n    *   **Phase 2**: Subscribe to Redis Streams starting from the same overlap point or the current live position.\n    *   **De-duplication**: The client maintains a local set of recently seen `seq_id`s. If an event arrives with a `seq_id` already in this set (from the overlap window), the client discards it. This ensures no data loss from the gap and no duplicate processing.\n\nThis approach guarantees at-least-once delivery with client-side idempotency, effectively closing the disconnect gap.",
+      "decoded_output_sha256": "dffc02d56d969ce87611de7bd6c08af243b7a5f85b7d906287feff2e57346256",
+      "early_eos": false,
+      "elapsed_seconds": 31.002008375013247,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "59f906a07649ef5ceb70782b44ff2ccbd968391b2547f99442641792e21eb26d",
+        "top1_id": 1206,
+        "top_k_ids": [
+          1206,
+          760,
+          332,
+          9947,
+          16,
+          5903,
+          32,
+          13962
+        ],
+        "top_k_logprobs": [
+          -0.75,
+          -1.125,
+          -2.25,
+          -4.125,
+          -4.375,
+          -4.625,
+          -4.875,
+          -4.875
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "20526bd7f8710584ba8042c47a39ff3c912d98b42e6242de536fa5ffd7751604",
+      "generated_tokens": 343,
+      "max_tokens": 512,
+      "memory_after_generation": {
+        "active_bytes": 11522948106,
+        "active_gib": 10.731581697240472,
+        "active_plus_cache_bytes": 11568646776,
+        "active_plus_cache_gib": 10.774141900241375,
+        "cache_bytes": 45698670,
+        "cache_gib": 0.04256020300090313,
+        "elapsed_seconds": 61.898303458001465,
+        "label": "stage4:evaluation:sensitivity34-mini:coding-05:after_generation",
+        "peak_bytes": 11836929174,
+        "peak_gib": 11.02399935387075,
+        "rss_max_bytes": 7616774144
+      },
+      "prompt_sha256": "b930d7930f07111f7366a51e32b8ce07b0d42deb833720989360d88507fd0f33",
+      "prompt_token_sha256": "0c0cb8f220bf0a794d7cdd56838eb77e7863ee569c7942546bc102e5d86c443b",
+      "prompt_tokens": 78,
+      "prompt_tps": 55.84976959578495,
+      "raw_output_path": "research/stage4/artifacts/mini-tournament/sensitivity34/outputs/coding-05.txt",
+      "raw_token_path": "research/stage4/artifacts/mini-tournament/sensitivity34/tokens/coding-05.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/mini-tournament/sensitivity34/state_signatures/coding-05.json",
+      "total_seconds": 30.892230708006537,
+      "ttft_seconds": 1.3966037920035888
+    },
+    {
+      "cache_state_signature": "c14f45bcd9f397968fbda62abadd0c4ba2f7d97e7efaea0ed1c66ef23925158a",
+      "case_id": "instruction-01",
+      "category": "instruction",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 4,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.594804851634363,
+      "decoded_output": "MODE: greedy\nCHECK: schema\nLIMIT: one\nEND: DONE",
+      "decoded_output_sha256": "94d8a6973a097d52f38b9764dd7cc042fcd9bb2fbc2d6ab0f8905b922c21df7a",
+      "early_eos": false,
+      "elapsed_seconds": 2.368165666004643,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "c9f00e3f9e26a920ae191d8967421eb06774157c06c21624b51fe72c069d1c66",
+        "top1_id": 22098,
+        "top_k_ids": [
+          22098,
+          21986,
+          4935,
+          3513,
+          2380,
+          760,
+          40,
+          8007
+        ],
+        "top_k_logprobs": [
+          0.0,
+          -4.4375,
+          -5.3125,
+          -5.5,
+          -5.6875,
+          -6.4375,
+          -6.75,
+          -6.75
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "39fd029ee3b6c8caefc013f94a79e66bedbb92cdbe7bf4a3c32148b4368df76f",
+      "generated_tokens": 16,
+      "max_tokens": 128,
+      "memory_after_generation": {
+        "active_bytes": 11505613834,
+        "active_gib": 10.715437898412347,
+        "active_plus_cache_bytes": 11553374760,
+        "active_plus_cache_gib": 10.759918726980686,
+        "cache_bytes": 47760926,
+        "cache_gib": 0.04448082856833935,
+        "elapsed_seconds": 64.27948562501115,
+        "label": "stage4:evaluation:sensitivity34-mini:instruction-01:after_generation",
+        "peak_bytes": 11836929174,
+        "peak_gib": 11.02399935387075,
+        "rss_max_bytes": 7616774144
+      },
+      "prompt_sha256": "1eb3e5e34da4cb7546a00fd0e6f86d1183d1f59df5fbe81dc6758880ea087ab4",
+      "prompt_token_sha256": "12a25c5cc76b6fe423e5265ec9157aa94aae3a49551d35490c21a0ad4a20e750",
+      "prompt_tokens": 42,
+      "prompt_tps": 42.387387190335446,
+      "raw_output_path": "research/stage4/artifacts/mini-tournament/sensitivity34/outputs/instruction-01.txt",
+      "raw_token_path": "research/stage4/artifacts/mini-tournament/sensitivity34/tokens/instruction-01.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/mini-tournament/sensitivity34/state_signatures/instruction-01.json",
+      "total_seconds": 2.284543624991784,
+      "ttft_seconds": 0.9908607910037972
+    },
+    {
+      "cache_state_signature": "cec8ce3c86b36b338aae38d0158cec9362624b98d0f650e16367e5bb8efb9ba2",
+      "case_id": "structured-01",
+      "category": "structured",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": true,
+        "json_shape_ok": true,
+        "json_types_ok": true,
+        "json_values_ok": true,
+        "line_count": 7,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": {
+          "attempts": 1,
+          "safe": true,
+          "state": "queued"
+        },
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.589425714526168,
+      "decoded_output": "```json\n{\n  \"state\": \"queued\",\n  \"safe\": true,\n  \"attempts\": 1\n}\n```",
+      "decoded_output_sha256": "60995e14640a9aa997bf97446032a2913b3302d0e53826fd9c72f2e617566c7c",
+      "early_eos": false,
+      "elapsed_seconds": 3.778642999997828,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "a999dd5274c464b75f6f1d69021d09275cb6f63ee3f8a87e066d1c7d114300c7",
+        "top1_id": 71093,
+        "top_k_ids": [
+          71093,
+          90,
+          4754,
+          248058,
+          40,
+          248046,
+          1596,
+          760
+        ],
+        "top_k_logprobs": [
+          -0.25,
+          -1.375,
+          -4.0,
+          -5.25,
+          -7.0,
+          -7.125,
+          -7.375,
+          -7.625
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "1731d32d580968c97229ee497292cf895bbc144c4f3cf1c492048ba1395307a4",
+      "generated_tokens": 32,
+      "max_tokens": 160,
+      "memory_after_generation": {
+        "active_bytes": 11505581066,
+        "active_gib": 10.715407380834222,
+        "active_plus_cache_bytes": 11553423944,
+        "active_plus_cache_gib": 10.759964533150196,
+        "cache_bytes": 47842878,
+        "cache_gib": 0.044557152315974236,
+        "elapsed_seconds": 68.04346945800353,
+        "label": "stage4:evaluation:sensitivity34-mini:structured-01:after_generation",
+        "peak_bytes": 11836929174,
+        "peak_gib": 11.02399935387075,
+        "rss_max_bytes": 7616774144
+      },
+      "prompt_sha256": "9b3fae3a78852316f470a069b825ce6e94c2381aad9cc4af75ae3ece64400d53",
+      "prompt_token_sha256": "b5c7dd93d18bf4cade5d64072c467bd928fe6a53457f0f6cbe91104297c94607",
+      "prompt_tokens": 50,
+      "prompt_tps": 50.18278033910419,
+      "raw_output_path": "research/stage4/artifacts/mini-tournament/sensitivity34/outputs/structured-01.txt",
+      "raw_token_path": "research/stage4/artifacts/mini-tournament/sensitivity34/tokens/structured-01.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/mini-tournament/sensitivity34/state_signatures/structured-01.json",
+      "total_seconds": 3.6712098330026492,
+      "ttft_seconds": 0.9963577080052346
+    },
+    {
+      "cache_state_signature": "1eb79921c81e592a945399718fbc01002b616dedb4b33c021b510d8d6a4c8652",
+      "case_id": "reasoning-01",
+      "category": "reasoning",
+      "checks": {
+        "answer_ok": true,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 1,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.448708889616919,
+      "decoded_output": "Final: 7",
+      "decoded_output_sha256": "fd2f38c4089ffa6c61a5dfa25dc911f23b82eb0ad2268fc04bba866a29e48ef9",
+      "early_eos": false,
+      "elapsed_seconds": 1.845838334003929,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "208e4253dd9d0ced6eb3220ed2a3865a5dc1deda3274b4660c90e15b83fd5439",
+        "top1_id": 18770,
+        "top_k_ids": [
+          18770,
+          3367,
+          6140,
+          23841,
+          1596,
+          1206,
+          86888,
+          760
+        ],
+        "top_k_logprobs": [
+          -1.25,
+          -1.5,
+          -1.875,
+          -2.375,
+          -2.625,
+          -2.875,
+          -3.625,
+          -4.0
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "01ce7e257b58afef7997c8fd595f187048e10daccbaa38c0b9a4c9274491605f",
+      "generated_tokens": 5,
+      "max_tokens": 384,
+      "memory_after_generation": {
+        "active_bytes": 11505581066,
+        "active_gib": 10.715407380834222,
+        "active_plus_cache_bytes": 11553407640,
+        "active_plus_cache_gib": 10.75994934886694,
+        "cache_bytes": 47826574,
+        "cache_gib": 0.044541968032717705,
+        "elapsed_seconds": 69.89271537499735,
+        "label": "stage4:evaluation:sensitivity34-mini:reasoning-01:after_generation",
+        "peak_bytes": 11836929174,
+        "peak_gib": 11.02399935387075,
+        "rss_max_bytes": 7616774144
+      },
+      "prompt_sha256": "4ddd9085b875db731d6d9a0966ae822f2aa7face8f3b2740ecdf34d7095adec5",
+      "prompt_token_sha256": "f4cb769e10c1b316ce76d3dec86f35dbfca39f2fcf400983ebc8a5e352391e36",
+      "prompt_tokens": 73,
+      "prompt_tps": 52.4312147797086,
+      "raw_output_path": "research/stage4/artifacts/mini-tournament/sensitivity34/outputs/reasoning-01.txt",
+      "raw_token_path": "research/stage4/artifacts/mini-tournament/sensitivity34/tokens/reasoning-01.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/mini-tournament/sensitivity34/state_signatures/reasoning-01.json",
+      "total_seconds": 1.741684750013519,
+      "ttft_seconds": 1.392300375009654
+    },
+    {
+      "cache_state_signature": "5b03168db0a7f72256267991f8da0ded7848a9e3f7d94ec0390dc3a83db0f305",
+      "case_id": "reasoning-03",
+      "category": "reasoning",
+      "checks": {
+        "answer_ok": false,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 2,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": false,
+        "objective_pass": false,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.607866815796559,
+      "decoded_output": "The client receives events 8, 9, 9, and 10. Using sequence-based de-duplication, the repeated event 9 is ignored. The distinct events are 8 and 10. Therefore, the client applies 2 unique events.\n\nFinal: 2",
+      "decoded_output_sha256": "cbd7646f88fb4f88e75db37a84d698e1525379b477307ebfbfa09170c6f89ac6",
+      "early_eos": false,
+      "elapsed_seconds": 6.705077082995558,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "a6002dcd568e310ca16702edb1009f5b56a17c55a269d1ddec8a11d0baceb453",
+        "top1_id": 760,
+        "top_k_ids": [
+          760,
+          35,
+          13673,
+          7354,
+          18770,
+          674,
+          1847,
+          1206
+        ],
+        "top_k_logprobs": [
+          -0.75,
+          -0.875,
+          -2.625,
+          -3.75,
+          -4.5,
+          -4.625,
+          -5.0,
+          -5.25
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "321255854558831d71f5c3fe8e17d20f6e95da150f1aa59d3640be5acc1c1423",
+      "generated_tokens": 61,
+      "max_tokens": 384,
+      "memory_after_generation": {
+        "active_bytes": 11505581066,
+        "active_gib": 10.715407380834222,
+        "active_plus_cache_bytes": 11553538744,
+        "active_plus_cache_gib": 10.760071448981762,
+        "cache_bytes": 47957678,
+        "cache_gib": 0.04466406814754009,
+        "elapsed_seconds": 76.59613058299874,
+        "label": "stage4:evaluation:sensitivity34-mini:reasoning-03:after_generation",
+        "peak_bytes": 11836929174,
+        "peak_gib": 11.02399935387075,
+        "rss_max_bytes": 7616774144
+      },
+      "prompt_sha256": "d64ce12a811b8eaebec1829b96155a7571979f006d5d462399f5ef68445177ba",
+      "prompt_token_sha256": "4e37c7427f83e3ec54922eb312cde34c63dae25c18c10c76335ae8bf4bd90fd5",
+      "prompt_tokens": 81,
+      "prompt_tps": 56.748647527849016,
+      "raw_output_path": "research/stage4/artifacts/mini-tournament/sensitivity34/outputs/reasoning-03.txt",
+      "raw_token_path": "research/stage4/artifacts/mini-tournament/sensitivity34/tokens/reasoning-03.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/mini-tournament/sensitivity34/state_signatures/reasoning-03.json",
+      "total_seconds": 6.596255167009076,
+      "ttft_seconds": 1.42734679201385
+    },
+    {
+      "cache_state_signature": "5b9e5bbf4fb878fed5cd3c20e8bd404d0ae5853fcbf6ec0faa1b974f469994aa",
+      "case_id": "retrieval-01",
+      "category": "retrieval",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 5,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.18395728635227,
+      "decoded_output": "Based on the provided ledger, here are the details for Record 017:\n\n*   **Owner:** Iris\n*   **Shard:** amber\n*   **Retry Window:** 37\n*   **Checksum:** A7C9",
+      "decoded_output_sha256": "e9b8d978fe90a1e8082e55281307335e0e80b758620a814dad864727e16a76de",
+      "early_eos": false,
+      "elapsed_seconds": 73.13750495799468,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "56d48ad861715981c18a8495f36df133a52bb8f9a7a049a1d0fea9b79800b695",
+        "top1_id": 27775,
+        "top_k_ids": [
+          27775,
+          6269,
+          7862,
+          332,
+          1206,
+          40,
+          13405,
+          760
+        ],
+        "top_k_logprobs": [
+          -0.625,
+          -1.625,
+          -2.5,
+          -2.75,
+          -3.75,
+          -4.25,
+          -4.25,
+          -4.875
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "43fbd018d33ab4bc74927d82dcbae656ef50961ca5d7f904728cd98993584bed",
+      "generated_tokens": 53,
+      "max_tokens": 256,
+      "memory_after_generation": {
+        "active_bytes": 11857902602,
+        "active_gib": 11.043532380834222,
+        "active_plus_cache_bytes": 11919683572,
+        "active_plus_cache_gib": 11.101070392876863,
+        "cache_bytes": 61780970,
+        "cache_gib": 0.05753801204264164,
+        "elapsed_seconds": 149.72136229102034,
+        "label": "stage4:evaluation:sensitivity34-mini:retrieval-01:after_generation",
+        "peak_bytes": 14677376054,
+        "peak_gib": 13.669371655210853,
+        "rss_max_bytes": 7616774144
+      },
+      "prompt_sha256": "9e72b8281cc0f6e6989e1506f3592765c8fb5418b60ef43932de4ab995e436fa",
+      "prompt_token_sha256": "3b90c6cdd6d4c9fbcfae4caf9635a1f19b8b36d7216633767659ba70996e9739",
+      "prompt_tokens": 5418,
+      "prompt_tps": 79.27866520775135,
+      "raw_output_path": "research/stage4/artifacts/mini-tournament/sensitivity34/outputs/retrieval-01.txt",
+      "raw_token_path": "research/stage4/artifacts/mini-tournament/sensitivity34/tokens/retrieval-01.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/mini-tournament/sensitivity34/state_signatures/retrieval-01.json",
+      "total_seconds": 72.99072820899892,
+      "ttft_seconds": 68.34121116698952
+    },
+    {
+      "cache_state_signature": "8c8a5d6d5206821ab3e832d5e4ad9ef2322340234cac0792dd3ed4218633c5c2",
+      "case_id": "prose-01",
+      "category": "prose",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {
+          "gun": true,
+          "sword": true,
+          "weapon": true,
+          "west sill": true
+        },
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 1,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": false,
+        "objective_pass": null,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": false,
+          "4": true,
+          "5": true
+        },
+        "score_kind": "semi-objective",
+        "semi_objective_pass": false
+      },
+      "decode_tps": 11.539896987052028,
+      "decoded_output": "Mira’s fingers brushed the cool brass key resting on the east sill, her touch light as a whisper in the quiet room. Sol watched her with a steady gaze, the silence between them stretching wide and comfortable under the starlit dome. They stood together in the hush, letting the weight of the moment settle gently around them.",
+      "decoded_output_sha256": "811d1e0e8840c42cdf9d895e1f546d50966b7933c6789ccb35e74e96484f2e6c",
+      "early_eos": false,
+      "elapsed_seconds": 6.887367124989396,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "0efd1b0619515f9ab50bbae8198a5d946db2175094cf4215eb19572c5f512c97",
+        "top1_id": 44,
+        "top_k_ids": [
+          44,
+          760,
+          47179,
+          32,
+          39997,
+          29535,
+          81433,
+          16
+        ],
+        "top_k_logprobs": [
+          -0.375,
+          -1.875,
+          -2.875,
+          -4.0,
+          -4.75,
+          -5.0,
+          -5.875,
+          -5.9375
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "9dfecb8b8cf7b30e52e326639ba7961fd3e576066fb537f13286cb53d0caeade",
+      "generated_tokens": 68,
+      "max_tokens": 256,
+      "memory_after_generation": {
+        "active_bytes": 11505581066,
+        "active_gib": 10.715407380834222,
+        "active_plus_cache_bytes": 11553735248,
+        "active_plus_cache_gib": 10.760254457592964,
+        "cache_bytes": 48154182,
+        "cache_gib": 0.04484707675874233,
+        "elapsed_seconds": 156.63448358300957,
+        "label": "stage4:evaluation:sensitivity34-mini:prose-01:after_generation",
+        "peak_bytes": 14677376054,
+        "peak_gib": 13.669371655210853,
+        "rss_max_bytes": 7616774144
+      },
+      "prompt_sha256": "de92512e8a073ecc7bf3ef518678de4f5a3e28fc6cdf447166e52bf701a72c92",
+      "prompt_token_sha256": "d9eafc37e1c5a6c1c0055e6496821f797a5901a240a031adbb9be9ca1afeb4d4",
+      "prompt_tokens": 52,
+      "prompt_tps": 51.91739293923355,
+      "raw_output_path": "research/stage4/artifacts/mini-tournament/sensitivity34/outputs/prose-01.txt",
+      "raw_token_path": "research/stage4/artifacts/mini-tournament/sensitivity34/tokens/prose-01.json",
+      "score_kind": "semi-objective",
+      "state_signature_path": "research/stage4/artifacts/mini-tournament/sensitivity34/state_signatures/prose-01.json",
+      "total_seconds": 6.80753549997462,
+      "ttft_seconds": 1.0015911249793135
+    }
+  ],
+  "exception": null,
+  "experiment_id": "P1-EVALUATION-SENSITIVITY34-MINI-QUALITY-V2",
+  "git_commit": "34bad7179f77568426b22aca82585809c5fa67a8",
+  "memory_after_model_load": {
+    "active_bytes": 11334155272,
+    "active_gib": 10.55575466901064,
+    "active_plus_cache_bytes": 11334165836,
+    "active_plus_cache_gib": 10.555764507502317,
+    "cache_bytes": 10564,
+    "cache_gib": 9.838491678237915e-06,
+    "elapsed_seconds": 4.600816040998325,
+    "label": "stage4_evaluation_sensitivity34-mini_after_model_load",
+    "peak_bytes": 11334155272,
+    "peak_gib": 10.55575466901064,
+    "rss_max_bytes": 7616774144
+  },
+  "model": {
+    "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+    "mlx_lm_version": "0.31.3",
+    "mlx_version": "0.32.1",
+    "model_path": "/Users/artem/models/Qwen3.8-27B-sensitivity-3-4-g128",
+    "python_executable": "/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.1/.venv/bin/python3",
+    "python_version": "3.14.7",
+    "quantization": {
+      "bits": 3,
+      "group_size": 128,
+      "language_model.lm_head": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.embed_tokens": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.linear_attn.in_proj_qkv": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.linear_attn.in_proj_z": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.self_attn.q_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.self_attn.q_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.self_attn.k_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.linear_attn.in_proj_qkv": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.linear_attn.in_proj_z": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.linear_attn.in_proj_qkv": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.linear_attn.in_proj_z": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.linear_attn.in_proj_z": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.self_attn.k_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.self_attn.k_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.self_attn.k_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.linear_attn.in_proj_qkv": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.self_attn.k_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.linear_attn.in_proj_qkv": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.linear_attn.in_proj_z": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.linear_attn.in_proj_qkv": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.linear_attn.in_proj_z": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.linear_attn.in_proj_qkv": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.linear_attn.in_proj_z": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.self_attn.k_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.self_attn.q_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.linear_attn.in_proj_qkv": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.linear_attn.in_proj_z": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.linear_attn.in_proj_qkv": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.linear_attn.in_proj_z": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.linear_attn.in_proj_qkv": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.linear_attn.in_proj_z": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.self_attn.k_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.self_attn.q_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.linear_attn.in_proj_qkv": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.linear_attn.in_proj_z": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.linear_attn.in_proj_qkv": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.linear_attn.in_proj_z": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.mlp.gate_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.linear_attn.in_proj_qkv": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.linear_attn.in_proj_z": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.mlp.gate_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.mlp.gate_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.self_attn.k_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.self_attn.o_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.self_attn.q_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.self_attn.q_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.linear_attn.in_proj_a": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.linear_attn.in_proj_b": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "mode": "affine"
+    },
+    "wired_policy": "direct generate_step; MLX wired state untouched"
+  },
+  "model_label": "sensitivity34-mini",
+  "model_path": "/Users/artem/models/Qwen3.8-27B-sensitivity-3-4-g128",
+  "os_memory_after": {
+    "memory_pressure": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 29%\n"
+    },
+    "vm_stat": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                              193177.\nPages active:                             71693.\nPages inactive:                           69288.\nPages speculative:                         1085.\nPages throttled:                              0.\nPages wired down:                        797867.\nPages purgeable:                            450.\n\"Translation faults\":                 264353811.\nPages copy-on-write:                    6698335.\nPages zero filled:                    920828265.\nPages reactivated:                     11183859.\nPages purged:                           1442774.\nFile-backed pages:                        60896.\nAnonymous pages:                          81170.\nPages stored in compressor:              151195.\nPages occupied by compressor:              5528.\nDecompressions:                       428917718.\nCompressions:                         435195628.\nPageins:                              143289159.\nPageouts:                                 85958.\nSwapins:                              116512426.\nSwapouts:                             116985593.\n"
+    },
+    "vm_swapusage": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "vm.swapusage: total = 2048.00M  used = 794.50M  free = 1253.50M  (encrypted)\n"
+    }
+  },
+  "os_memory_before": {
+    "memory_pressure": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 90%\n"
+    },
+    "vm_stat": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                              895584.\nPages active:                             69695.\nPages inactive:                           67256.\nPages speculative:                         3537.\nPages throttled:                              0.\nPages wired down:                        101360.\nPages purgeable:                            255.\n\"Translation faults\":                 263526051.\nPages copy-on-write:                    6694986.\nPages zero filled:                    918083260.\nPages reactivated:                     11127235.\nPages purged:                           1441112.\nFile-backed pages:                        66544.\nAnonymous pages:                          73944.\nPages stored in compressor:              153245.\nPages occupied by compressor:              1954.\nDecompressions:                       428162047.\nCompressions:                         434440199.\nPageins:                              142612372.\nPageouts:                                 85561.\nSwapins:                              116508235.\nSwapouts:                             116985593.\n"
+    },
+    "vm_swapusage": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "vm.swapusage: total = 2048.00M  used = 858.50M  free = 1189.50M  (encrypted)\n"
+    }
+  },
+  "overall_classification": "OBJECTIVE_OR_HARNESS_FAILURES_PRESENT",
+  "phase": 1,
+  "selected_case_ids": [
+    "coding-01",
+    "coding-05",
+    "instruction-01",
+    "structured-01",
+    "reasoning-01",
+    "reasoning-03",
+    "retrieval-01",
+    "prose-01"
+  ],
+  "split": "evaluation",
+  "suite_path": "/Users/artem/projects/benchmark-qwen-3.8/research/stage4/evaluation/evaluation_v2.jsonl",
+  "suite_sha256": "ee6e02f56479b16310a864503fc933f9f4928111739ccf5c06776a88918ef721",
+  "timestamp": "2026-08-25T06:23:48+0400",
+  "total_elapsed_seconds": 156.66788191601518
+}

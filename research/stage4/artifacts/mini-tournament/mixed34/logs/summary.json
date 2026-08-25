@@ -1,0 +1,11 @@
+{
+  "case_count": 8,
+  "exceptions": 0,
+  "experiment_id": "P1-EVALUATION-MIXED34-MINI-QUALITY-V2",
+  "model_label": "mixed34-mini",
+  "objective_pass": 7,
+  "overall_classification": "PASS",
+  "semi_objective_pass": 1,
+  "split": "evaluation",
+  "total_elapsed_seconds": 163.85415979099344
+}

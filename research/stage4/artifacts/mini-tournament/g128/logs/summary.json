@@ -1,0 +1,11 @@
+{
+  "case_count": 8,
+  "exceptions": 0,
+  "experiment_id": "P1-EVALUATION-G128-MINI-QUALITY-V2",
+  "model_label": "g128-mini",
+  "objective_pass": 6,
+  "overall_classification": "OBJECTIVE_OR_HARNESS_FAILURES_PRESENT",
+  "semi_objective_pass": 1,
+  "split": "evaluation",
+  "total_elapsed_seconds": 163.27045987499878
+}

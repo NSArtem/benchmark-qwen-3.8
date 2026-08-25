@@ -1,0 +1,13 @@
+To resolve the race condition where a client disconnects after reading durable events but before subscribing to Redis Streams, implement a cursor-based resumption strategy.
+
+1.  **Monotonic Sequence**: Assign a strictly increasing, unique sequence number (e.g., `seq_id`) to every event in PostgreSQL. This provides a total order independent of timestamps, which can be skewed or duplicated.
+
+2.  **Last-Event-ID**: Use the standard SSE header `Last-Event-ID` to carry this `seq_id`. When a client reconnects, it sends the last `seq_id` it successfully processed.
+
+3.  **Overlap De-duplication**: Upon reconnection, the server must not simply resume from `Last-Event-ID + 1`. Instead, it must re-read durable events from `Last-Event-ID - N` (where N is a small overlap window, e.g., 10) to capture any events that were committed to PostgreSQL but missed during the disconnect window.
+
+    *   **Phase 1**: Query PostgreSQL for events where `seq_id > (Last-Event-ID - N)`.
+    *   **Phase 2**: Subscribe to Redis Streams starting from the same overlap point or the current live position.
+    *   **De-duplication**: The client maintains a local set of recently seen `seq_id`s. If an event arrives with a `seq_id` already in this set (from the overlap window), the client discards it. This ensures no data loss from the gap and no duplicate processing.
+
+This approach guarantees at-least-once delivery with client-side idempotency, effectively closing the disconnect gap.

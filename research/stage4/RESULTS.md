@@ -72,3 +72,75 @@ marked invalid because it used g128's prior answer stream and none of its 16
 prior generations matched. The evidence closes the cache-corruption question:
 this is a generation-quality/segmentation-sensitive event, not stale replay or
 cache-accounting failure.
+
+## Phase 3 — Bounded quantization sensitivity
+
+### Measured facts
+
+The pinned Dynamic Quantization implementation was inspected locally and
+against the current upstream source. Its sensitivity estimator deep-copies the
+full model, a quantized copy, and the quantizable layer set, so it was not run
+against the 27B model on this 18 GB machine. The bounded replacement kept the
+g128 model resident, loaded source tensors one converter chunk at a time, and
+measured a temporary affine 4-bit/group-128 output against the resident
+3-bit/group-128 module on all 12 frozen calibration cases.
+
+The complete map contains 498 module records across all 64 layers and 18
+source shards. It took 617.7 seconds, peaked at 13.807 GiB MLX memory, and
+reached 11.439 GiB active+cache. The raw map is
+`research/stage4/artifacts/sensitivity/sensitivity-map.json`; the summarized
+ranking and manifests are in
+`research/stage4/artifacts/sensitivity/sensitivity-summary.json`.
+
+The largest normalized proxy values were not uniform by architecture: selected
+late regular-attention `o_proj`/`k_proj`, late linear-attention `out_proj` and
+`in_proj_a`, and selected late MLP `up_proj`/`down_proj` ranked highly. The
+embedding path had a high relative output delta but a large byte cost; `lm_head`
+also had a measurable signal. These are module-output distortion rankings, not
+claims of end-to-end teacher-loss sensitivity.
+
+### Inference
+
+The ranking supports spending extra bits selectively rather than globally.
+At a 384 MiB extra-payload budget, the gain-per-parameter greedy selection
+promoted 135 modules and predicted a 10.555 GiB model. The pinned mixed
+predicate promoted 41 modules and predicted 10.665 GiB. These manifests were
+used to build the two allowed Stage 4 candidates.
+
+## Phase 4 — Candidate conversions
+
+### Measured facts
+
+| candidate | payload bytes | size GiB | effective bpw | high/low modules | shards | conversion time | max RSS | MLX peak |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| mixed 3/4 control g128 | 11,451,399,168 | 10.664947 | 3.4061 | 41/457 | 21 | 27.2 s | 3.10 GiB | 3.478 GiB |
+| sensitivity 3/4 g128 | 11,333,362,688 | 10.555017 | 3.3710 | 135/363 | 21 | 27.7 s | 3.44 GiB | 3.478 GiB |
+
+Both conversions used the existing bounded layer-oriented converter, the local
+source snapshot, and no wired-memory change. An invalid all-3-bit diagnostic
+from the first manifest suffix check is preserved under the explicit
+`*-invalid-base` path and is not counted as a candidate. No 3/6 candidate was
+created because V2 did not show a g128 quality gap requiring outlier repair.
+
+## Phase 5 — Mini tournament
+
+### Measured facts
+
+The fixed eight-case tournament covered coding, instruction following,
+structured output, reasoning, retrieval, and prose. g64 and g128 each scored
+6/7 objective and 1/1 semi-objective, missing only the known `reasoning-03`
+arithmetic case. The mixed 3/4 control scored 7/7 objective and 1/1
+semi-objective, with all cases ending by EOS, and was advanced to the full
+suite. The sensitivity 3/4 candidate scored 6/7 objective and 0/1
+semi-objective: it repeated the arithmetic miss and changed the supplied west
+room to east in `prose-01`. It was rejected before full evaluation.
+
+Raw mini-tournament outputs, token streams, checks, and memory records are in
+`research/stage4/artifacts/mini-tournament/`.
+
+### Inference
+
+The mixed control is the only new candidate with enough corrected-suite
+evidence to justify a full comparison. Its mini result is a gate result, not a
+claim that it is globally better than g64 or g128; Phase 6 will make that
+classification on the frozen 28-case evaluation.
