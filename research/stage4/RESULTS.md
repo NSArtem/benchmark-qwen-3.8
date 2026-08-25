@@ -188,3 +188,31 @@ cost 0.485 GiB over g128 while remaining 0.298 GiB smaller than g64.
 Provisional roles are Candidate A as DEFAULT, g64 as conservative QUALITY /
 reference mode, and g128 normal-KV as PERFORMANCE/LONG-CONTEXT mode. The role
 decision remains subject to persistent 8K/16K validation.
+
+## Phase 7 — Persistent runtime validation
+
+### Measured facts
+
+Candidate A mixed-3/4 group-128 was run with the validated exact-canonical-
+suffix protocol in fresh processes at both target contexts. Each run used five
+turns, deterministic generation, 128 initial output tokens, 64 follow-up
+output tokens, normal KV, and a 16.2 GiB unattended stop.
+
+| context | turns | actual initial prompt | cold TTFT | warm TTFT mean (range) | warm decode mean | peak | active+cache max | result |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| 8K | 5/5 | 8,191 | 106.862 s | 0.989 s (0.712–1.088) | 10.743 tok/s | 14.468 GiB | 11.399 GiB | PASS |
+| 16K | 5/5 | 16,727 | 225.670 s | 1.174 s (0.846–1.296) | 5.719 tok/s | 15.721 GiB | 11.904 GiB | PASS |
+
+All ten turns were COHERENT. All logical prefix/suffix equations and
+cache-after-length checks held; no stale replay, exception, or safety stop was
+observed. Follow-up suffixes were 33–39 tokens. The raw per-turn records,
+generated outputs, exact-suffix token files, cache signatures, and summaries
+are in `research/stage4/artifacts/runtime-validation/mixed34/`.
+
+### Inference
+
+The selected default is runtime-correct and practical for 8K and 16K
+conversations. Warm TTFT remains near one second at both contexts. Its 16K
+decode is materially slower than the earlier same-harness g128 normal-KV
+baseline (~10.409 tok/s), so g128 retains the PERFORMANCE/LONG-CONTEXT role;
+this is a measured performance tradeoff of Candidate A, not a cache failure.

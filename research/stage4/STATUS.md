@@ -1,12 +1,14 @@
 # Stage 4 Status
 
-Last updated: 2026-08-25 — Phases 0–5 complete; Phase 6 in progress.
+Last updated: 2026-08-25 — Phases 0–7 complete; Phase 8 in progress.
 
 ## Current phase
 
-Phase 6: full frozen-suite finalist comparison. Phases 0–5 are complete,
-including the Quality Suite V2 validation gate, focused early-EOS control,
-bounded sensitivity map, two candidate conversions, and the mini tournament.
+Phase 8: productionize the validated exact-suffix chat runtime. Phases 0–7 are
+complete, including the Quality Suite V2 validation gate, focused early-EOS
+control, bounded sensitivity map, two candidate conversions, the mini
+tournament, corrected full finalist comparison, and mixed-3/4 8K/16K runtime
+validation.
 
 ## Completed experiments
 
@@ -136,9 +138,39 @@ preserved generation runs.
 - Teacher-forced six-case subset: g64 weighted NLL 1.4034/top-1 70.06%, g128
   1.3690/69.46%, Candidate A 1.3855/70.06%. Candidate A's NLL delta versus
   g64 was −0.0180 nats/token and its top-1 delta was 0.00 percentage points.
-- Provisional role decision: Candidate A is the DEFAULT finalist; g128 is the
-  PERFORMANCE/LONG-CONTEXT mode; g64 remains the conservative quality/reference
-  mode rather than a measured winner. Persistent 8K/16K validation is next.
+- Role decision entering runtime validation: Candidate A is the DEFAULT
+  finalist; g128 is the PERFORMANCE/LONG-CONTEXT mode; g64 remains the
+  conservative quality/reference mode rather than a measured winner.
+
+## Phase 7 — Persistent runtime validation
+
+- Selected default: Candidate A mixed-3/4 group-128 at
+  `/Users/artem/models/Qwen3.8-27B-mixed-3-4-control-g128`.
+- 8K exact-suffix persistent run: 5/5 turns PASS. The actual initial prompt
+  was 8,191 tokens. Cold TTFT was 106.862 s; warm TTFT mean was 0.989 s
+  (0.712–1.088 s); warm decode mean was 10.743 tok/s. Peak was 14.468 GiB
+  and maximum active+cache was 11.399 GiB.
+- 16K exact-suffix persistent run: 5/5 turns PASS. The actual initial prompt
+  was 16,727 tokens. Cold TTFT was 225.670 s; warm TTFT mean was 1.174 s
+  (0.846–1.296 s); warm decode mean was 5.719 tok/s. Peak was 15.721 GiB
+  and maximum active+cache was 11.904 GiB, below the 16.2 GiB unattended
+  safety stop.
+- All ten turns were classified COHERENT. Every turn satisfied exact logical
+  prefix/suffix accounting and cache-after-length checks; no stale replay,
+  exception, or safety stop occurred. Follow-up suffixes were only 33–39
+  tokens. Raw per-turn prompts, suffixes, generated tokens, cache signatures,
+  outputs, and persistent summaries are under
+  `research/stage4/artifacts/runtime-validation/mixed34/`.
+- The 16K mixed-3/4 decode mean is materially below the earlier same-harness
+  g128 normal-KV baseline (~10.409 tok/s), while 8K is ~10.743 tok/s. This is
+  a measured long-context performance cost of the selected mixed candidate,
+  not a correctness failure; g128 remains the performance/long-context role.
+
+## Phase 8 — Production runtime
+
+- In progress. The next action is to implement and test the user-facing
+  `research/runtime/qwen38_chat.py` exact-suffix CLI, then document its command
+  and safe reset/error behavior.
 
 ## Validated facts from Stage 3
 
@@ -193,8 +225,8 @@ all-3-bit manifest diagnostic is excluded from candidate counts. No targeted
 Candidate A mixed-3/4 g128 is the provisional DEFAULT after the corrected full
 suite: 24/24 objective and 4/4 semi-objective. g128 normal KV remains the
 PERFORMANCE/LONG-CONTEXT mode at 10.180 GiB and the fastest measured decode;
-g64 remains the conservative QUALITY/reference mode. Persistent validation and
-runtime productionization are still outstanding.
+g64 remains the conservative QUALITY/reference mode. Persistent validation is
+complete; runtime productionization is still outstanding.
 
 ## Active risks
 
@@ -202,12 +234,11 @@ runtime productionization are still outstanding.
 - the source snapshot is local and must not be re-downloaded or committed.
 - the sensitivity proxy must be clearly labeled if it is weight-distortion
   rather than activation-aware; calibration ranking must not be overclaimed.
-- 8K/16K persistent validation remains outstanding.
+- The production CLI and regression tests are not yet complete.
 - production CLI regression coverage and the learned-quant feasibility memo
   remain outstanding.
 
 ## Next action
 
-Validate Candidate A at 8K and 16K exact-suffix persistent chat, then
-productionize and test `qwen38-chat`; afterward record the bounded learned-quant
+Productionize and test `qwen38-chat`, then record the bounded learned-quant
 Stage 5 feasibility recommendation.

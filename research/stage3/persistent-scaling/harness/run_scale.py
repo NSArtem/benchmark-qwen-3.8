@@ -287,8 +287,9 @@ def build_message_candidates(
     return candidates
 
 
-def append_stage3_jsonl(entries: list[dict[str, Any]]) -> None:
-    path = REPO_ROOT / "research/stage3/results.jsonl"
+def append_results_jsonl(entries: list[dict[str, Any]], path: Path | None = None) -> None:
+    path = path or (REPO_ROOT / "research/stage3/results.jsonl")
+    path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as handle:
         for entry in entries:
             handle.write(json.dumps(entry, ensure_ascii=False, sort_keys=True) + "\n")
@@ -639,7 +640,7 @@ def persistent_run(args: argparse.Namespace) -> int:
                 }
             )
         if append_entries:
-            append_stage3_jsonl(append_entries)
+            append_results_jsonl(append_entries, Path(args.results_jsonl) if args.results_jsonl else None)
         print(
             json.dumps(
                 {
@@ -919,6 +920,8 @@ def run_all(args: argparse.Namespace) -> int:
             str(args.follow_up_max_tokens),
             "--stop-peak-gib",
             str(args.stop_peak_gib),
+            "--results-jsonl",
+            str(args.results_jsonl),
         ]
         output_dir.mkdir(parents=True, exist_ok=True)
         (output_dir / "logs").mkdir(parents=True, exist_ok=True)
@@ -1012,6 +1015,11 @@ def main() -> None:
     parser.add_argument("--initial-max-tokens", type=int, default=INITIAL_MAX_TOKENS)
     parser.add_argument("--follow-up-max-tokens", type=int, default=FOLLOW_UP_MAX_TOKENS)
     parser.add_argument("--stop-peak-gib", type=float, default=STOP_PEAK_GIB)
+    parser.add_argument(
+        "--results-jsonl",
+        default=str(REPO_ROOT / "research/stage3/results.jsonl"),
+        help="Append per-turn records here; defaults to the Stage 3 ledger for backward compatibility.",
+    )
     parser.add_argument("--phase", type=int, default=3)
     parser.add_argument(
         "--experiment-prefix",

@@ -1,0 +1,2 @@
+**Invariant:** Unique constraint on `(tenant_id, job_id, sequence)` in the `job_events` table.
+**Enforcement Boundary:** The `job_events` table schema (specifically, the `UNIQUE` constraint defined in `db/migrations/004_job_events.sql`).
