@@ -1,0 +1,6 @@
+# Diagnosis
+
+The reported incident—completed renders reverting to "running" and duplicate jobs appearing on retry—stems from a fundamental architectural flaw in how the system handles idempotency and state transitions.
+
+**Root Cause 1: Broken Idempotency for Mutations**
+The `JobService.create` method checks for an existing idempotency key *before* inserting the job. However, the idempotency record is only inserted *after* the job is inserted and the transaction is committed. If a client sends a request with an idempotency key, the API commits the transaction, but the
