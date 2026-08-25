@@ -1,12 +1,15 @@
 # Stage 5 Status
 
-Last updated: 2026-08-25 — Phase 2 held-out baseline comparison complete; Phase 3 sensitivity is next.
+Last updated: 2026-08-25 — static acceleration gates recorded; backend and final synthesis remain.
 
 ## Current phase
 
-Phase 0, the safety-limited Phase 1 cliff study, and the Phase 2 baseline
-comparison are complete. No Stage 5 candidate weights have been created. The
-exact cliff onset below 16K is
+Phase 0, the safety-limited Phase 1 cliff study, the Phase 2 baseline
+comparison, Phase 3's bounded g64-teacher/g128-student KL/logit ranking, the
+Phase 4 Q1/Q2/Q3 conversions, the Phase 5/7 tournament safety gates, the Phase
+6 bounded DWQ feasibility gate, and the static Phase 8/9/10 acceleration gates
+are complete. Candidate smoke validation is safety-limited after Q1's first
+short run drove encrypted swap to 12.2 GiB. The exact cliff onset below 16K is
 intentionally unmeasured because repeated 27B prefills accumulated dangerous
 swap pressure.
 
@@ -54,8 +57,20 @@ swap pressure.
 
 ## Candidate model paths/sizes
 
-No new Stage 5 model exists yet. Do not count Stage 4 Candidate B as a Stage
-5 candidate; it was rejected at the Stage 4 mini gate.
+Q1/Q2/Q3 are temporary Stage 5 research checkpoints outside the repository;
+weights are not committed. None has advanced to a Stage 5 finalist because the
+required multi-prompt smoke gate was stopped for system swap safety. Do not
+count Stage 4 Candidate B as a Stage 5 candidate; it was rejected at the Stage
+4 mini gate.
+
+Temporary candidate paths and sizes:
+
+- Q1: `/private/tmp/qwen38-stage5-Q1-kl-g128`, 11,088,002,048 B,
+  10.326507 GiB, 3.2980 BPW.
+- Q2: `/private/tmp/qwen38-stage5-Q2-kl-g128`, 11,245,288,448 B,
+  10.472991 GiB, 3.3448 BPW.
+- Q3: `/private/tmp/qwen38-stage5-Q3-kl-g128`, 11,402,574,848 B,
+  10.619475 GiB, 3.3916 BPW.
 
 ## Held-out suite
 
@@ -77,7 +92,10 @@ Baseline raw summaries:
 
 Uniform 2-bit, `mixed_2_6`, generic quant-zoo work, repeated uniform 4-bit,
 DSpark, and 32K remain closed. Stage 4 sensitivity Candidate B remains
-rejected. No DWQ, activation-quant, or MTP run has occurred in Stage 5.
+rejected. Whole-model upstream DWQ is rejected by the memory/safety gate; its
+bounded synthetic dry run passed numerically. Activation quantization was not
+run because the pinned path rejects affine g128, while MTP weights are present
+but stripped by the pinned runtime and lack a native Qwen3.8 path.
 
 ## Safety observations
 
@@ -96,10 +114,59 @@ rejected. No DWQ, activation-quant, or MTP run has occurred in Stage 5.
   permitted in the canonical runtime.
 - The three held-out runs each completed in a fresh serialized process and the
   system recovered to 89% free memory afterward.
+- The full sensitivity process stayed below the 15 GiB active+cache guard and
+  completed at 14.480 GiB peak. The first Q1 smoke began at 87% free memory but
+  ended at 26% free with 12.205 GiB encrypted swap used; the next heavy Q1
+  process was stopped before launch. Do not work around this gate by launching
+  Q2/Q3 or by running concurrent jobs.
+- Pinned learned-quant source inspection is recorded in
+  `research/stage5/quant/upstream_inspection.json`. Dynamic Quant and DWQ are
+  unsafe as whole-model flows on this machine because they duplicate 27B
+  residency; the Stage 5 path is serialized, calibration-only, and removes any
+  wired-limit behavior. The held-out suite is not an input.
+- Phase 3 teacher capture used g64 logits for all 12 Stage 4 calibration cases;
+  the local float16 tensor payload is retained but ignored by git. The bounded
+  one-module-at-a-time sweep evaluated all 498 quantization modules in 4,579.2
+  s, with 14.480 GiB peak and 12.302 GiB maximum active+cache. Its primary
+  signal is final-logit KL recovery per added byte.
+- The frozen full-split ranking hash is
+  `e9d561a11807810dc44a9a6e38080623f2b41207d03643515b0661c8a188dd6b`.
+  A two-case all-layer repeat had Spearman 0.257 with the full ranking, with
+  top-10 overlap 3/10 and top-25 overlap 8/25; the full split is retained as
+  the deterministic allocation order, while this instability is a validation
+  warning.
+- Phase 4 converted exactly three temporary frontier checkpoints: Q1 +150 MiB
+  (112 promotions, 11,088,002,048 B), Q2 +300 MiB (137, 11,245,288,448 B),
+  and Q3 +450 MiB (161, 11,402,574,848 B). Q1's isolated short factual smoke
+  was coherent at 11.728 tok/s with 10.642 GiB peak. A second Q1 smoke was
+  refused after the first process left 12.205 GiB encrypted swap used and only
+  1.107 GiB swap free; Q2/Q3 have not been advanced to finalists.
+- The pinned upstream DWQ flow was not launched because it retains a full
+  teacher/student path and calls `mx.set_wired_limit()`. The synthetic bounded
+  scale/bias dry run reduced local MSE 18.5% in 40 steps with 13,600 bytes MLX
+  peak. Static source-plus-g128 minimum residency is 61.927 GiB, so a real
+  whole-model DWQ run is rejected; only a future genuinely streamed layer-wise
+  implementation could reopen it.
+- The Q1 multi-prompt smoke gate and final candidate tournament were not
+  launched after the swap safety stop; the held-out suite was not used for that
+  decision. Q1/Q2/Q3 remain unvalidated temporary checkpoints.
+- Pinned activation quantization supports only `nvfp4`/`mxfp8`, not the affine
+  3-bit/group-128 winner; no format-changing activation branch was opened.
+- Static MTP inspection found 15 BF16 `mtp.*` source tensors totaling
+  849,398,784 B / 0.791 GiB, but the pinned Qwen3.5 sanitizer strips them and
+  exposes no native Qwen3.8 MTP path. No conversion or speculative smoke was
+  attempted.
+- No 20K or 24K run was launched after the swap safety gate; 32K remains
+  explicitly closed.
+- The serialized backend `research/runtime/qwen38_agent_server.py` and its
+  protocol tests pass 9/9 in the canonical environment without loading MLX.
+  It exposes serialized OpenAI-compatible chat, reset, health, models, and
+  metrics routes; a real model-backed agent smoke remains deferred by the swap
+  gate.
 
 ## Next action
 
-Re-read `AGENTS.md`, `TASK.md`, and this file, then inspect the pinned learned-
-quantization implementation and build a bounded end-to-end calibration-only
-loss/KL/logit sensitivity ranking. The frozen held-out suite must remain
-excluded from every allocation decision.
+Perform the final raw-artifact audit and report. If a safe single-process
+window returns before finalization, validate Q1 first; otherwise keep
+g128/mixed34 as the only advanced quality/runtime roles and report Q1/Q2/Q3 as
+unvalidated research checkpoints.
