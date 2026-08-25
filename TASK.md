@@ -1,1009 +1,865 @@
-# Stage 5 — 15-Hour Qwen3.8 Optimization Campaign
+# Stage 6 — Exploit the Stage 5 Frontier and Finish the Practical Runtime
 
 ## Mission
 
-Run an approximately 15-hour autonomous research campaign.
+Run an approximately 15-hour autonomous Stage 6.
 
-Stage 5 is allowed to be broad, but not uncontrolled.
+Stage 6 is NOT a new broad exploration stage.
 
-The critical path is:
+Stage 5 already paid the expensive cost of creating a KL-guided frontier but
+stopped before proper evaluation because the machine entered an untrustworthy
+high-swap state.
 
-    recover Stage 4
-    -> revalidate mixed34 16K cliff
-    -> build completely held-out quality set
-    -> loss/logit/gradient-guided sensitivity
-    -> fixed-budget quant Pareto frontier
-    -> mini tournament
-    -> bounded DWQ feasibility/refinement
-    -> final quality/Pareto tournament
-    -> activation quantization
-    -> 20K context envelope
-    -> gated MTP
-    -> serialized real-agent backend
+Stage 6 must extract maximum value from those existing artifacts.
+
+Critical path:
+
+    clean baseline
+    -> preserve/verify Q1/Q2/Q3
+    -> repair quality scoring truncation
+    -> evaluate Q1 deeply
+    -> gate Q2/Q3
+    -> validate KL-ranking reproducibility
+    -> bounded DWQ on winner
+    -> final Pareto decision
+    -> 20K envelope
+    -> gated Qwen3.8 MTP
+    -> real agent-server integration
     -> final report
 
-Use gates.
-
-Do not turn this into random quant exploration.
+Do not create new unrelated quants.
 
 ---
 
-# Phase 0 — Recover State
+# Phase 0 — Clean-Boot and Artifact Recovery
 
-Target: 20-30 minutes.
+Target: 30 minutes.
+
+Read:
+
+    AGENTS.md
+    research/stage5/FINAL_REPORT.md
+    research/stage5/STATUS.md
+    research/stage5/RESULTS.md
+    research/stage5/results.jsonl
 
 Start:
 
     git status
     git log --oneline -30
 
-Read:
+Inspect running processes.
 
-    AGENTS.md
-    research/stage4/FINAL_REPORT.md
-    research/stage4/STATUS.md
-    research/stage4/RESULTS.md
-    research/stage4/results.jsonl
+Record:
 
-Inspect Stage 4 raw artifacts for:
+    memory_pressure
+    vm_stat
+    swap usage
+    free disk
 
-    Quality Suite V2
-    g64 results
-    g128 results
-    mixed34 results
-    sensitivity-guided rejected candidate
-    8K/16K runtime validation
-    qwen38-chat
-    early-EOS study
+If the machine is still in severe post-Stage-5 swap pressure, do not run
+headline benchmarks.
 
-Recover exact model paths.
+Create:
 
-Verify:
+    research/stage6/PLAN.md
+    research/stage6/STATUS.md
+    research/stage6/RESULTS.md
+    research/stage6/results.jsonl
+
+## Recover Q1/Q2/Q3
+
+Search expected locations:
+
+    /private/tmp/qwen38-stage5-Q1-kl-g128
+    /private/tmp/qwen38-stage5-Q2-kl-g128
+    /private/tmp/qwen38-stage5-Q3-kl-g128
+
+and persistent model directories.
+
+Recover exact model paths from Stage 5 artifacts.
+
+For each candidate verify:
+
+    config.json
+    tokenizer files
+    weight shards
+    payload size
+    readable/loadable metadata
+
+If candidates still exist only under /private/tmp and disk permits, move them
+to persistent storage before benchmarking.
+
+Preferred:
+
+    /Users/artem/models/stage5-frontier/
+
+Record final paths.
+
+If Q2/Q3 are missing but Q1 exists:
+
+    do NOT immediately rebuild them.
+
+Evaluate Q1 first.
+
+If all are missing:
+
+    rebuild only Q1 from saved Stage 5 manifest/ranking as the first recovery.
+
+Do not repeat the full sensitivity sweep just to rebuild candidates.
+
+Commit scaffolding/status if useful.
+
+---
+
+# Phase 1 — Repair Held-Out Scoring and Generation Budgets
+
+Target: 45-60 minutes.
+
+Before comparing Q1/Q2/Q3, inspect Stage 5 held-out failures.
+
+Identify cases where:
+
+    answer is semantically correct
+    but generation stopped at max_tokens
+    before a required sentinel/final line
+
+Examples may include arithmetic/version tasks.
+
+Do not change semantic expected answers unless objectively wrong.
+
+Preferred fix:
+
+    increase generation budget
+    OR
+    make scorer accept the correct semantic answer without requiring an
+    unnecessary final sentinel
+
+Apply the same correction to ALL models.
+
+Keep a machine-readable record:
+
+    old case
+    old rule
+    reason invalid
+    new rule/budget
+    new hash
+
+Freeze:
+
+    heldout_v2
+
+or equivalent.
+
+Do not use Q1 output to tailor the answer key.
+
+## Regression rerun
+
+Re-run only the affected held-out cases first on:
 
     g64
     g128
     mixed34
-    high-precision source
-    bounded converter
-    qwen38-chat
 
-Create:
+Verify that truncation artifacts are actually removed.
 
-    research/stage5/PLAN.md
-    research/stage5/STATUS.md
-    research/stage5/RESULTS.md
-    research/stage5/results.jsonl
+Then freeze the corrected suite.
 
-Record the entering Pareto table.
+Commit.
 
-Do not rerun completed Stage 4 work unless a later phase requires a controlled
-comparison.
+Suggested:
+
+    benchmark: fix Stage 5 held-out truncation artifacts
 
 ---
 
-# Phase 1 — Reproduce and Localize the mixed34 16K Decode Cliff
+# Phase 2 — Q1 Full Validation
 
-Target: 60-90 minutes.
+Target: 90-120 minutes.
 
-This is P0.
+This is the highest-priority Stage 6 experiment.
 
-Question:
+Model:
 
-> Does mixed34 really lose nearly half its decode speed near 16K, and if so,
-> where does the cliff begin?
+    Q1 (~10.327 GiB)
 
-## Part A — Interleaved fresh-process control
-
-Use identical:
-
-    prompt family
-    exact prompt token count
-    generation length
-    greedy settings
-    prefill step
-    cache mode
-    no KV8
-    no activation quant
-    canonical environment
-
-Run at ~16K:
+Compare against:
 
     g128
-    mixed34
-    g128
-    mixed34
-    g128
-    mixed34
 
-Fresh Python process every run.
+Use fresh processes for cold/performance comparisons.
 
-Do not run simultaneously.
+## Quality
+
+Run:
+
+    full Quality Suite V2
+    corrected heldout_v2
+    teacher-forced NLL/KL subset
 
 Record:
 
-    prompt tokens
-    prefill tok/s
-    TTFT
-    decode tok/s
-    generated tokens
-    finish reason
+    objective totals
+    per-category totals
+    early EOS
+    repetition
+    structured validity
+    NLL
+    KL
+    top-1 agreement
+    finish reasons
+
+Manually inspect every Q1-vs-g128 disagreement.
+
+Do not use subjective impressions to override objective correct answers.
+
+## Runtime
+
+Run Q1 at:
+
+    short smoke
+    ~8K
+    ~12K
+    ~16K
+
+At 16K do at least two fresh repeats if results are surprising.
+
+Record:
+
+    prompt t/s
+    cold TTFT
+    warm exact-suffix TTFT
+    decode t/s
     active
     cache
     active+cache
     peak
     RSS
-    memory_pressure summary
-    vm_stat summary
+    memory pressure
 
-Use enough generated tokens to stabilize decode measurement, e.g. 128-256.
+Use a 5-turn persistent validation at:
 
-## Part B — Context sweep
+    8K
+    16K
 
-One fresh run per model per useful point:
+if cold performance is healthy.
 
-    ~8K
-    ~10K
-    ~12K
-    ~14K
-    ~16K
+## Q1 decision gate
 
-If the transition is sharp, optionally add one point between the last fast and
-first slow condition.
+### Q1 wins
 
-Do not over-benchmark.
+Advance Q1 as the primary Stage 6 candidate if it offers:
 
-## Analysis
+    measurable quality recovery
+    with no meaningful 16K runtime cliff
 
-Plot/table:
+or another real Pareto improvement.
 
-    context vs decode
-    context vs active+cache
-    context vs peak
-    context vs RSS
+### Q1 ties g128
 
-for both models.
+If quality/runtime are effectively equal:
 
-Test hypotheses:
+    g128 remains default because it is smaller/simpler.
 
-1. mixed34 result was noise;
-2. decode cliff follows context;
-3. decode cliff follows total model+cache residency;
-4. cliff correlates with system memory pressure;
-5. another runtime artifact appears at long context.
+Do not promote Q1 merely because it exists.
 
-Do not assert causality from correlation alone.
+### Q1 loses
 
-## Gate
+If Q1 is lower quality or significantly slower:
 
-If mixed34 is actually ~10 tok/s at 16K under controlled repeats:
+    reject Q1.
 
-    clear the Stage 4 performance concern.
-
-If mixed34 reproducibly falls to ~5-6 tok/s:
-
-    mark a real long-context practical penalty.
-
-This result must directly influence quant target size in later phases.
+Then decide whether Q2/Q3 plausibly address the specific failure.
 
 Commit.
 
-Suggested commit:
+Suggested:
 
-    benchmark: localize Qwen3.8 16K decode cliff
+    benchmark: fully evaluate Stage 5 Q1 quant
 
 ---
 
-# Phase 2 — Completely Held-Out Quality Suite
+# Phase 3 — Gate Q2 and Q3
 
-Target: 60-90 minutes setup + run.
+Target: 60-120 minutes depending on Q1 result.
 
-Create a NEW frozen held-out set.
+Do NOT automatically run full suites on both.
 
-Target:
+## If Q1 improves quality but not enough
 
-    ~20-30 cases
+Test Q2 next.
 
-None of these cases may be used in:
+Mini gate:
 
-    Stage 4 calibration
-    Stage 4 sensitivity
-    Stage 4 mini tournament
-    Stage 4 Quality Suite V2
-    Stage 5 sensitivity/calibration
-    Stage 5 candidate selection
+    selected quality disagreements
+    NLL/KL subset
+    8K decode
+    16K decode
 
-This is final-selection evidence.
+If Q2 improves quality further without a cliff:
 
-## Categories
+    run full corrected heldout + V2.
 
-Use a balanced set such as:
+Only then consider Q3.
 
-    coding / debugging          6-8
-    reasoning / arithmetic      4-5
-    structured output           3-4
-    instruction following       3-4
-    context retrieval           3-4
-    prose continuity            2-3
+## If Q1 quality equals g128 but Q1 is slower
 
-All objective expected answers must be manually verified before any model run.
+Q2/Q3 are unlikely to be good defaults because they are larger.
 
-Avoid ambiguous lease/time semantics.
+Only test Q2 if:
 
-Use enough output budget:
+    Q1 shows a clear monotonic quality signal that may justify a separate
+    QUALITY MODE.
 
-    256-512 for coding/reasoning
-    shorter only when answer is intentionally short
+Otherwise skip Q2/Q3.
 
-Record finish reason.
+## If Q1 already hits a 16K residency cliff
 
-## Initial comparison
+Use Phase 1/Stage 5 cliff evidence.
 
-Run:
+Q2/Q3 are larger and likely worse for long-context decode.
 
-    g64
+Do not run expensive 16K repetitions unless testing a clear hypothesis.
+
+They may still be tested briefly as short-context quality modes.
+
+## If Q1 strongly wins
+
+Q2 may be tested as a quality-extension candidate.
+
+Q3 only if Q2 demonstrates additional useful recovery.
+
+At the end choose:
+
     g128
-    mixed34
+    Q1
+    Q2
+    Q3
 
-Do not yet run future Stage 5 quants.
+roles based on actual Pareto value.
 
-Report:
-
-    objective total
-    category totals
-    malformed output
-    early EOS
-    repetition
-    prose/rubric result
-
-Also select a teacher-forced subset and record:
-
-    NLL
-    top-1 agreement
-    optional KL/logit metrics
-
-Freeze files and hashes.
-
-Commit.
-
-Suggested commit:
-
-    benchmark: add held-out Qwen3.8 quality suite
+Commit meaningful evaluation.
 
 ---
 
-# Phase 3 — End-to-End Quant Sensitivity
-
-Target: 90-150 minutes.
-
-This phase replaces Stage 4's weak RMS proxy.
-
-Goal:
-
-> rank possible precision promotions by estimated END-TO-END language-model
-> quality recovery per added byte.
-
-Inspect current upstream mlx-lm implementation of:
-
-    dynamic_quant
-    learned quantization helpers
-    quant predicates
-    quantized modules
-
-Record exact upstream commit inspected.
-
-Do not upgrade canonical runtime.
-
-## Preferred signal
-
-Use one or more of:
-
-    KL divergence to teacher logits
-    NLL improvement
-    gradient-informed low-vs-high quant sensitivity
-    logit recovery
-
-on a calibration split.
-
-Do NOT use held-out Stage 5 evaluation.
-
-## Teacher
-
-Prefer the highest-quality practical teacher that can be used safely.
-
-Possible:
-
-    high-precision source
-    g64
-    another high-precision/8-bit source
-
-but memory must remain bounded.
-
-Do not load two complete 27B models concurrently.
-
-## Bounded algorithm
-
-If upstream algorithm assumes whole-model duplication/deepcopy and is unsafe:
-
-    adapt it.
-
-Use existing bounded converter/layer infrastructure.
-
-Possible design:
-
-1. capture/replay bounded calibration activations;
-2. inspect one quantizable module/layer at a time;
-3. compare low and high precision effect on end-to-end or downstream logits
-   through a memory-safe approximation;
-4. release source tensors before next module.
-
-Document approximation honestly.
-
-## Sensitivity artifact
-
-Save:
-
-    research/stage5/quant/loss_sensitivities.json
-
-Fields should include:
-
-    module path
-    layer index
-    module family
-    parameter count
-    3-bit storage estimate
-    4-bit storage estimate
-    optional 5/6-bit estimate
-    bytes added for promotion
-    sensitivity score
-    quality-recovery-per-byte score
-    calibration sample count
-    calibration hash
-
-## Determinism
-
-Run a small subset twice.
-
-Measure ranking stability.
-
-If scores are numerically noisy:
-
-    save one frozen deterministic ranking/order
-    use explicit module lists
-    do not repeatedly optimize thresholds
-
-## Validation
-
-Check whether the ranking predicts actual calibration NLL/KL recovery for a
-small number of controlled module-promotion experiments.
-
-If it does not predict actual recovery, do not build a large frontier from it.
-
-Gate into Phase 4 only with useful predictive evidence.
-
-Commit.
-
-Suggested commit:
-
-    experiment: map loss-guided Qwen3.8 quant sensitivity
-
----
-
-# Phase 4 — Fixed-Budget Quant Pareto Frontier
-
-Target: 90-120 minutes.
-
-Use high-precision source and bounded converter.
-
-Create at most FOUR serious new Stage 5 checkpoints.
-
-Base:
-
-    affine 3-bit group128
-
-## Candidate budgets
-
-Aim roughly for:
-
-    Q1 = g128 + ~150 MiB
-    Q2 = g128 + ~300 MiB
-    Q3 = g128 + ~450 MiB
-
-Use module granularity; exact payload may differ.
-
-Promotion priority:
-
-    descending frozen quality-recovery-per-byte ranking
-
-Primary promotion:
-
-    3 -> 4 bit
-
-## Matched-size precision-allocation experiment
-
-At ONE useful budget, optionally compare:
-
-    broad 3/4 allocation
-
-vs:
-
-    sparse 3/5 or 3/6 allocation
-
-only if:
-
-- format is supported safely;
-- extreme sensitive outliers exist;
-- payload can be approximately matched;
-- this does not exceed the four-candidate limit.
-
-## Important memory-cliff constraint
-
-Use Phase 1 results.
-
-If Phase 1 shows a strong decode cliff above a certain payload/residency region,
-do not knowingly build most candidates beyond that region.
-
-The point is a practical Pareto frontier, not quality at unusable memory.
-
-## Conversion recording
-
-For every candidate:
-
-    exact module list
-    ranking hash
-    payload bytes
-    effective BPW
-    conversion time
-    converter peak
-    RSS
-    shards
-    config metadata
-
-## Immediate smoke gate
-
-Fresh process:
-
-    load
-    short factual prompt
-    768-token prompt
-    4K coding prompt
-    128-256 output
-
-Reject for:
-
-    repetition/collapse
-    semantic garbage
-    config/load bug
-    unacceptable decode regression
-    unsafe memory
-
-Do not full-benchmark rejected models.
-
-Commit recipes/harnesses/results, not weights.
-
-Suggested commit:
-
-    experiment: build fixed-budget Qwen3.8 quant frontier
-
----
-
-# Phase 5 — Fast Quant Tournament
+# Phase 4 — KL Ranking Reproducibility
 
 Target: 60-90 minutes.
 
-Compare:
+Stage 5's earlier correlation check changed calibration data.
 
-    g128
-    mixed34
-    Q1/Q2/Q3
-    optional matched-size sparse candidate
+Stage 6 must perform a clean reproducibility test.
 
-g64 may be included only as reference for selected teacher-forced metrics.
-
-Use:
-
-    Stage 4 Quality Suite V2 mini subset
-    Stage 5 non-held-out mini subset
-    teacher-forced calibration/eval subset
-
-Do NOT use the Stage 5 final held-out set for candidate selection.
-
-Metrics:
-
-    objective quality
-    NLL delta
-    top-1/logit agreement
-    model size
-    effective BPW
-    8K decode
-    projected/quick 16K behavior
-    repetition
-    early EOS
+Do not repeat all 498 modules unless justified.
 
 Select:
 
-    at most TWO new finalists
+    top ~25 Stage 5 modules
+    ~10 middle-ranked modules
+    ~10 low-ranked modules
 
-A valid result is:
+Use the SAME calibration examples as the original Stage 5 ranking.
 
-    no new fixed-budget candidate beats g128/mixed34.
-
-Do not tune indefinitely.
-
-Commit.
-
-Suggested commit:
-
-    benchmark: select Stage 5 quant finalists
-
----
-
-# Phase 6 — Bounded DWQ Investigation and Optional Refinement
-
-Target: 120-180 minutes.
-
-This phase is important but gated.
-
-First inspect current upstream:
-
-    DWQ implementation
-    teacher/student residency
-    optimizer state
-    calibration flow
-    supported quantized parameters
-    memory reduction options
-
-Record exact source commit.
-
-## Feasibility calculation
-
-Before a real 27B run estimate:
-
-    teacher bytes
-    student bytes
-    optimizer/tunable bytes
-    activation bytes
-    calibration cache
-    expected peak
-
-If naive method is unsafe:
-
-    do not run it.
-
-## Preferred bounded approach
-
-Explore a layer-wise/streamed design:
-
-    load/capture calibration input for layer
-    teacher layer forward
-    student quantized layer forward
-    optimize relevant quant parameters/scales/biases
-    validate layer/calibration loss
-    save updated layer
-    release teacher/student tensors
-    continue
-
-Exact implementation may differ based on actual upstream DWQ semantics.
-
-Do not claim equivalence to upstream DWQ if algorithm differs materially.
-
-## Dry run
-
-Before the full model:
-
-    1-2 layers
-    small calibration subset
-    short sequence length
+Repeat the sensitivity measurement under the same algorithm.
 
 Measure:
 
-    loss trend
-    memory
-    wall time
-    numerical stability
+    Spearman
+    top-k overlap
+    score magnitude stability
+    sign stability
 
-## Full refinement gate
+Then run a second comparison using an alternative calibration subset.
 
-Only perform a broader refinement if:
+Report separately:
 
-- dry run lowers a meaningful end-to-end/local teacher loss;
-- memory is clearly safe;
-- projected total runtime fits remaining stage time.
+### Numerical repeatability
 
-Preferred students:
+    same data
+    same algorithm
 
-    g128
-    OR
-    best fixed-budget finalist
+### Calibration robustness
 
-Do not refine every model.
+    different data
 
-At most TWO DWQ/refined serious artifacts.
-
-## Evaluation gate
-
-Run a compact quality/NLL subset.
-
-If refinement has no measurable gain:
-
-    stop DWQ branch.
-
-If gain is promising:
-
-    advance at most ONE DWQ model to final tournament.
-
-Commit.
-
-Suggested commits:
-
-    research: prototype bounded Qwen3.8 DWQ
-    experiment: refine Qwen3.8 quant with bounded DWQ
-
----
-
-# Phase 7 — Final Quality and Pareto Tournament
-
-Target: 90-120 minutes.
-
-Finalists should be no more than:
-
-    g128
-    mixed34
-    best fixed-budget quant
-    best DWQ/refined quant
-
-Prefer 3 total if weak candidates have already been eliminated.
-
-Run:
-
-    full Stage 4 Quality Suite V2
-    full Stage 5 held-out suite
-
-The Stage 5 held-out set must NOT have influenced candidate allocation or
-selection prior to this phase.
-
-## Report objective evidence separately
-
-For each model:
-
-    objective score
-    category scores
-    structured validity
-    arithmetic/reasoning
-    context retrieval
-    instruction following
-    coding rubric/objective checks
-    early EOS count
-    repetition/collapse
-
-Teacher-forced:
-
-    mean NLL
-    median per-case NLL
-    NLL delta vs g128/g64
-    top-1 agreement
-    KL/logit metrics where available
-
-Behavioral:
-
-    output length distribution
-    EOS frequency
-    malformed outputs
-    severe contradictions
-
-Optional blind subjective evaluation:
-
-    coding/prose pairwise
-
-with anonymized model labels.
-
-Supplementary only.
-
-## Pareto table
-
-For all finalists include:
-
-    payload GiB
-    effective BPW
-    quality
-    8K decode
-    16K decode
-    8K peak
-    16K peak
-
-Choose roles:
-
-    DEFAULT
-    QUALITY MODE if justified
-    PERFORMANCE/LONG-CONTEXT MODE if justified
-    REJECTED/REFERENCE
-
-Do not preserve roles just for symmetry.
-
-If g128 is best overall, say so.
-
-Commit.
-
-Suggested commit:
-
-    benchmark: finalize Qwen3.8 Stage 5 Pareto frontier
-
----
-
-# Phase 8 — Activation Quantization
-
-Target: 45-60 minutes.
-
-Only run on:
-
-    DEFAULT winner
-
-Optionally one secondary mode if there is a strong reason.
-
-Compare:
-
-    normal activations
-    activation quantization
-
-At:
-
-    ~8K
-    ~16K
-
-Primary focus:
-
-    16K
-
-Record:
-
-    peak
-    active+cache
-    RSS
-    decode
-    TTFT
-    prefill
-    correctness smoke
-    logit/output divergence if relevant
+Do not conflate them.
 
 Question:
 
-> Does activation quantization materially reduce long-context residency or
-> remove a performance cliff?
+> Is the Stage 5 ranking stable enough to be used for future fixed-budget
+> allocations?
 
-Reject it if:
+If same-data reproducibility is poor:
 
-    memory benefit is trivial
-    decode cost is large
-    quality visibly degrades
-    runtime becomes unstable
+    diagnose numerical/reduction sensitivity.
 
-Do not promote it merely because it works.
+If same-data is strong but cross-data weak:
 
-Commit if meaningful.
+    calibration diversity is the main issue.
+
+Commit.
+
+Suggested:
+
+    experiment: validate KL quant ranking reproducibility
 
 ---
 
-# Phase 9 — Practical 20K Envelope
+# Phase 5 — Finalize the Weight Pareto Frontier
 
-Target: 45-75 minutes.
+Target: 45-60 minutes.
 
-Run only if the selected winner is stable at 16K.
+Using all Stage 6 evidence, create a concise table:
 
-Test:
+    g64
+    g128
+    mixed34
+    Q1
+    Q2 if tested
+    Q3 if tested
 
-    ~20K normal cache
+Include:
 
-If memory/headroom is marginal, also test:
+    payload GiB
+    effective BPW
+    V2 quality
+    heldout_v2 quality
+    NLL/KL
+    8K decode
+    12K decode
+    16K decode
+    16K peak
+    role
 
-    ~20K KV8
+Select:
 
-If activation quantization was validated as useful, one QA variant is allowed.
+    DEFAULT
+    optional QUALITY MODE
+    optional LONG-CONTEXT/PERFORMANCE MODE
+    REFERENCE/REJECTED
+
+It is acceptable for DEFAULT to remain g128.
+
+Do not force a new winner.
+
+This phase defines the student for DWQ.
+
+---
+
+# Phase 6 — Bounded DWQ on One Selected Student
+
+Target: 150-210 minutes.
+
+Only begin after the weight Pareto decision.
+
+Choose ONE primary student:
+
+    DEFAULT candidate
+
+Optionally one tiny comparison student only if implementation work is shared.
+
+## Inspect upstream
+
+Read current DWQ implementation and exact source revision.
+
+Understand:
+
+    what parameters are trained
+    teacher target
+    optimizer
+    loss
+    calibration pipeline
+    checkpoint format
+
+## Design bounded version
+
+The target is a memory-safe streamed/layer-local method.
+
+Possible architecture:
+
+1. fixed calibration samples;
+2. capture layer input activations in bounded chunks;
+3. load teacher representation for one layer/module;
+4. run student quantized layer;
+5. optimize allowed scale/bias/non-quantized parameters;
+6. validate on held-out calibration subset;
+7. save updated layer;
+8. free teacher/student temporary arrays;
+9. continue.
+
+Do not claim this is exact upstream DWQ if materially different.
+
+## Dry run
 
 Use:
 
-    cold prefill
-    3 short persistent follow-up turns
+    1 layer
+    then a small group of layers
 
 Measure:
 
-    cold TTFT
+    memory peak
+    loss before/after
+    wall time
+    optimizer stability
+    output/logit impact
+
+## Expansion gate
+
+Expand to more layers only if:
+
+    loss consistently improves
+    memory is safe
+    runtime fits remaining stage window
+
+Prioritize layers/modules identified as highly valuable by Stage 5 KL ranking.
+
+Do not necessarily refine all 64 layers.
+
+A targeted bounded-DWQ pass over the most sensitive layers is allowed.
+
+## Artifact limit
+
+At most:
+
+    one main DWQ/refined 27B model
+
+plus one debug partial artifact.
+
+Do not create many refined checkpoints.
+
+## Evaluation
+
+If a usable refined model is produced:
+
+    NLL/KL subset
+    corrected heldout
+    selected V2 cases
+    8K decode
+    16K decode if size/residency unchanged and safe
+
+DWQ must produce a measurable practical improvement to become a mode.
+
+Commit.
+
+Suggested:
+
+    experiment: apply bounded DWQ to Qwen3.8 winner
+
+---
+
+# Phase 7 — Final Weight/DWQ Tournament
+
+Target: 60-90 minutes.
+
+Compare at most:
+
+    g128
+    best KL-guided candidate
+    DWQ-refined winner
+
+mixed34/g64 only where useful as references.
+
+Run:
+
+    corrected heldout_v2
+    relevant full Quality Suite V2
+    teacher-forced NLL/KL
+
+Produce final quality verdict.
+
+This is the definitive weight-model selection for Stage 6.
+
+---
+
+# Phase 8 — 20K Practical Context Envelope
+
+Target: 60-75 minutes.
+
+Run only after final model selection.
+
+Test DEFAULT at:
+
+    ~20K initial context
+    3 short exact-suffix persistent follow-ups
+
+Start with normal KV.
+
+Record:
+
+    cold prefill
+    prompt t/s
     warm TTFT
     decode
     peak
     active+cache
     RSS
-    system pressure
+    memory pressure
     correctness
+
+If normal KV is marginal but system-safe:
+
+    test KV8 once.
 
 ## 24K gate
 
-ONE ~24K smoke is allowed only if:
+One 24K smoke is allowed only if:
 
-- 20K is clearly stable;
-- system remains responsive;
-- peak/headroom is comfortable;
-- decode remains useful;
-- projected 24K is safe;
-- no prior Metal instability occurred.
+    20K is clearly stable
+    no severe swap pressure
+    useful decode remains
+    projected memory is safe
 
-Do NOT test 32K.
+Never 32K.
 
-Classify:
+Report:
 
-    recommended practical context
-    largest tested safe context
-    largest tested but marginal context
+    recommended daily context
+    practical long-context mode
+    maximum tested safe context
 
-These may differ.
+Do not equate "survived once" with "recommended".
 
 Commit.
 
 ---
 
-# Phase 10 — Gated MTP Investigation
+# Phase 9 — Qwen3.8 MTP Investigation
 
-Target: 60-120 minutes.
+Target: 90-150 minutes.
 
-Only run if primary quant/Pareto work is complete.
+Only run after final weight model selection and 20K context test if time permits.
 
-Goal:
+Stage 5 established that source checkpoint contains:
 
-> Determine whether Qwen3.8's original checkpoint has a usable MTP path that
-> can materially increase decode throughput without unacceptable memory cost.
+    15 mtp.* tensors
+    ~0.791 GiB BF16 raw
 
-## Static inspection
+Now determine whether they can be used.
+
+## Static reverse engineering
 
 Inspect:
 
-    original source config
-    source tensor names
-    prior text-only conversion exclusions
-    current mlx-lm MTP support
-    relevant Qwen3.x model implementations
+    original config
+    tensor names/shapes
+    upstream/reference Qwen3.8 implementation
+    current Qwen3.x MTP implementations in mlx-lm
+    generation/speculative APIs
 
-Determine:
+Document:
 
-    whether Qwen3.8 includes MTP weights
-    their approximate payload
-    compatibility with current architecture/runtime
+    exact MTP architecture
+    how hidden states feed the MTP head
+    how acceptance should work
+    cache implications
+    normalization
+    token embedding/head sharing
 
-Do not assume.
+Do not guess.
 
-## Conversion
+## Memory reduction
 
-If compatible MTP tensors exist and the implementation path is clear:
+Estimate:
 
-    adapt bounded converter to preserve/include them
+    BF16 MTP payload
+    8-bit
+    4-bit
+    3-bit
 
-Do not rebuild all quant candidates.
+where supported.
 
-Use only:
+If a quantized MTP head can be safely generated from source, prefer it over raw
+BF16 if correctness remains acceptable.
 
-    DEFAULT weight quant
+Do not overwrite the main model.
 
-or one close equivalent.
+## Minimal runtime
 
-## Smoke correctness
+Implement the smallest isolated MTP generation path needed for testing.
 
-Require:
+Do not redesign the server.
 
-    baseline greedy
-    MTP-assisted output
+Correctness first.
 
-to satisfy the correctness guarantee of the actual algorithm.
+## Smoke
 
-If the implementation claims token-identical greedy output, verify it.
+Compare:
+
+    normal greedy
+    MTP-assisted
 
 Measure:
 
+    token correctness
     acceptance rate
     decode tok/s
-    additional memory
-    TTFT
+    added active/peak memory
+
+If the algorithm should preserve greedy output:
+
+    require token identity.
+
+## Context
+
+If short smoke succeeds:
+
+    4K
     8K
-    optionally 16K if safe
 
-## Gate
+Then only if memory is comfortable:
 
-Continue only if:
+    16K
 
-    speedup is substantial
-    correctness is clean
-    memory overhead is practical
+Important:
 
-If incompatible/absent, document and stop.
+MTP that accelerates 4K but triggers the same kind of residency cliff at 16K is
+not the general default.
 
-Do not train a new MTP head.
+## Decision
+
+Classify:
+
+    PRACTICAL
+    SHORT-CONTEXT ONLY
+    NOT READY
+    UNSUPPORTED
 
 Commit.
 
-Suggested commit:
+Suggested:
 
-    experiment: evaluate Qwen3.8 MTP decode
+    experiment: implement Qwen3.8 MTP decode prototype
 
 ---
 
-# Phase 11 — Serialized Agent Backend
+# Phase 10 — Real Serialized Agent-Backend Validation
 
-Target: 60 minutes.
+Target: 60-90 minutes.
 
-qwen38-chat already exists.
+Use:
 
-Create or complete a production-oriented serialized backend suitable for real
-coding-agent use.
+    research/runtime/qwen38_agent_server.py
 
-Preferred:
+or current equivalent.
 
-    OpenAI-compatible HTTP API
+Run with the final DEFAULT model.
 
-with exactly one active inference at a time.
+Keep one inference at a time.
 
-Required:
+## Real integration smoke
 
-    persistent session/conversation
-    canonical chat template
-    exact-suffix cache
-    tool/system/user/assistant messages
-    session reset
-    deterministic mode
-    normal sampling mode
-    metrics
-    graceful errors
+Create a scripted client that behaves like a coding agent.
 
-Do not implement concurrency/batching.
+Use:
 
-## Real agent smoke
+    realistic system/tool prompt
+    repository-like supplied context
+    tool calls/results
+    user/assistant/tool sequencing
+    10-20 exchanges
+    context growing toward ~8K-12K
 
-Run a local scripted coding-agent style session with:
+The exact tool-call format must match what the server/model actually supports.
 
-    substantial system/tool prompt
-    repository-like context
-    several tool-call/result turns
-    8K-class logical history
-    at least ~10 exchanges
+Do not invent a fake structured protocol and call it production-ready.
 
 Check:
 
+    session persistence
+    exact-suffix token reuse
     no full reprefill
-    suffix token accounting
-    valid message sequencing
-    tool-result persistence
-    reset behavior
+    tool-result retention
+    role sequencing
+    reset/session change
     warm TTFT
     decode
     no stale replay
+    graceful error recovery
 
-If tool-call parsing is not natively standardized for this model/runtime, keep
-the API generic and document the limitation instead of inventing a brittle
-format.
+Measure:
+
+    first request TTFT
+    median warm TTFT
+    max warm TTFT
+    decode
+    total logical context
+    suffix tokens
+
+If native structured tool calls are not reliable:
+
+    document that limitation
+    validate generic chat/tool-role transport separately.
+
+## Optional client compatibility
+
+If easy, test one OpenAI-compatible client library.
+
+Do not spend hours adapting third-party frameworks.
 
 Commit.
 
-Suggested commit:
+Suggested:
 
-    feat: add serialized Qwen3.8 agent backend
+    test: validate Qwen3.8 serialized agent backend
 
 ---
 
-# Phase 12 — Final Synthesis
+# Phase 11 — Production Runtime Cleanup
+
+Target: 30-60 minutes.
+
+Based on all findings:
 
 Update:
 
-    research/stage5/STATUS.md
-    research/stage5/RESULTS.md
+    qwen38_chat.py
+    qwen38_agent_server.py
+
+as needed.
+
+Document:
+
+    default model path
+    recommended context
+    optional KV8
+    optional MTP mode if validated
+    quality mode if one exists
+    reset behavior
+    known limitations
+
+Add regression tests for any new Stage 6 bug discovered.
+
+Do not add concurrency.
+
+Commit.
+
+Suggested:
+
+    feat: finalize Qwen3.8 local runtime configuration
+
+---
+
+# Phase 12 — Final Report
 
 Create:
 
-    research/stage5/FINAL_REPORT.md
+    research/stage6/FINAL_REPORT.md
 
-Before writing conclusions:
+Update:
 
-    inspect raw artifacts
-    inspect results.jsonl
-    verify model paths
-    verify git status/log
-    verify no uncommitted important harness changes
+    research/stage6/STATUS.md
+    research/stage6/RESULTS.md
 
-The report must distinguish:
+Inspect:
+
+    raw artifacts
+    results.jsonl
+    git status
+    git log
+    model paths
+
+The final report must distinguish:
 
     MEASURED FACT
     INFERENCE
@@ -1013,67 +869,63 @@ The report must distinguish:
 
 # Explicitly Out of Scope
 
-Do NOT spend Stage 5 on:
+Do not spend Stage 6 on:
 
     uniform 2-bit
     mixed_2_6
-    random MXFP4/NVFP4 sweep
-    generic full 4-bit rebuilds
-    multi-user batching
-    concurrent server work
+    random new quant recipes
+    full new fixed-budget frontier unless Q1/Q2/Q3 are lost
+    generic uniform 4-bit
     DSpark
-    32K context
+    32K
+    multi-user batching
+    concurrent inference
     system wired-memory tuning
     training a new MTP head
 
-AWQ/GPTQ may be inspected only if DWQ is blocked and there is real remaining
-time. They are not a primary branch.
+Do not do AWQ/GPTQ unless DWQ fails early AND substantial useful time remains.
 
 ---
 
 # Machine-Readable Results
 
-Append meaningful experiments to:
+Append meaningful runs to:
 
-    research/stage5/results.jsonl
+    research/stage6/results.jsonl
 
 Suggested fields:
 
     timestamp
-    experiment_id
     phase
+    experiment_id
     git_commit
 
     model_name
     model_path
-    quant_recipe
-    quant_group_size
-    model_payload_bytes
+    payload_bytes
     effective_bpw
-    promoted_modules
-    ranking_hash
-    calibration_hash
-    heldout_hash
+    quant_recipe
 
-    context_tokens
-    suffix_tokens
-    generated_tokens
-    finish_reason
-    output_hash
-
-    objective_pass
+    suite_name
+    suite_hash
+    case_id
     category
+    objective_pass
+    finish_reason
     early_eos
     repetition
     structured_valid
 
     nll
-    nll_delta
     kl
     top1_agreement
 
-    ttft_seconds
+    context_tokens
+    suffix_tokens
+    generated_tokens
+
     prompt_tps
+    ttft_seconds
     decode_tps
 
     active_memory_bytes
@@ -1081,165 +933,164 @@ Suggested fields:
     active_plus_cache_bytes
     peak_memory_bytes
     rss_bytes
+    swap_used_bytes
 
-    memory_pressure_summary
+    mtp_enabled
+    mtp_payload_bytes
+    mtp_acceptance_rate
+
+    dwq_enabled
+    dwq_layers_refined
+    dwq_loss_before
+    dwq_loss_after
+
+    classification
     exception
     safety_stop_reason
-    classification
 
-Use null for unavailable values.
+Use null if unavailable.
 
-Never invent data.
-
----
-
-# Commit Suggestions
-
-Prefer logical commits such as:
-
-    benchmark: localize Qwen3.8 16K decode cliff
-    benchmark: add held-out Qwen3.8 quality suite
-    experiment: map loss-guided Qwen3.8 quant sensitivity
-    experiment: build fixed-budget Qwen3.8 quant frontier
-    benchmark: select Stage 5 quant finalists
-    research: prototype bounded Qwen3.8 DWQ
-    experiment: refine Qwen3.8 quant with bounded DWQ
-    benchmark: finalize Qwen3.8 Stage 5 Pareto frontier
-    benchmark: evaluate activation quantization
-    benchmark: probe Qwen3.8 20K context
-    experiment: evaluate Qwen3.8 MTP decode
-    feat: add serialized Qwen3.8 agent backend
-    docs: summarize Qwen3.8 Stage 5 findings
-
-Do not commit weights.
+Never invent measurements.
 
 ---
 
-# FINAL_REPORT.md Must Answer
+# Final Report Must Answer
 
-1. Was the mixed34 16K decode cliff reproduced?
+1. Were Q1/Q2/Q3 successfully recovered/preserved?
 
-2. At what context/residency does the cliff begin, if real?
+2. What truncation/scoring defects were corrected in heldout_v2?
 
-3. Does mixed34 beat g128 on the completely held-out quality suite?
+3. What is the corrected held-out suite hash?
 
-4. What is the Stage 5 held-out suite composition and hash?
+4. How does Q1 compare with g128 on:
+       V2 quality
+       heldout_v2
+       NLL/KL
+       8K
+       12K
+       16K
 
-5. What end-to-end sensitivity method was implemented?
+5. Was Q2 tested?
+   Why or why not?
 
-6. How stable/deterministic was the sensitivity ranking?
+6. Was Q3 tested?
+   Why or why not?
 
-7. Which modules/families had the highest quality-recovery-per-byte?
+7. What is the final fixed-weight Pareto frontier?
 
-8. Which fixed-budget candidates were built?
+8. Is KL ranking numerically reproducible on identical calibration data?
 
-9. What were their exact sizes/effective BPW?
+9. How robust is the ranking across calibration subsets?
 
-10. Did broad 3/4 or sparse higher-bit promotion win at matched size?
+10. Was bounded DWQ implemented?
 
-11. Which candidates survived the mini tournament?
+11. What memory did DWQ require?
 
-12. Was bounded DWQ feasible?
+12. Did DWQ reduce teacher/loss divergence?
 
-13. Did DWQ measurably improve any finalist?
+13. Did DWQ improve actual held-out quality?
 
-14. What are the final Quality Suite V2 results?
+14. What is the final DEFAULT model?
 
-15. What are the final completely held-out quality results?
+15. Is there a separate QUALITY MODE?
 
-16. What are the final NLL/KL/top-1 results?
+16. Is there a separate PERFORMANCE/LONG-CONTEXT MODE?
 
-17. What is the final Pareto frontier?
+17. What are final 8K/12K/16K numbers?
 
-18. Which model is DEFAULT?
+18. Is 20K practical?
 
-19. Is there a separate QUALITY MODE?
+19. Was 24K tested?
 
-20. Is there a separate PERFORMANCE/LONG-CONTEXT MODE?
+20. What context should the user actually use daily?
 
-21. What are the final 8K and 16K decode/TTFT/peak numbers?
+21. Was Qwen3.8 MTP implemented?
 
-22. Did activation quantization help?
+22. What MTP tensor precision/payload was used?
 
-23. Is 20K practical?
+23. What was MTP acceptance rate?
 
-24. Was 24K tested, and if so was it practical or merely survivable?
+24. What was MTP decode speedup at 4K/8K/16K?
 
-25. Was MTP available for Qwen3.8?
+25. Did MTP introduce a memory/residency cliff?
 
-26. If tested, what speedup/acceptance/memory cost did MTP show?
+26. Did the real serialized agent smoke pass?
 
-27. Is there now a serialized OpenAI-compatible/local-agent backend?
+27. What warm TTFT/decode did the agent backend show?
 
-28. Did a real multi-turn agent-style smoke pass?
+28. Are structured tool calls reliable?
 
-29. What exact command/config should the user run TODAY?
+29. What exact CLI command should the user run TODAY?
 
-30. What are the three highest-value remaining Stage 6 ideas?
+30. What exact server command should the user run TODAY?
 
-Include final tables:
+31. What are the three best remaining Stage 7 ideas?
 
-### Quality Pareto
+Include tables:
+
+### Final Weight Pareto
 
     model
-    payload GiB
-    effective BPW
-    V2 objective
-    held-out objective
-    NLL
-    quality role
-
-### Runtime Pareto
-
-    model
+    size GiB
+    BPW
+    V2
+    heldout_v2
+    NLL/KL
     8K decode
-    8K warm TTFT
-    8K peak
     16K decode
-    16K warm TTFT
-    16K peak
-    20K status
+    role
+
+### Context Envelope
+
+    context
+    KV mode
+    warm TTFT
+    decode
+    peak
+    verdict
 
 ### Acceleration
 
-    mode
+    baseline
+    MTP
+    payload overhead
+    acceptance
     decode
-    memory
-    quality/correctness
+    correctness
     verdict
 
 ---
 
 # Completion Condition
 
-Stage 5 is complete when:
+Stage 6 is complete when:
 
-- mixed34 cliff is resolved;
-- held-out suite is frozen and run;
-- loss/logit-guided sensitivity is investigated;
-- fixed-budget frontier is tested;
-- DWQ has either produced useful evidence or been safely rejected;
-- final Pareto roles are chosen;
-- winner is tested at useful contexts;
-- optional acceleration branches are gated correctly;
-- serialized agent backend is tested if time permits;
-- FINAL_REPORT.md and STATUS.md are complete;
-- useful work is committed.
+- Q1 is fully evaluated;
+- Q2/Q3 are evaluated only as justified;
+- held-out truncation artifacts are corrected;
+- KL ranking repeatability is measured correctly;
+- bounded DWQ produces useful evidence or is safely rejected;
+- final weight-model roles are chosen;
+- 20K is evaluated if safe;
+- MTP is investigated if time permits;
+- real agent backend smoke is attempted;
+- FINAL_REPORT.md exists;
+- STATUS.md is current;
+- useful changes are committed.
 
-Do not start Stage 6 automatically.
+Do not start Stage 7 automatically.
 
 At the end return a concise summary with:
 
     default model
-    alternate modes
-    model sizes
-    held-out quality verdict
-    8K/16K/20K runtime verdict
-    mixed34 cliff verdict
+    Q1/Q2/Q3 verdicts
+    quality result
+    8K/12K/16K/20K result
     DWQ verdict
-    activation quant verdict
     MTP verdict
-    agent backend command
+    agent backend verdict
+    recommended CLI command
+    recommended server command
     FINAL_REPORT path
     commit SHAs
 
