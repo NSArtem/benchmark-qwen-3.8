@@ -1,0 +1,31 @@
+**Regression Test Plan: Stale Event Handling**
+
+**Objective:** Verify that a stale event arriving after a terminal state does not alter the current state or reopen the workflow.
+
+**Terminal-State Invariant:**
+Once an entity reaches a terminal state (e.g., `CLOSED`, `CANCELLED`, `COMPLETED`), its status is immutable. No subsequent event may transition the entity to a non-terminal state or modify its core attributes.
+
+**Event Sequences:**
+
+1.  **Happy Path (Baseline):**
+    *   Event A: `CREATE`
+    *   Event B: `PROCESS`
+    *   Event C: `CLOSE` (Terminal)
+    *   *Expected:* State is `CLOSED`.
+
+2.  **Regression Case (Stale Event):**
+    *   Event A: `CREATE`
+    *   Event B: `PROCESS`
+    *   Event C: `CLOSE` (Terminal)
+    *   Event D: `REOPEN` (Stale/Out-of-order)
+    *   *Context:* Event D was generated before Event C but delivered after due to network latency or queue backlog.
+
+**Assertions:**
+
+1.  **State Integrity:** After processing Event D, the entity’s state must remain `CLOSED`.
+2.  **No Reopening:** The system must reject Event D. The entity must not transition to `OPEN` or `PROCESSING`.
+3.  **Data Consistency:** No fields associated with the stale event (e.g., timestamps, metadata) should be updated.
+4.  **Error Handling:** The system should log a warning for the rejected stale event but must not crash or throw an unhandled exception.
+
+**Conclusion:**
+If the state remains `CLOSED` and no data is mutated, the test passes. Any change in state or data indicates a failure in the terminal-state invariant enforcement.

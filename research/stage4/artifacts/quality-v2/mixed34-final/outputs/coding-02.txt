@@ -1,0 +1,9 @@
+**Invariant:**
+A job in a terminal state (e.g., `succeeded`, `failed`, `canceled`) is immutable. Once a terminal state is reached, the job’s state must remain constant; no subsequent event can transition the job back to a non-terminal state (e.g., `running`, `pending`).
+
+**Guard:**
+The reducer must check the current state before processing any new event. If the current state is terminal, the guard rejects any event that attempts to transition the state to a non-terminal value. Specifically:
+`if (currentState.isTerminal && !event.isTerminal) return currentState;`
+
+**Action for Event 7:**
+Event 7 (`running`) is invalid because it attempts to revive a terminal job. The reducer must **ignore** this event. It should not update the state, log an error (optional but recommended), and return the existing state (`succeeded`). This ensures the job remains `succeeded` and prevents data corruption or inconsistent job lifecycles.

@@ -1,0 +1,14 @@
+**Completion Predicate**
+`lease_token == current_token`
+
+**Fencing Mechanism**
+Use a **Redis** `SET` command with a versioned key.
+
+1.  **Acquire Lease:** Worker A sets `lease:job:<id>` to `token:A` with a TTL.
+2.  **Handover:** Worker A’s lease expires. Worker B acquires the same job and sets `lease:job:<id>` to `token:B`.
+3.  **Fence Check:** Worker A finishes rendering and attempts to publish. Before writing the result, Worker A issues a `GET` on `lease:job:<id>`.
+4.  **Rejection:** The `GET` returns `token:B`. Since `token:A != token:B`, the predicate fails.
+5.  **Action:** The system rejects Worker A’s publish request, preventing stale data from overwriting the new lease’s state.
+
+**Why This Works**
+The lease token acts as a monotonic fence. By comparing the token in the worker’s context against the token currently stored in Redis, the system ensures only the *current* lease holder can commit changes. This prevents the "split-brain" scenario where an expired worker publishes results for a job it no longer owns.

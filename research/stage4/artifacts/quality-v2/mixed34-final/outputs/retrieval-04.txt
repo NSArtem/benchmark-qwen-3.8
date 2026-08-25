@@ -1,0 +1,14 @@
+Based on the provided ledger records, here is the comparison between Record 017 and Record 139:
+
+**Record 017:**
+*   **Shard:** amber
+*   **Checksum:** A7C9
+
+**Record 139:**
+*   **Shard:** drift
+*   **Checksum:** DRIFT-139
+
+**Last-Event Cursor Mention:**
+The record that mentions the last-event cursor is **Record 139**.
+*   *Evidence:* The note for Record 139 states: "last-event cursor is sequence-based."
+*   *Contrast:* The note for Record 017 states: "priority handoff after audit."

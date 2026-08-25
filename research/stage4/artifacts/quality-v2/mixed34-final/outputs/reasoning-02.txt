@@ -1,0 +1,6 @@
+Start at version 1.
+Event 2: 2 > 1, apply. Current version: 2.
+Event 5: 5 > 2, apply. Current version: 5.
+Event 4: 4 > 5 is false, ignore. Current version: 5.
+
+Final: 5

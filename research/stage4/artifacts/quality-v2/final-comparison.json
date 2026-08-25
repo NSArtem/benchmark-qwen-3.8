@@ -1,0 +1,962 @@
+{
+  "case_matrix": [
+    {
+      "case_id": "coding-01",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 326,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 306,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 342,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "coding-02",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 277,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 164,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 207,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "coding-03",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 253,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 273,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 254,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "coding-04",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 346,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 319,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 266,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "coding-05",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 368,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 347,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 330,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "coding-06",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 306,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 301,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 287,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "coding-07",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 340,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 369,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "length",
+        "generated_tokens": 512,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "coding-08",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 448,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 419,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 396,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "instruction-01",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 16,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 16,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 16,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "instruction-02",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 10,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 10,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 10,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "instruction-03",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 19,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 18,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 10,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "instruction-04",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 4,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 4,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 4,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "structured-01",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 32,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 27,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 32,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "structured-02",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 36,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 36,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 36,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "structured-03",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 33,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 33,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 33,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "structured-04",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 30,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 30,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 30,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "reasoning-01",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 5,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 68,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 51,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "reasoning-02",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 78,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 96,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 71,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "reasoning-03",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 79,
+        "objective_pass": false,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 68,
+        "objective_pass": false,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 62,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "reasoning-04",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 85,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 71,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 35,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "retrieval-01",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 56,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 81,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 27,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "retrieval-02",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 43,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 38,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 45,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "retrieval-03",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 50,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 59,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 58,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "retrieval-04",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 121,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 123,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 152,
+        "objective_pass": true,
+        "semi_objective_pass": null
+      }
+    },
+    {
+      "case_id": "prose-01",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 81,
+        "objective_pass": null,
+        "semi_objective_pass": true
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 76,
+        "objective_pass": null,
+        "semi_objective_pass": true
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 77,
+        "objective_pass": null,
+        "semi_objective_pass": true
+      }
+    },
+    {
+      "case_id": "prose-02",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 32,
+        "objective_pass": null,
+        "semi_objective_pass": true
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 20,
+        "objective_pass": null,
+        "semi_objective_pass": true
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 20,
+        "objective_pass": null,
+        "semi_objective_pass": true
+      }
+    },
+    {
+      "case_id": "prose-03",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 69,
+        "objective_pass": null,
+        "semi_objective_pass": true
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 68,
+        "objective_pass": null,
+        "semi_objective_pass": true
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 75,
+        "objective_pass": null,
+        "semi_objective_pass": true
+      }
+    },
+    {
+      "case_id": "prose-04",
+      "g128": {
+        "finish_reason": "eos",
+        "generated_tokens": 22,
+        "objective_pass": null,
+        "semi_objective_pass": true
+      },
+      "g64": {
+        "finish_reason": "eos",
+        "generated_tokens": 22,
+        "objective_pass": null,
+        "semi_objective_pass": true
+      },
+      "mixed34": {
+        "finish_reason": "eos",
+        "generated_tokens": 36,
+        "objective_pass": null,
+        "semi_objective_pass": true
+      }
+    }
+  ],
+  "experiment_id": "P6-FULL-FINALIST-COMPARISON-V2",
+  "models": [
+    {
+      "active_plus_cache_gib_max": 11.461638467386365,
+      "category_summary": {
+        "coding": {
+          "cases": 8,
+          "objective_pass": 8,
+          "objective_total": 8,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        },
+        "instruction": {
+          "cases": 4,
+          "objective_pass": 4,
+          "objective_total": 4,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        },
+        "prose": {
+          "cases": 4,
+          "objective_pass": 0,
+          "objective_total": 0,
+          "semi_objective_pass": 4,
+          "semi_objective_total": 4
+        },
+        "reasoning": {
+          "cases": 4,
+          "objective_pass": 3,
+          "objective_total": 4,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        },
+        "retrieval": {
+          "cases": 4,
+          "objective_pass": 4,
+          "objective_total": 4,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        },
+        "structured": {
+          "cases": 4,
+          "objective_pass": 4,
+          "objective_total": 4,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        }
+      },
+      "decode_tps_mean": 11.074514260869401,
+      "decode_tps_median": 11.111698092966375,
+      "early_eos_count": 0,
+      "effective_bpw": 3.50123,
+      "finish_reasons": {
+        "eos": 28
+      },
+      "generated_tokens_mean": 123.64285714285714,
+      "label": "g64",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "objective_failures": [
+        "reasoning-03"
+      ],
+      "objective_pass": 23,
+      "objective_total": 24,
+      "payload_bytes": 11771132928,
+      "payload_gib": 10.962721824645996,
+      "peak_gib_max": 14.14329438470304,
+      "raw_total_elapsed_seconds": 623.564009958005,
+      "repetition_count": 0,
+      "semi_objective_failures": [],
+      "semi_objective_pass": 4,
+      "semi_objective_total": 4,
+      "suite_sha256": "f24e3983efbd898084852c3fde7b0f824604bc6a63349de5f32efeaa36ca3de0",
+      "teacher_forced": {
+        "case_count": 6,
+        "mean_nll_nats": 1.0628917709812018,
+        "mean_top1_accuracy": 0.7653744569191723,
+        "per_case": [
+          {
+            "average_nll_nats": 2.573170731707317,
+            "case_id": "coding-01",
+            "category": "coding",
+            "top1_accuracy": 0.5365853658536586
+          },
+          {
+            "average_nll_nats": 0.0,
+            "case_id": "instruction-01",
+            "category": "instruction",
+            "top1_accuracy": 1.0
+          },
+          {
+            "average_nll_nats": 0.23214285714285715,
+            "case_id": "structured-01",
+            "category": "structured",
+            "top1_accuracy": 0.8571428571428571
+          },
+          {
+            "average_nll_nats": 0.91,
+            "case_id": "reasoning-01",
+            "category": "reasoning",
+            "top1_accuracy": 0.88
+          },
+          {
+            "average_nll_nats": 0.9398148148148148,
+            "case_id": "retrieval-01",
+            "category": "retrieval",
+            "top1_accuracy": 0.7407407407407407
+          },
+          {
+            "average_nll_nats": 1.7222222222222223,
+            "case_id": "prose-01",
+            "category": "prose",
+            "top1_accuracy": 0.5777777777777777
+          }
+        ],
+        "total_target_tokens": 167,
+        "weighted_mean_nll_nats": 1.403443113772455,
+        "weighted_nll_delta_vs_g64": 0.0,
+        "weighted_top1_accuracy": 0.7005988023952096,
+        "weighted_top1_delta_vs_g64": 0.0
+      },
+      "ttft_seconds_mean": 10.948363824394098
+    },
+    {
+      "active_plus_cache_gib_max": 10.726114250719547,
+      "category_summary": {
+        "coding": {
+          "cases": 8,
+          "objective_pass": 8,
+          "objective_total": 8,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        },
+        "instruction": {
+          "cases": 4,
+          "objective_pass": 4,
+          "objective_total": 4,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        },
+        "prose": {
+          "cases": 4,
+          "objective_pass": 0,
+          "objective_total": 0,
+          "semi_objective_pass": 4,
+          "semi_objective_total": 4
+        },
+        "reasoning": {
+          "cases": 4,
+          "objective_pass": 3,
+          "objective_total": 4,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        },
+        "retrieval": {
+          "cases": 4,
+          "objective_pass": 4,
+          "objective_total": 4,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        },
+        "structured": {
+          "cases": 4,
+          "objective_pass": 4,
+          "objective_total": 4,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        }
+      },
+      "decode_tps_mean": 11.935493197661073,
+      "decode_tps_median": 12.004808246451539,
+      "early_eos_count": 0,
+      "effective_bpw": 3.25125,
+      "finish_reasons": {
+        "eos": 28
+      },
+      "generated_tokens_mean": 127.32142857142857,
+      "label": "g128",
+      "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+      "objective_failures": [
+        "reasoning-03"
+      ],
+      "objective_pass": 23,
+      "objective_total": 24,
+      "payload_bytes": 10930715648,
+      "payload_gib": 10.180022239685059,
+      "peak_gib_max": 13.360625317320228,
+      "raw_total_elapsed_seconds": 604.7251780000224,
+      "repetition_count": 0,
+      "semi_objective_failures": [],
+      "semi_objective_pass": 4,
+      "semi_objective_total": 4,
+      "suite_sha256": "f24e3983efbd898084852c3fde7b0f824604bc6a63349de5f32efeaa36ca3de0",
+      "teacher_forced": {
+        "case_count": 6,
+        "mean_nll_nats": 1.0676687852195983,
+        "mean_top1_accuracy": 0.7613094162687659,
+        "per_case": [
+          {
+            "average_nll_nats": 2.6097560975609757,
+            "case_id": "coding-01",
+            "category": "coding",
+            "top1_accuracy": 0.5121951219512195
+          },
+          {
+            "average_nll_nats": 0.0,
+            "case_id": "instruction-01",
+            "category": "instruction",
+            "top1_accuracy": 1.0
+          },
+          {
+            "average_nll_nats": 0.49107142857142855,
+            "case_id": "structured-01",
+            "category": "structured",
+            "top1_accuracy": 0.8571428571428571
+          },
+          {
+            "average_nll_nats": 0.945,
+            "case_id": "reasoning-01",
+            "category": "reasoning",
+            "top1_accuracy": 0.88
+          },
+          {
+            "average_nll_nats": 0.8379629629629629,
+            "case_id": "retrieval-01",
+            "category": "retrieval",
+            "top1_accuracy": 0.7407407407407407
+          },
+          {
+            "average_nll_nats": 1.5222222222222221,
+            "case_id": "prose-01",
+            "category": "prose",
+            "top1_accuracy": 0.5777777777777777
+          }
+        ],
+        "total_target_tokens": 167,
+        "weighted_mean_nll_nats": 1.3690119760479043,
+        "weighted_nll_delta_vs_g64": -0.03443113772455075,
+        "weighted_top1_accuracy": 0.6946107784431138,
+        "weighted_top1_delta_vs_g64": -0.0059880239520957446
+      },
+      "ttft_seconds_mean": 10.765010455390438
+    },
+    {
+      "active_plus_cache_gib_max": 11.211004246026278,
+      "category_summary": {
+        "coding": {
+          "cases": 8,
+          "objective_pass": 8,
+          "objective_total": 8,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        },
+        "instruction": {
+          "cases": 4,
+          "objective_pass": 4,
+          "objective_total": 4,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        },
+        "prose": {
+          "cases": 4,
+          "objective_pass": 0,
+          "objective_total": 0,
+          "semi_objective_pass": 4,
+          "semi_objective_total": 4
+        },
+        "reasoning": {
+          "cases": 4,
+          "objective_pass": 4,
+          "objective_total": 4,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        },
+        "retrieval": {
+          "cases": 4,
+          "objective_pass": 4,
+          "objective_total": 4,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        },
+        "structured": {
+          "cases": 4,
+          "objective_pass": 4,
+          "objective_total": 4,
+          "semi_objective_pass": 0,
+          "semi_objective_total": 0
+        }
+      },
+      "decode_tps_mean": 11.36205776291656,
+      "decode_tps_median": 11.383371021939508,
+      "early_eos_count": 0,
+      "effective_bpw": 3.40613,
+      "finish_reasons": {
+        "eos": 27,
+        "length": 1
+      },
+      "generated_tokens_mean": 124.07142857142857,
+      "label": "mixed34",
+      "model_path": "/Users/artem/models/Qwen3.8-27B-mixed-3-4-control-g128",
+      "objective_failures": [],
+      "objective_pass": 24,
+      "objective_total": 24,
+      "payload_bytes": 11451399168,
+      "payload_gib": 10.664946556091309,
+      "peak_gib_max": 13.845549633726478,
+      "raw_total_elapsed_seconds": 613.4214275419945,
+      "repetition_count": 0,
+      "semi_objective_failures": [],
+      "semi_objective_pass": 4,
+      "semi_objective_total": 4,
+      "suite_sha256": "f24e3983efbd898084852c3fde7b0f824604bc6a63349de5f32efeaa36ca3de0",
+      "teacher_forced": {
+        "case_count": 6,
+        "mean_nll_nats": 1.088244504667269,
+        "mean_top1_accuracy": 0.7727203510130339,
+        "per_case": [
+          {
+            "average_nll_nats": 2.573170731707317,
+            "case_id": "coding-01",
+            "category": "coding",
+            "top1_accuracy": 0.5121951219512195
+          },
+          {
+            "average_nll_nats": 0.0,
+            "case_id": "instruction-01",
+            "category": "instruction",
+            "top1_accuracy": 1.0
+          },
+          {
+            "average_nll_nats": 0.625,
+            "case_id": "structured-01",
+            "category": "structured",
+            "top1_accuracy": 0.9285714285714286
+          },
+          {
+            "average_nll_nats": 0.91,
+            "case_id": "reasoning-01",
+            "category": "reasoning",
+            "top1_accuracy": 0.84
+          },
+          {
+            "average_nll_nats": 0.8101851851851852,
+            "case_id": "retrieval-01",
+            "category": "retrieval",
+            "top1_accuracy": 0.7777777777777778
+          },
+          {
+            "average_nll_nats": 1.6111111111111112,
+            "case_id": "prose-01",
+            "category": "prose",
+            "top1_accuracy": 0.5777777777777777
+          }
+        ],
+        "total_target_tokens": 167,
+        "weighted_mean_nll_nats": 1.3854790419161678,
+        "weighted_nll_delta_vs_g64": -0.017964071856287234,
+        "weighted_top1_accuracy": 0.7005988023952096,
+        "weighted_top1_delta_vs_g64": 0.0
+      },
+      "ttft_seconds_mean": 10.831509364499652
+    }
+  ],
+  "phase": 6,
+  "rubric_correction": {
+    "case_id": "coding-03",
+    "change": "accepted transaction boundary and atomic transaction as equivalent single-transaction wording",
+    "corrected_suite_sha256": "f24e3983efbd898084852c3fde7b0f824604bc6a63349de5f32efeaa36ca3de0",
+    "rerun_artifacts": "research/stage4/artifacts/quality-v2/rerun-coding03"
+  },
+  "suite_sha256": "f24e3983efbd898084852c3fde7b0f824604bc6a63349de5f32efeaa36ca3de0"
+}

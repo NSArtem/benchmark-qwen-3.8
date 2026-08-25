@@ -1,0 +1,3 @@
+Start with 12 jobs. Four complete and three are cancelled, totaling 7 jobs removed from the queue. Two new jobs are added. The calculation is 12 - 7 + 2 = 7.
+
+Final: 7

@@ -1,0 +1,170 @@
+{
+  "case_count": 1,
+  "cases": [
+    {
+      "cache_state_signature": "cbfa27467a44cee553e81b455dd73524e3187e154fc7af0357ee04af96ab4690",
+      "case_id": "coding-03",
+      "category": "coding",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 6,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.978358765960905,
+      "decoded_output": "**Atomicity Failure**\nThe described API violates the atomicity principle of ACID transactions. By committing the job state update in a separate transaction from the outbox insert, the system creates a window of vulnerability. If the application crashes, loses network connectivity, or encounters an error between the first commit and the second transaction, the database remains in an inconsistent state. The job is marked as updated, but the corresponding outbox event is never recorded.\n\n**Required Transaction Boundary**\nTo ensure consistency, both operations must occur within a **single transaction boundary**. The job state update and the outbox row insertion must be executed together and committed atomically. This ensures that either both changes persist, or neither does. If the transaction fails, both operations are rolled back, preserving data integrity.\n\n**Failure Symptom**\nThe primary symptom is **silent data loss** or **stalled processing**. The job state reflects the new status, but the outbox table lacks the corresponding event. Consequently, the event publisher (which polls the outbox table) never detects the change. The job appears updated in the database, but downstream consumers (e.g., notification services, analytics pipelines) never receive the event, leading to system desynchronization and unprocessed work.",
+      "decoded_output_sha256": "2a4757f693b286c8c431ed0e9210c7b8e9fefa377bd999c51357d38a41cb627c",
+      "early_eos": false,
+      "elapsed_seconds": 22.647033750021365,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "4ef40053a8eafc7cd66a3346c2ea02abb924546cdae41c70f40d1cbbf9e391f1",
+        "top1_id": 760,
+        "top_k_ids": [
+          760,
+          332,
+          1919,
+          13962,
+          63636,
+          550,
+          16,
+          19580
+        ],
+        "top_k_logprobs": [
+          -0.75,
+          -0.75,
+          -3.5,
+          -4.125,
+          -4.625,
+          -5.0,
+          -5.75,
+          -6.0
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "76e7261d1ea4565999613ef0713076e39ac8dbc5f92481e456197107f9d0a193",
+      "generated_tokens": 253,
+      "max_tokens": 512,
+      "memory_after_generation": {
+        "active_bytes": 11119541258,
+        "active_gib": 10.355879792943597,
+        "active_plus_cache_bytes": 11188849352,
+        "active_plus_cache_gib": 10.420427985489368,
+        "cache_bytes": 69308094,
+        "cache_gib": 0.0645481925457716,
+        "elapsed_seconds": 27.250268167001195,
+        "label": "stage4:evaluation:g128-coding03-rerun:coding-03:after_generation",
+        "peak_bytes": 11378830824,
+        "peak_gib": 10.597362019121647,
+        "rss_max_bytes": 7388512256
+      },
+      "prompt_sha256": "2b3a10d9fecfe49f5ced5a8a19c5c8d4bd2307f0271e0a278f7ac5bed72e9b7f",
+      "prompt_token_sha256": "c724d43b7d9af6f0520845da5203a1c91c4e5939e85bde30c035a56e79b2cbd7",
+      "prompt_tokens": 75,
+      "prompt_tps": 50.626144150655776,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/rerun-coding03/g128/outputs/coding-03.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/rerun-coding03/g128/tokens/coding-03.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/rerun-coding03/g128/state_signatures/coding-03.json",
+      "total_seconds": 22.519388582993997,
+      "ttft_seconds": 1.481448000005912
+    }
+  ],
+  "exception": null,
+  "experiment_id": "P1-EVALUATION-G128-CODING03-RERUN-QUALITY-V2",
+  "git_commit": "757e0cc0755dad44e09f8a3fe0442e04ec488c1a",
+  "memory_after_model_load": {
+    "active_bytes": 10931338248,
+    "active_gib": 10.180602081120014,
+    "active_plus_cache_bytes": 10931348812,
+    "active_plus_cache_gib": 10.180611919611692,
+    "cache_bytes": 10564,
+    "cache_gib": 9.838491678237915e-06,
+    "elapsed_seconds": 4.640163042000495,
+    "label": "stage4_evaluation_g128-coding03-rerun_after_model_load",
+    "peak_bytes": 10931338248,
+    "peak_gib": 10.180602081120014,
+    "rss_max_bytes": 7388512256
+  },
+  "model": {
+    "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+    "mlx_lm_version": "0.31.3",
+    "mlx_version": "0.32.1",
+    "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+    "python_executable": "/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.1/.venv/bin/python3",
+    "python_version": "3.14.7",
+    "quantization": {
+      "bits": 3,
+      "group_size": 128,
+      "mode": "affine"
+    },
+    "wired_policy": "direct generate_step; MLX wired state untouched"
+  },
+  "model_label": "g128-coding03-rerun",
+  "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+  "os_memory_after": {
+    "memory_pressure": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 31%\n"
+    },
+    "vm_stat": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                               20629.\nPages active:                            147373.\nPages inactive:                          175405.\nPages speculative:                        20299.\nPages throttled:                              0.\nPages wired down:                        771407.\nPages purgeable:                            225.\n\"Translation faults\":                 267550336.\nPages copy-on-write:                    6759699.\nPages zero filled:                    931326269.\nPages reactivated:                     11320780.\nPages purged:                           1451492.\nFile-backed pages:                       241035.\nAnonymous pages:                         102042.\nPages stored in compressor:              146360.\nPages occupied by compressor:              4065.\nDecompressions:                       433720608.\nCompressions:                         440009756.\nPageins:                              145397742.\nPageouts:                                 86496.\nSwapins:                              116733325.\nSwapouts:                             117209861.\n"
+    },
+    "vm_swapusage": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "vm.swapusage: total = 2048.00M  used = 850.44M  free = 1197.56M  (encrypted)\n"
+    }
+  },
+  "os_memory_before": {
+    "memory_pressure": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 90%\n"
+    },
+    "vm_stat": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                              757103.\nPages active:                            137200.\nPages inactive:                          119817.\nPages speculative:                        21801.\nPages throttled:                              0.\nPages wired down:                         99071.\nPages purgeable:                            603.\n\"Translation faults\":                 266810293.\nPages copy-on-write:                    6758824.\nPages zero filled:                    930608024.\nPages reactivated:                     11320243.\nPages purged:                           1450385.\nFile-backed pages:                       203706.\nAnonymous pages:                          75112.\nPages stored in compressor:              146412.\nPages occupied by compressor:              3810.\nDecompressions:                       433317548.\nCompressions:                         439606737.\nPageins:                              144742500.\nPageouts:                                 86420.\nSwapins:                              116732877.\nSwapouts:                             117209861.\n"
+    },
+    "vm_swapusage": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "vm.swapusage: total = 2048.00M  used = 850.44M  free = 1197.56M  (encrypted)\n"
+    }
+  },
+  "overall_classification": "PASS",
+  "phase": 1,
+  "selected_case_ids": [
+    "coding-03"
+  ],
+  "split": "evaluation",
+  "suite_path": "/Users/artem/projects/benchmark-qwen-3.8/research/stage4/evaluation/evaluation_v2.jsonl",
+  "suite_sha256": "f24e3983efbd898084852c3fde7b0f824604bc6a63349de5f32efeaa36ca3de0",
+  "timestamp": "2026-08-25T06:43:06+0400",
+  "total_elapsed_seconds": 27.31512045802083
+}

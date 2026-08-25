@@ -1,0 +1,5087 @@
+{
+  "case_count": 28,
+  "cases": [
+    {
+      "cache_state_signature": "b67e497cff6ba1d29f60ed8852b45e27c1cf51d15b85bbbb217f2def17ffe308",
+      "case_id": "coding-01",
+      "category": "coding",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 14,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.484693844317487,
+      "decoded_output": "**Diagnosis:**\nThe current implementation suffers from a classic check-then-act race condition. Two concurrent requests (R1, R2) execute the `SELECT` simultaneously. Since neither job exists yet, both return \"not found.\" Both then attempt the `INSERT`. Without a unique constraint on the idempotency key, the database allows both inserts to succeed, creating duplicate jobs and violating idempotency.\n\n**Smallest Database-Level Fix:**\nAdd a **UNIQUE constraint** on the `idempotency_key` column in the `jobs` table.\n\n```sql\nALTER TABLE jobs ADD CONSTRAINT uq_idempotency_key UNIQUE (idempotency_key);\n```\n\n**How Retry Returns Original Result:**\n1.  **Concurrent Execution:** R1 and R2 attempt the `INSERT` concurrently.\n2.  **Conflict:** The database enforces the unique constraint. One request (e.g., R1) succeeds. The other (R2) fails with a unique constraint violation error (e.g., `SQLSTATE 23505` in PostgreSQL).\n3.  **Retry Logic:** The application catches this specific error code.\n4.  **Recovery:** Instead of re-executing the business logic, the application performs a `SELECT` on the existing row using the same idempotency key.\n5.  **Result:** It retrieves the status and response payload stored by the *first* successful request (R1) and returns that original result to the client.\n\nThis ensures exactly-once semantics: the side effect happens once, but the response is consistent for all retries.",
+      "decoded_output_sha256": "74562e12b7b3d310aa64ff5f1a271ef2ba193fa050e29ba2e16138e41a29e1be",
+      "early_eos": false,
+      "elapsed_seconds": 31.340536957985023,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "aa05f9e35b9ffc64c0a327a0dd46e9fde85015e8e8ab1d28dc3dc05daa2de4bb",
+        "top1_id": 332,
+        "top_k_ids": [
+          332,
+          760,
+          21018,
+          54112,
+          1073,
+          13962,
+          1206,
+          12
+        ],
+        "top_k_logprobs": [
+          -0.625,
+          -0.875,
+          -5.125,
+          -5.75,
+          -6.25,
+          -6.25,
+          -6.25,
+          -6.5
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "9a43673269aa9c4cfe62a0b501220ff92a03e57efb0702d5a9029b0ce791fc31",
+      "generated_tokens": 342,
+      "max_tokens": 512,
+      "memory_after_generation": {
+        "active_bytes": 11640830986,
+        "active_gib": 10.84136868454516,
+        "active_plus_cache_bytes": 11684022792,
+        "active_plus_cache_gib": 10.881594188511372,
+        "cache_bytes": 43191806,
+        "cache_gib": 0.04022550396621227,
+        "elapsed_seconds": 36.071720709005604,
+        "label": "stage4:evaluation:mixed34-final:coding-01:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "61f04fd85d0e97c2813dca1d65c382dee5ab10f139bf0fbf0b55164ec99363b9",
+      "prompt_token_sha256": "4bdc6cf2451bbe85cf85c027b3d6a28d911dda128d1d6caee65901a0dee0cbf8",
+      "prompt_tokens": 93,
+      "prompt_tps": 61.16034157642199,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/coding-01.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/coding-01.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/coding-01.json",
+      "total_seconds": 31.21228587499354,
+      "ttft_seconds": 1.5205932079988997
+    },
+    {
+      "cache_state_signature": "448ff2599c8f2c7d8e6052e9a992e8e4f0c83a2e9b641eec8d17c48ebf575476",
+      "case_id": "coding-02",
+      "category": "coding",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 7,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.499082093437945,
+      "decoded_output": "**Invariant:**\nA job in a terminal state (e.g., `succeeded`, `failed`, `canceled`) is immutable. Once a terminal state is reached, the job’s state must remain constant; no subsequent event can transition the job back to a non-terminal state (e.g., `running`, `pending`).\n\n**Guard:**\nThe reducer must check the current state before processing any new event. If the current state is terminal, the guard rejects any event that attempts to transition the state to a non-terminal value. Specifically:\n`if (currentState.isTerminal && !event.isTerminal) return currentState;`\n\n**Action for Event 7:**\nEvent 7 (`running`) is invalid because it attempts to revive a terminal job. The reducer must **ignore** this event. It should not update the state, log an error (optional but recommended), and return the existing state (`succeeded`). This ensures the job remains `succeeded` and prevents data corruption or inconsistent job lifecycles.",
+      "decoded_output_sha256": "76a2c140e611974386c836e8a8658b165d88f3956c5f189ea6ca335843a2b421",
+      "early_eos": false,
+      "elapsed_seconds": 19.470318584004417,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "4c1b7bcd21b7d5cc403e38fed01b2a59d364a67e270090cb0c28fe63e64497a4",
+        "top1_id": 332,
+        "top_k_ids": [
+          332,
+          74001,
+          760,
+          623,
+          1349,
+          13962,
+          46291,
+          1206
+        ],
+        "top_k_logprobs": [
+          -0.125,
+          -2.875,
+          -3.0,
+          -4.375,
+          -4.625,
+          -5.875,
+          -5.875,
+          -6.0625
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "dd8783b6550ba48e0f66cbefa5c1d617c04c06f9cb295841d631d5d610eb5361",
+      "generated_tokens": 207,
+      "max_tokens": 512,
+      "memory_after_generation": {
+        "active_bytes": 11640224778,
+        "active_gib": 10.840804109349847,
+        "active_plus_cache_bytes": 11706657112,
+        "active_plus_cache_gib": 10.902674041688442,
+        "cache_bytes": 66432334,
+        "cache_gib": 0.06186993233859539,
+        "elapsed_seconds": 55.54590695898514,
+        "label": "stage4:evaluation:mixed34-final:coding-02:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "4c417e7032c15b5f7b0c1dcea94f24455b2099996728b17495def968caa031a4",
+      "prompt_token_sha256": "424b375857ad95e5969a7fb6bd9b4708ae44492633c41cd7b4527785be00134c",
+      "prompt_tokens": 80,
+      "prompt_tps": 55.24292628336916,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/coding-02.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/coding-02.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/coding-02.json",
+      "total_seconds": 19.36262258401257,
+      "ttft_seconds": 1.4481492089980748
+    },
+    {
+      "cache_state_signature": "905bea39147039e8fe8ffc3d8889aabd3e6cc9d95f5f5881b6b9cd6ff04b12b4",
+      "case_id": "coding-03",
+      "category": "coding",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 3,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": false,
+        "objective_pass": false,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": false,
+          "4": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.502922722741767,
+      "decoded_output": "The described pattern violates the atomicity principle of ACID transactions. By committing the job state update in a separate transaction before inserting the outbox row, the system creates a critical window of inconsistency. If the application crashes, loses network connectivity, or encounters an error during the second transaction, the job state is permanently marked as \"updated\" in the database, but the corresponding outbox event is never recorded.\n\nThis failure manifests as a \"lost event\" or \"phantom state.\" The job appears complete in the primary table, yet the outbox table lacks the necessary payload for downstream consumers (e.g., email services, notification queues). Consequently, dependent systems never receive the trigger to process the change, leading to silent data loss and system desynchronization.\n\nTo resolve this, both operations must occur within a single, atomic transaction boundary. The job state update and the outbox row insertion must be wrapped in the same `BEGIN` and `COMMIT` block. This ensures that either both changes persist or neither does. If the transaction fails, the job state remains unchanged, and no orphaned outbox entry exists. This guarantees that every state change is accompanied by a reliable event for the outbox pattern to function correctly, preserving data integrity across distributed components.",
+      "decoded_output_sha256": "cb6766af426508824db1fa5cfa62c431cf4a7c69695c257b6bcdcca4da692962",
+      "early_eos": false,
+      "elapsed_seconds": 23.510191624984145,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "25e1542cd830f0bfbb85072ff95ccaed798de8bc6830a50c3e5d2a58b2381799",
+        "top1_id": 760,
+        "top_k_ids": [
+          760,
+          332,
+          63636,
+          1919,
+          19580,
+          15947,
+          14077,
+          13962
+        ],
+        "top_k_logprobs": [
+          -0.375,
+          -2.75,
+          -3.25,
+          -3.25,
+          -3.25,
+          -3.875,
+          -4.875,
+          -5.375
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "3ce87bb44095267cb95a4256b12b7147c4c23b100064edae375f7862f13c74b4",
+      "generated_tokens": 254,
+      "max_tokens": 512,
+      "memory_after_generation": {
+        "active_bytes": 11640224778,
+        "active_gib": 10.840804109349847,
+        "active_plus_cache_bytes": 11706853704,
+        "active_plus_cache_gib": 10.902857132256031,
+        "cache_bytes": 66628926,
+        "cache_gib": 0.062053022906184196,
+        "elapsed_seconds": 79.06118841699208,
+        "label": "stage4:evaluation:mixed34-final:coding-03:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "2b3a10d9fecfe49f5ced5a8a19c5c8d4bd2307f0271e0a278f7ac5bed72e9b7f",
+      "prompt_token_sha256": "c724d43b7d9af6f0520845da5203a1c91c4e5939e85bde30c035a56e79b2cbd7",
+      "prompt_tokens": 75,
+      "prompt_tps": 53.107155048064236,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/coding-03.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/coding-03.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/coding-03.json",
+      "total_seconds": 23.40664920900599,
+      "ttft_seconds": 1.412239084020257
+    },
+    {
+      "cache_state_signature": "161c2f58f447edfd8cc4e4850311884d560f13e937a6eefc18e326858950d256",
+      "case_id": "coding-04",
+      "category": "coding",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 11,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.499631214426168,
+      "decoded_output": "**Completion Predicate**\n`lease_token == current_token`\n\n**Fencing Mechanism**\nUse a **Redis** `SET` command with a versioned key.\n\n1.  **Acquire Lease:** Worker A sets `lease:job:<id>` to `token:A` with a TTL.\n2.  **Handover:** Worker A’s lease expires. Worker B acquires the same job and sets `lease:job:<id>` to `token:B`.\n3.  **Fence Check:** Worker A finishes rendering and attempts to publish. Before writing the result, Worker A issues a `GET` on `lease:job:<id>`.\n4.  **Rejection:** The `GET` returns `token:B`. Since `token:A != token:B`, the predicate fails.\n5.  **Action:** The system rejects Worker A’s publish request, preventing stale data from overwriting the new lease’s state.\n\n**Why This Works**\nThe lease token acts as a monotonic fence. By comparing the token in the worker’s context against the token currently stored in Redis, the system ensures only the *current* lease holder can commit changes. This prevents the \"split-brain\" scenario where an expired worker publishes results for a job it no longer owns.",
+      "decoded_output_sha256": "eac89ba1d703353e9256e216ab76f168e8928e36047e43d8be352e036f43b6de",
+      "early_eos": false,
+      "elapsed_seconds": 24.6090710000135,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "c1b87076de86517ec46e124506f5dffdae8b34ac322bc0e9b3d0cc092527f38a",
+        "top1_id": 332,
+        "top_k_ids": [
+          332,
+          760,
+          1206,
+          21260,
+          32088,
+          37,
+          2229,
+          9764
+        ],
+        "top_k_logprobs": [
+          -0.625,
+          -2.375,
+          -2.5,
+          -3.0,
+          -3.25,
+          -3.75,
+          -4.25,
+          -4.25
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "2e25f76ccc6ad9a38881ab5833d2023e10bbca9a6ac97672683803b4b7848586",
+      "generated_tokens": 266,
+      "max_tokens": 512,
+      "memory_after_generation": {
+        "active_bytes": 11640830986,
+        "active_gib": 10.84136868454516,
+        "active_plus_cache_bytes": 11683627420,
+        "active_plus_cache_gib": 10.8812259696424,
+        "cache_bytes": 42796434,
+        "cache_gib": 0.0398572850972414,
+        "elapsed_seconds": 103.66616829199484,
+        "label": "stage4:evaluation:mixed34-final:coding-04:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "ac7883a22ab30918eaa2ed7a714089f4ae17c4331f9ac0bbda0e822638e75b6c",
+      "prompt_token_sha256": "0bf1611ad046b52a528b51ea9eb980b9e7160bfa9bb81992bbaa4d88f05ce711",
+      "prompt_tokens": 77,
+      "prompt_tps": 52.80116311003231,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/coding-04.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/coding-04.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/coding-04.json",
+      "total_seconds": 24.50251845899038,
+      "ttft_seconds": 1.4583012090006378
+    },
+    {
+      "cache_state_signature": "97e9cc544eae1a776d12aeb7ab94d325a94bd190a613fc55176d3c230aadfa56",
+      "case_id": "coding-05",
+      "category": "coding",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 12,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.476787323953523,
+      "decoded_output": "To ensure data integrity during SSE disconnections, implement a robust cursor-based recovery mechanism using `Last-Event-ID`.\n\n1.  **Monotonic Sequence**: Assign a strictly increasing, unique sequence number to every event in the durable PostgreSQL store. This sequence acts as the global cursor, ensuring a total order across all data sources.\n\n2.  **Hybrid Read Strategy**:\n    *   **Initial Connection**: The client sends `Last-Event-ID` (the last sequence number received).\n    *   **PostgreSQL Catch-up**: The server queries PostgreSQL for all events where `sequence > Last-Event-ID`. This recovers any durable events missed during the disconnect.\n    *   **Redis Subscription**: Simultaneously, the server subscribes to the Redis Stream starting from the same `Last-Event-ID` offset.\n\n3.  **Overlap De-duplication**:\n    *   The disconnect gap creates an overlap: events written to PostgreSQL but not yet propagated to Redis, or vice versa.\n    *   **Deduplication Logic**: As events stream from Redis, the server checks if the event’s sequence number is less than or equal to the maximum sequence number already delivered from the PostgreSQL catch-up phase.\n    *   If `redis_event.sequence <= pg_max_sequence`, discard the Redis event (it was already sent).\n    *   If `redis_event.sequence > pg_max_sequence`, forward it to the client.\n\nThis approach guarantees no data loss (via PostgreSQL catch-up) and no duplicate delivery (via sequence-based filtering), providing an exactly-once semantic for the client.",
+      "decoded_output_sha256": "c07fc5fb71ce09629c122ca3f642cc01f921d7b124ddd1bef40cb56d10488de1",
+      "early_eos": false,
+      "elapsed_seconds": 30.163271541998256,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "3a8247a0d991d39665549c8b3f824eaa430acfbe9ddf9401d5fe9862cece6a3e",
+        "top1_id": 1206,
+        "top_k_ids": [
+          1206,
+          760,
+          332,
+          9947,
+          16,
+          60856,
+          2014,
+          1919
+        ],
+        "top_k_logprobs": [
+          -0.875,
+          -1.0,
+          -2.125,
+          -3.75,
+          -3.75,
+          -4.25,
+          -4.5,
+          -4.75
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "70cf8a39be0fda12fcd1d5ba3374090b2dfa36521b7b365a5cc2f8eeb0384adb",
+      "generated_tokens": 330,
+      "max_tokens": 512,
+      "memory_after_generation": {
+        "active_bytes": 11640830986,
+        "active_gib": 10.84136868454516,
+        "active_plus_cache_bytes": 11683891628,
+        "active_plus_cache_gib": 10.881472032517195,
+        "cache_bytes": 43060642,
+        "cache_gib": 0.04010334797203541,
+        "elapsed_seconds": 133.82907833400532,
+        "label": "stage4:evaluation:mixed34-final:coding-05:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "b930d7930f07111f7366a51e32b8ce07b0d42deb833720989360d88507fd0f33",
+      "prompt_token_sha256": "0c0cb8f220bf0a794d7cdd56838eb77e7863ee569c7942546bc102e5d86c443b",
+      "prompt_tokens": 78,
+      "prompt_tps": 55.77069546173709,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/coding-05.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/coding-05.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/coding-05.json",
+      "total_seconds": 30.065142875013407,
+      "ttft_seconds": 1.3985839580127504
+    },
+    {
+      "cache_state_signature": "919c3de4450f21871f8f1711ef7a0db5d7828a4aabb6319a1e1ad00ea4834619",
+      "case_id": "coding-06",
+      "category": "coding",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 14,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.435312912688044,
+      "decoded_output": "**Security Defect:**\nThe repository method suffers from **Insecure Direct Object Reference (IDOR)** or **Broken Access Control**. By filtering solely on `id`, the system ignores the `tenantId` provided in the request. An attacker can bypass their tenant boundary by guessing or enumerating valid job IDs belonging to other tenants, thereby accessing or modifying data they are not authorized to view.\n\n**Required Query Predicate:**\nThe query must enforce multi-tenancy by filtering on both identifiers.\n\n*   **In Words:** Select the job where the job ID matches the requested ID **AND** the job’s tenant ID matches the request’s tenant ID.\n*   **In SQL:**\n    ```sql\n    SELECT * FROM jobs \n    WHERE id = :jobId AND tenant_id = :tenantId\n    ```\n\n**What the Test Must Prove:**\nThe test must demonstrate that the implementation correctly isolates data by tenant. Specifically, it must verify that:\n1.  **Positive Case:** A request with a valid `tenantId` and a `jobId` belonging to that same tenant returns the job.\n2.  **Negative Case:** A request with a valid `tenantId` but a `jobId` belonging to a *different* tenant returns no results (empty set or 404/403 error), proving that cross-tenant access is blocked.",
+      "decoded_output_sha256": "8950595c6f75267956ee39b2a7d28c0bab6528043728391ba2e31b9899994238",
+      "early_eos": false,
+      "elapsed_seconds": 26.573504959000275,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "4a8032bfba86b5238d203028cfea50df4fbc2ff55763b0f5f5699eeacbac95cb",
+        "top1_id": 332,
+        "top_k_ids": [
+          332,
+          760,
+          2533,
+          14906,
+          16,
+          1919,
+          13962,
+          27382
+        ],
+        "top_k_logprobs": [
+          -0.25,
+          -1.875,
+          -4.25,
+          -5.0,
+          -5.375,
+          -5.75,
+          -6.25,
+          -6.75
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "3f6438c05206c7c86f2f078b4e220190298367d275ca8a4dcd37ae1156804766",
+      "generated_tokens": 287,
+      "max_tokens": 512,
+      "memory_after_generation": {
+        "active_bytes": 11640830986,
+        "active_gib": 10.84136868454516,
+        "active_plus_cache_bytes": 11683694992,
+        "active_plus_cache_gib": 10.881288900971413,
+        "cache_bytes": 42864006,
+        "cache_gib": 0.03992021642625332,
+        "elapsed_seconds": 160.40319074998843,
+        "label": "stage4:evaluation:mixed34-final:coding-06:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "4edd1a3a8077dc537c36287b4bc8d28d117213c3e8de69607c0d6ee8b342d776",
+      "prompt_token_sha256": "9b1b89cc7d1694ccada84165b5cf7eb00f54088b8579798168eca04a02a5488c",
+      "prompt_tokens": 71,
+      "prompt_tps": 48.76573190768745,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/coding-06.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/coding-06.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/coding-06.json",
+      "total_seconds": 26.46618737501558,
+      "ttft_seconds": 1.4559404159954283
+    },
+    {
+      "cache_state_signature": "e323d38827174be531ccef35b359e3ab92e2ea55b4c0056db93a69b45d07c466",
+      "case_id": "coding-07",
+      "category": "coding",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 21,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true,
+          "5": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.345374972415842,
+      "decoded_output": "**Test: `test_concurrent_idempotent_retry_with_delayed_worker`**\n\n**Setup:**\n1.  **Database:** In-memory SQLite.\n2.  **Schema:** `orders(id, status, payload)`, `outbox(id, order_id, event_type, payload)`.\n3.  **Worker:** A background task that processes `outbox` events. Inject a 500ms artificial delay before the worker commits the `orders` table update.\n4.  **Client:** Two concurrent HTTP clients.\n\n**Execution:**\n1.  Send `POST /orders` with `Idempotency-Key: key-123` (Request A).\n2.  Simultaneously send `POST /orders` with `Idempotency-Key: key-123` (Request B).\n3.  Both requests hit the API. The API creates the order row and inserts an `outbox` event.\n4.  The worker picks up the event. Due to the 500ms delay, Request B arrives *before* the worker commits the status change for Request A.\n5.  Request B checks the idempotency key. It finds the existing order (created by A) but sees the status is still `pending` (not `committed`) because the worker hasn't finished.\n6.  **Critical Logic:** The system must recognize the key exists and return the *original* response (200 OK) for Request B, rather than creating a duplicate or failing.\n7.  Worker completes commit.\n\n**Assertions:**\n1.  **Idempotency Integrity:** `assert db.count(\"SELECT * FROM orders WHERE idempotency_key = 'key-123'\") == 1`\n    *   *Rationale:* Proves no duplicate order row was created despite concurrent writes.\n2.  **Outbox Uniqueness:** `assert db.count(\"SELECT * FROM outbox WHERE order_id = (SELECT id FROM orders WHERE idempotency_key = 'key-123')\") == 1`\n    *   *Rationale:* Proves exactly one event was published. The second request did not trigger a second outbox entry.\n3.  **Response Consistency:** `assert response_a.status_code == response_b.status_code == 200`\n    *   *Rationale:* Both clients received successful responses, confirming the",
+      "decoded_output_sha256": "8738b303f055469be09f2bee56c51f0e40cd4e657ffc6957cf795e8c18444880",
+      "early_eos": false,
+      "elapsed_seconds": 46.564439375011716,
+      "exception": null,
+      "finish_reason": "length",
+      "first_logprob_summary": {
+        "logprob_sha256": "b3b525d1535aacba28ed156c4fe81cc991134c4ca37362a3b18ecfbd9d6cdc98",
+        "top1_id": 332,
+        "top_k_ids": [
+          332,
+          71093,
+          2198,
+          1206,
+          16,
+          1877,
+          1919,
+          13962
+        ],
+        "top_k_logprobs": [
+          -0.25,
+          -2.5,
+          -2.5,
+          -3.625,
+          -4.375,
+          -4.5,
+          -4.875,
+          -5.0
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "f64373fb748037635a2ddde6b3a2bd4df48886bda75694be9dbbda7f942d2c7a",
+      "generated_tokens": 512,
+      "max_tokens": 512,
+      "memory_after_generation": {
+        "active_bytes": 11657608202,
+        "active_gib": 10.85699368454516,
+        "active_plus_cache_bytes": 11738049048,
+        "active_plus_cache_gib": 10.931910060346127,
+        "cache_bytes": 80440846,
+        "cache_gib": 0.07491637580096722,
+        "elapsed_seconds": 206.96553287500865,
+        "label": "stage4:evaluation:mixed34-final:coding-07:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "e0b772211188440fd100d0bf573fb1a6a2400126725f0ccf165056a1d6d700ae",
+      "prompt_token_sha256": "c615d0320d066702eab37c662c266b8f1e9a416577404b32dac984066efdca82",
+      "prompt_tokens": 87,
+      "prompt_tps": 61.582689300478805,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/coding-07.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/coding-07.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/coding-07.json",
+      "total_seconds": 46.453114665986504,
+      "ttft_seconds": 1.412734665995231
+    },
+    {
+      "cache_state_signature": "0a42e8e39789bfabcd1e6ce91b8077bfcf2af05985469a32066a7f6ca1daa406",
+      "case_id": "coding-08",
+      "category": "coding",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 23,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true,
+          "5": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.35129868412241,
+      "decoded_output": "**Regression Test Plan: Stale Event Handling**\n\n**Objective:** Verify that a stale event arriving after a terminal state does not alter the current state or reopen the workflow.\n\n**Terminal-State Invariant:**\nOnce an entity reaches a terminal state (e.g., `CLOSED`, `CANCELLED`, `COMPLETED`), its status is immutable. No subsequent event may transition the entity to a non-terminal state or modify its core attributes.\n\n**Event Sequences:**\n\n1.  **Happy Path (Baseline):**\n    *   Event A: `CREATE`\n    *   Event B: `PROCESS`\n    *   Event C: `CLOSE` (Terminal)\n    *   *Expected:* State is `CLOSED`.\n\n2.  **Regression Case (Stale Event):**\n    *   Event A: `CREATE`\n    *   Event B: `PROCESS`\n    *   Event C: `CLOSE` (Terminal)\n    *   Event D: `REOPEN` (Stale/Out-of-order)\n    *   *Context:* Event D was generated before Event C but delivered after due to network latency or queue backlog.\n\n**Assertions:**\n\n1.  **State Integrity:** After processing Event D, the entity’s state must remain `CLOSED`.\n2.  **No Reopening:** The system must reject Event D. The entity must not transition to `OPEN` or `PROCESSING`.\n3.  **Data Consistency:** No fields associated with the stale event (e.g., timestamps, metadata) should be updated.\n4.  **Error Handling:** The system should log a warning for the rejected stale event but must not crash or throw an unhandled exception.\n\n**Conclusion:**\nIf the state remains `CLOSED` and no data is mutated, the test passes. Any change in state or data indicates a failure in the terminal-state invariant enforcement.",
+      "decoded_output_sha256": "4babfe8c31269ca90900052b1da8150a122e5624479eefa70f6c9a4d8acd9a7c",
+      "early_eos": false,
+      "elapsed_seconds": 36.30387299999711,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "b814b84133fbd969678082494e2b98027b27182657cedc6a5c2ded77e3fe54a1",
+        "top1_id": 332,
+        "top_k_ids": [
+          332,
+          760,
+          13962,
+          43692,
+          2198,
+          1919,
+          16,
+          1206
+        ],
+        "top_k_logprobs": [
+          -0.125,
+          -4.5,
+          -4.75,
+          -4.75,
+          -4.875,
+          -5.375,
+          -5.5,
+          -5.5
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "5028b6c8e5396e1cdff375d3f086e0e97f1cb735970694e5c983c4559160a3d8",
+      "generated_tokens": 396,
+      "max_tokens": 512,
+      "memory_after_generation": {
+        "active_bytes": 11640830986,
+        "active_gib": 10.84136868454516,
+        "active_plus_cache_bytes": 11684153776,
+        "active_plus_cache_gib": 10.881716176867485,
+        "cache_bytes": 43322790,
+        "cache_gib": 0.040347492322325706,
+        "elapsed_seconds": 243.26952054200228,
+        "label": "stage4:evaluation:mixed34-final:coding-08:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "98684137670dc472b16d86a8e283ec9c41293803fceb8a6d4667d9832ec166dd",
+      "prompt_token_sha256": "cdd0bbf03c6d3ae83f0cfbe7fb14c89e3e56564223d4eecedd66d41977edb6d6",
+      "prompt_tokens": 69,
+      "prompt_tps": 49.47636914114698,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/coding-08.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/coding-08.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/coding-08.json",
+      "total_seconds": 36.19238566601416,
+      "ttft_seconds": 1.394605166016845
+    },
+    {
+      "cache_state_signature": "8ac7e3caf9b31b069254898c0a46cf201c80b7c743eb1850afe10513988092bd",
+      "case_id": "instruction-01",
+      "category": "instruction",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 4,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.370225926366201,
+      "decoded_output": "MODE: greedy\nCHECK: schema\nLIMIT: one\nEND: DONE",
+      "decoded_output_sha256": "94d8a6973a097d52f38b9764dd7cc042fcd9bb2fbc2d6ab0f8905b922c21df7a",
+      "early_eos": false,
+      "elapsed_seconds": 2.420235292025609,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "a69138932efafee75a757d03b24c12908ab5d969c16c20f3a91ed7daffb3d7e3",
+        "top1_id": 22098,
+        "top_k_ids": [
+          22098,
+          4935,
+          3513,
+          760,
+          40,
+          63151,
+          2380,
+          8007
+        ],
+        "top_k_logprobs": [
+          0.0,
+          -5.75,
+          -6.25,
+          -6.625,
+          -6.75,
+          -7.125,
+          -7.875,
+          -8.25
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "39fd029ee3b6c8caefc013f94a79e66bedbb92cdbe7bf4a3c32148b4368df76f",
+      "generated_tokens": 16,
+      "max_tokens": 128,
+      "memory_after_generation": {
+        "active_bytes": 11623480330,
+        "active_gib": 10.825209626927972,
+        "active_plus_cache_bytes": 11667835036,
+        "active_plus_cache_gib": 10.866518165916204,
+        "cache_bytes": 44354706,
+        "cache_gib": 0.04130853898823261,
+        "elapsed_seconds": 245.69025883398717,
+        "label": "stage4:evaluation:mixed34-final:instruction-01:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "1eb3e5e34da4cb7546a00fd0e6f86d1183d1f59df5fbe81dc6758880ea087ab4",
+      "prompt_token_sha256": "12a25c5cc76b6fe423e5265ec9157aa94aae3a49551d35490c21a0ad4a20e750",
+      "prompt_tokens": 42,
+      "prompt_tps": 42.24477858240006,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/instruction-01.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/instruction-01.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/instruction-01.json",
+      "total_seconds": 2.313440708006965,
+      "ttft_seconds": 0.9942057080043014
+    },
+    {
+      "cache_state_signature": "402d945220ed37867e7f3af7309fd225cab3440ad2e39f3d40c6e7291fd45e81",
+      "case_id": "instruction-02",
+      "category": "instruction",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 3,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.38316884654932,
+      "decoded_output": "- PASS\n- REJECT\n- RESET",
+      "decoded_output_sha256": "364169b1eb05df7543a50a0088bb230cdb084f1cb35a21da6d9d256a6d9fabc8",
+      "early_eos": false,
+      "elapsed_seconds": 1.8673336670035496,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "e2a35f4cabde84834138a1b41996cd43e69e9d4c6da3ae3a6a5e96a42fc3d19e",
+        "top1_id": 12,
+        "top_k_ids": [
+          12,
+          6458,
+          9,
+          48117,
+          169286,
+          760,
+          40,
+          43177
+        ],
+        "top_k_logprobs": [
+          -0.375,
+          -1.25,
+          -5.0,
+          -5.375,
+          -8.25,
+          -8.5,
+          -8.75,
+          -8.8125
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "4cc9772aa6eff5df03de4d3550ca3f3129c3265644ae8600e92b78c0dcb4bbba",
+      "generated_tokens": 10,
+      "max_tokens": 128,
+      "memory_after_generation": {
+        "active_bytes": 11623529482,
+        "active_gib": 10.82525540329516,
+        "active_plus_cache_bytes": 11667605648,
+        "active_plus_cache_gib": 10.866304531693459,
+        "cache_bytes": 44076166,
+        "cache_gib": 0.04104912839829922,
+        "elapsed_seconds": 247.5716484170116,
+        "label": "stage4:evaluation:mixed34-final:instruction-02:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "cad44ac0f316c99c39812be2233147da43d5c0eb6416ee222402015ad7507b84",
+      "prompt_token_sha256": "547de118601589f044151705a2c1b2ee5020d80e5e06237aa93c6d6507a441e7",
+      "prompt_tokens": 39,
+      "prompt_tps": 39.26141229844902,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/instruction-02.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/instruction-02.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/instruction-02.json",
+      "total_seconds": 1.783982749999268,
+      "ttft_seconds": 0.9933417499996722
+    },
+    {
+      "cache_state_signature": "dae1694fcedcf205630b45bd82d3bc37dc7687b9657103143a24ce88d032ebef",
+      "case_id": "instruction-03",
+      "category": "instruction",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {
+          "2-bit": true,
+          "4-bit": true,
+          "awq": true,
+          "dwq": true,
+          "g64": true,
+          "gptq": true,
+          "kv8": true,
+          "mixed": true
+        },
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 1,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.383573197329696,
+      "decoded_output": "g128 and normal KV are distinct",
+      "decoded_output_sha256": "c494783790477a2f50ec0308fe30b9733e65a26d6733b35edf485102d7293779",
+      "early_eos": false,
+      "elapsed_seconds": 1.871580958017148,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "3e864da63799fe3f85ec8187c1a5ca1e3a3cb8e58c812b9e3bbd5c52f57a04fb",
+        "top1_id": 70,
+        "top_k_ids": [
+          70,
+          38,
+          760,
+          15947,
+          9947,
+          2381,
+          11858,
+          623
+        ],
+        "top_k_logprobs": [
+          -0.375,
+          -2.25,
+          -2.5,
+          -3.375,
+          -4.875,
+          -5.25,
+          -5.375,
+          -5.5
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "3ec23e894aca811248461d55863401239906a263d0c3cc15c144705421030af3",
+      "generated_tokens": 10,
+      "max_tokens": 128,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11667966144,
+        "active_plus_cache_gib": 10.866640269756317,
+        "cache_bytes": 44518582,
+        "cache_gib": 0.0414611604064703,
+        "elapsed_seconds": 249.44396208398393,
+        "label": "stage4:evaluation:mixed34-final:instruction-03:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "dff54ac5bccdc255b15db9b057418d7769f85f15171f25fca129d2600a6d3a5a",
+      "prompt_token_sha256": "a8fb5bb297e3967799e436b140eeacbc17443b7bac633b4daaac08913110126c",
+      "prompt_tokens": 48,
+      "prompt_tps": 48.09069101282456,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/instruction-03.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/instruction-03.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/instruction-03.json",
+      "total_seconds": 1.7887270829814952,
+      "ttft_seconds": 0.9981141669850331
+    },
+    {
+      "cache_state_signature": "a7eed336148a8f47ba08d02c41fd8bd80ed1994637040b8b7fbfc8ddb4276ba2",
+      "case_id": "instruction-04",
+      "category": "instruction",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 1,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.560623075457592,
+      "decoded_output": "COHERENT",
+      "decoded_output_sha256": "49d33cd321ba06c56bc400aea819b28ce32ec7307b1f8fad2379a1681d466d4d",
+      "early_eos": false,
+      "elapsed_seconds": 0.9613830830203369,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "1aa6b777d573d4c39799a394bfd4ac9ad4d5a1333e70aba993067f6354b7abae",
+        "top1_id": 8023,
+        "top_k_ids": [
+          8023,
+          760,
+          40,
+          32,
+          13784,
+          8725,
+          34,
+          2592
+        ],
+        "top_k_logprobs": [
+          0.0,
+          -7.25,
+          -8.125,
+          -8.1875,
+          -8.5,
+          -8.75,
+          -9.0,
+          -9.4375
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "0aec7a6fdd8fbf7fd20f05c42fa36bf0d5d51b35753fb33eb523b664acc68294",
+      "generated_tokens": 4,
+      "max_tokens": 64,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11667703908,
+        "active_plus_cache_gib": 10.86639604344964,
+        "cache_bytes": 44256346,
+        "cache_gib": 0.041216934099793434,
+        "elapsed_seconds": 250.40565183400759,
+        "label": "stage4:evaluation:mixed34-final:instruction-04:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "1ce5baf129cc73231cb00e4dc6d83c75dc0e95cc0571d5fe320d35a15c38f107",
+      "prompt_token_sha256": "6c61d639199e216f59f15cc4e286e6cbd1aa524363485671f2c2f02dbef4fc1e",
+      "prompt_tokens": 28,
+      "prompt_tps": 45.15940265984528,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/instruction-04.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/instruction-04.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/instruction-04.json",
+      "total_seconds": 0.8795274999865796,
+      "ttft_seconds": 0.6200259159959387
+    },
+    {
+      "cache_state_signature": "de5e756ed79769ccd1b2f49a2c0410c233d7558a112170a1c75c99fc0c0b6eef",
+      "case_id": "structured-01",
+      "category": "structured",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": true,
+        "json_shape_ok": true,
+        "json_types_ok": true,
+        "json_values_ok": true,
+        "line_count": 7,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": {
+          "attempts": 1,
+          "safe": true,
+          "state": "queued"
+        },
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.40401810464335,
+      "decoded_output": "```json\n{\n  \"state\": \"queued\",\n  \"safe\": true,\n  \"attempts\": 1\n}\n```",
+      "decoded_output_sha256": "60995e14640a9aa997bf97446032a2913b3302d0e53826fd9c72f2e617566c7c",
+      "early_eos": false,
+      "elapsed_seconds": 3.8261590829933994,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "3f7a577e5fb3da706eb3f4a35169300fef8e8efc742f115545125f69e3f278f2",
+        "top1_id": 71093,
+        "top_k_ids": [
+          71093,
+          90,
+          4754,
+          248058,
+          248046,
+          5202,
+          760,
+          58
+        ],
+        "top_k_logprobs": [
+          -0.125,
+          -2.75,
+          -8.125,
+          -9.125,
+          -9.5,
+          -10.75,
+          -11.1875,
+          -11.5625
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "1731d32d580968c97229ee497292cf895bbc144c4f3cf1c492048ba1395307a4",
+      "generated_tokens": 32,
+      "max_tokens": 160,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11668064444,
+        "active_plus_cache_gib": 10.866731818765402,
+        "cache_bytes": 44616882,
+        "cache_gib": 0.041552709415555,
+        "elapsed_seconds": 254.21808820898877,
+        "label": "stage4:evaluation:mixed34-final:structured-01:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "9b3fae3a78852316f470a069b825ce6e94c2381aad9cc4af75ae3ece64400d53",
+      "prompt_token_sha256": "b5c7dd93d18bf4cade5d64072c467bd928fe6a53457f0f6cbe91104297c94607",
+      "prompt_tokens": 50,
+      "prompt_tps": 50.026680928823296,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/structured-01.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/structured-01.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/structured-01.json",
+      "total_seconds": 3.7178067910135724,
+      "ttft_seconds": 0.999466666020453
+    },
+    {
+      "cache_state_signature": "f8afc92eb8ce3aa8d30c6f5dd41f2651afe10ce8efa85735ee17fce12c955428",
+      "case_id": "structured-02",
+      "category": "structured",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": true,
+        "json_shape_ok": true,
+        "json_types_ok": true,
+        "json_values_ok": true,
+        "line_count": 7,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": {
+          "job": "j-17",
+          "retryable": false,
+          "tenant": "violet"
+        },
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.33758828391403,
+      "decoded_output": "```json\n{\n  \"tenant\": \"violet\",\n  \"job\": \"j-17\",\n  \"retryable\": false\n}\n```",
+      "decoded_output_sha256": "ae838f404caa2c06317f6479653ebfd306bba90baace1951faf8ba53d1fb8468",
+      "early_eos": false,
+      "elapsed_seconds": 4.171942417015089,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "5c1d9a3d8630dcc99f15a3e9355dd9eb9e7d4579c6a7aafc4b67e6ba94c3fd96",
+        "top1_id": 71093,
+        "top_k_ids": [
+          71093,
+          90,
+          4754,
+          40,
+          760,
+          248058,
+          248046,
+          62070
+        ],
+        "top_k_logprobs": [
+          -0.125,
+          -2.5,
+          -5.375,
+          -5.625,
+          -6.75,
+          -6.75,
+          -7.625,
+          -10.375
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "03814754f8f9acce6a8111c076ec75f0cf67afab093f198e966ecad125b2acde",
+      "generated_tokens": 36,
+      "max_tokens": 160,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11668064464,
+        "active_plus_cache_gib": 10.866731837391853,
+        "cache_bytes": 44616902,
+        "cache_gib": 0.04155272804200649,
+        "elapsed_seconds": 258.4046041670081,
+        "label": "stage4:evaluation:mixed34-final:structured-02:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "6ca563d5208491502b943df1ed43b6516be01d356a1afa0a5d7c9d3d84267150",
+      "prompt_token_sha256": "0704c700c9e5505c74cd1acf4930b43ca44ec2c326e04162c9f0737cb0f6ed7f",
+      "prompt_tokens": 52,
+      "prompt_tps": 51.823082475552134,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/structured-02.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/structured-02.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/structured-02.json",
+      "total_seconds": 4.090490167000098,
+      "ttft_seconds": 1.0034138749761041
+    },
+    {
+      "cache_state_signature": "ed5f558b6412a430138647d92a95d61b7bc900661e0766ea6c96434d770b8347",
+      "case_id": "structured-03",
+      "category": "structured",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": true,
+        "json_shape_ok": true,
+        "json_types_ok": true,
+        "json_values_ok": true,
+        "line_count": 7,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": {
+          "event": "job.started",
+          "sequence": 4,
+          "terminal": false
+        },
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.316523198056222,
+      "decoded_output": "```json\n{\n  \"sequence\": 4,\n  \"terminal\": false,\n  \"event\": \"job.started\"\n}\n```",
+      "decoded_output_sha256": "15f197002ac5665bc8311b2a371a522e01149ae87cbf9594b133ba0092724401",
+      "early_eos": false,
+      "elapsed_seconds": 3.906082541012438,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "941c7e79cba226788ac1768843398d147a44f8372a279e811abec418d8aabf23",
+        "top1_id": 71093,
+        "top_k_ids": [
+          71093,
+          4754,
+          90,
+          248058,
+          58,
+          248046,
+          2164,
+          40
+        ],
+        "top_k_logprobs": [
+          -0.25,
+          -1.875,
+          -3.25,
+          -5.875,
+          -5.875,
+          -6.125,
+          -6.375,
+          -6.4375
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "63be87d5b4bc09ea0133ccbecb14294285602688d2e740dcc26fad3fd4fbcb21",
+      "generated_tokens": 33,
+      "max_tokens": 160,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11668031676,
+        "active_plus_cache_gib": 10.866701301187277,
+        "cache_bytes": 44584114,
+        "cache_gib": 0.04152219183743,
+        "elapsed_seconds": 262.310141791997,
+        "label": "stage4:evaluation:mixed34-final:structured-03:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "e134fc722e5053ef67db425934a67927e96ca5086e1dc75ded9c85217f1ef06e",
+      "prompt_token_sha256": "5c44d6492674c7418f07fa82c426646de2dcd642d7e4edfb9584c74606ee6a3e",
+      "prompt_tokens": 47,
+      "prompt_tps": 47.15529809902677,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/structured-03.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/structured-03.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/structured-03.json",
+      "total_seconds": 3.824430292006582,
+      "ttft_seconds": 0.9967066670069471
+    },
+    {
+      "cache_state_signature": "895b8a23fbc5ce735d79dba414151454769c812423c5b003df6771bfdee10291",
+      "case_id": "structured-04",
+      "category": "structured",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": true,
+        "json_shape_ok": true,
+        "json_types_ok": true,
+        "json_values_ok": true,
+        "line_count": 6,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": {
+          "ok": true,
+          "ordered": [
+            "queued",
+            "running",
+            "succeeded"
+          ]
+        },
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.381349109999654,
+      "decoded_output": "```json\n{\n  \"ordered\": [\"queued\", \"running\", \"succeeded\"],\n  \"ok\": true\n}\n```",
+      "decoded_output_sha256": "44e2b0ee4b1af3c664010834a8fe7f2ce8ca5cb75479a78d546e357480474180",
+      "early_eos": false,
+      "elapsed_seconds": 3.6507957499998156,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "490f58ba7cc569616732809f0977fae71ddb58cd886084f26613b142e68a806c",
+        "top1_id": 71093,
+        "top_k_ids": [
+          71093,
+          90,
+          4754,
+          248058,
+          248046,
+          760,
+          40,
+          5202
+        ],
+        "top_k_logprobs": [
+          -0.125,
+          -2.875,
+          -3.625,
+          -6.375,
+          -6.625,
+          -6.875,
+          -7.375,
+          -7.5
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "435ace371ac5e2d41fb51ece93661d519009fc6beeb10381db7c674a46186d8d",
+      "generated_tokens": 30,
+      "max_tokens": 160,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11668031660,
+        "active_plus_cache_gib": 10.866701286286116,
+        "cache_bytes": 44584098,
+        "cache_gib": 0.041522176936268806,
+        "elapsed_seconds": 265.9471814169956,
+        "label": "stage4:evaluation:mixed34-final:structured-04:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "70312d5e368327029470b1b886ff41bfac3bbabc82bd9bccf8479132d20346f0",
+      "prompt_token_sha256": "06702c6e34b9810898d3576bbc405d3f9c336153ee01e3ab4042416a6b3740e7",
+      "prompt_tokens": 46,
+      "prompt_tps": 46.22055677755017,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/structured-04.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/structured-04.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/structured-04.json",
+      "total_seconds": 3.543256500008283,
+      "ttft_seconds": 0.995228167012101
+    },
+    {
+      "cache_state_signature": "6e3cf8fd414cc22b1bd5d7026fa831df48d5c9a198ca28ce63afa93f229b06be",
+      "case_id": "reasoning-01",
+      "category": "reasoning",
+      "checks": {
+        "answer_ok": true,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 2,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.3720918783251,
+      "decoded_output": "Start with 12 jobs. Four complete and three are cancelled, totaling 7 jobs removed from the queue. Two new jobs are added. The calculation is 12 - 7 + 2 = 7.\n\nFinal: 7",
+      "decoded_output_sha256": "696f2842b8976713ebc34a839f2eba9e8195c5c31bb08782e794c6524a288e1b",
+      "early_eos": false,
+      "elapsed_seconds": 5.915280457993504,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "fa630b6bc5589d1eaa35ea17254e42ca0af5291051abf2f04c205db77639687b",
+        "top1_id": 3367,
+        "top_k_ids": [
+          3367,
+          6140,
+          18770,
+          23841,
+          7865,
+          16,
+          86888,
+          1206
+        ],
+        "top_k_logprobs": [
+          -0.5,
+          -1.375,
+          -2.75,
+          -3.5,
+          -4.25,
+          -4.375,
+          -4.375,
+          -4.625
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "6afe1df5a554ce3ff07353075b6273ee57118febca50b57383797931ea5e1600",
+      "generated_tokens": 51,
+      "max_tokens": 384,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11668228376,
+        "active_plus_cache_gib": 10.866884492337704,
+        "cache_bytes": 44780814,
+        "cache_gib": 0.041705382987856865,
+        "elapsed_seconds": 271.8606889999937,
+        "label": "stage4:evaluation:mixed34-final:reasoning-01:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "4ddd9085b875db731d6d9a0966ae822f2aa7face8f3b2740ecdf34d7095adec5",
+      "prompt_token_sha256": "f4cb769e10c1b316ce76d3dec86f35dbfca39f2fcf400983ebc8a5e352391e36",
+      "prompt_tokens": 73,
+      "prompt_tps": 51.839305609350966,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/reasoning-01.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/reasoning-01.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/reasoning-01.json",
+      "total_seconds": 5.8049263340071775,
+      "ttft_seconds": 1.4081978749891277
+    },
+    {
+      "cache_state_signature": "7ec5cb2518f36805a97aa1cb22a5516b014710e6d70aca187fc66ab85234318e",
+      "case_id": "reasoning-02",
+      "category": "reasoning",
+      "checks": {
+        "answer_ok": true,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 5,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.373445729834282,
+      "decoded_output": "Start at version 1.\nEvent 2: 2 > 1, apply. Current version: 2.\nEvent 5: 5 > 2, apply. Current version: 5.\nEvent 4: 4 > 5 is false, ignore. Current version: 5.\n\nFinal: 5",
+      "decoded_output_sha256": "ed56865ab4449b30b67fa7102cec194efe7908e419995c3a711628cd55ae0306",
+      "early_eos": false,
+      "elapsed_seconds": 7.692861624993384,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "ff6d8e84bf31d451d478f0183ed7c2e49938654bd2b4eab04ca5b1672c0c22a7",
+        "top1_id": 3367,
+        "top_k_ids": [
+          3367,
+          760,
+          18770,
+          20237,
+          6140,
+          23841,
+          16,
+          5237
+        ],
+        "top_k_logprobs": [
+          -1.0,
+          -1.75,
+          -2.125,
+          -2.625,
+          -2.75,
+          -2.875,
+          -3.625,
+          -3.875
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "14ee1c1843ea0b919215674a8b06422c024ab109e024e005ff08471b817d528a",
+      "generated_tokens": 71,
+      "max_tokens": 384,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11668031816,
+        "active_plus_cache_gib": 10.866701431572437,
+        "cache_bytes": 44584254,
+        "cache_gib": 0.041522322222590446,
+        "elapsed_seconds": 279.55531137500657,
+        "label": "stage4:evaluation:mixed34-final:reasoning-02:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "01a8ba8e7b3bcc5b20b2ba41c4036defa1d72fc7819d43bb58652a13210ca4f8",
+      "prompt_token_sha256": "2ef07bc8cd142b39cd90551307a3a2949898fbbd27312107cd5bcbbc6453bf8f",
+      "prompt_tokens": 85,
+      "prompt_tps": 59.47054944042544,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/reasoning-02.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/reasoning-02.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/reasoning-02.json",
+      "total_seconds": 7.583965999976499,
+      "ttft_seconds": 1.4292788750026375
+    },
+    {
+      "cache_state_signature": "d97876b0bded784e6ca96dd257fae60e610e5ae7899c5fe6d8077249c067f0bb",
+      "case_id": "reasoning-03",
+      "category": "reasoning",
+      "checks": {
+        "answer_ok": true,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 2,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.378014231169933,
+      "decoded_output": "The client receives events 8, 9, 9, and 10. Sequence-based de-duplication identifies the duplicate event 9. The distinct events are 8, 9, and 10. Therefore, the client applies 3 unique events.\n\nFinal: 3",
+      "decoded_output_sha256": "9818235c20c6fddf4132ee4f54df27c3cbd5ee3632ee620011dfefe9c8b9dd74",
+      "early_eos": false,
+      "elapsed_seconds": 6.871281500003533,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "14851a437602f08463a8857cf8f886de752e0a23a5b26e41db74d0f27925ba35",
+        "top1_id": 760,
+        "top_k_ids": [
+          760,
+          35,
+          13673,
+          7651,
+          674,
+          51253,
+          70294,
+          7354
+        ],
+        "top_k_logprobs": [
+          -0.875,
+          -1.0,
+          -2.75,
+          -3.625,
+          -3.625,
+          -3.875,
+          -4.375,
+          -4.875
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "c79f0711fa71c1d6d8b5a2e539842b3efce5a78b7ff2d0ab4a29f3404cbc409f",
+      "generated_tokens": 62,
+      "max_tokens": 384,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11667999032,
+        "active_plus_cache_gib": 10.866670899093151,
+        "cache_bytes": 44551470,
+        "cache_gib": 0.04149178974330425,
+        "elapsed_seconds": 286.4259590420115,
+        "label": "stage4:evaluation:mixed34-final:reasoning-03:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "d64ce12a811b8eaebec1829b96155a7571979f006d5d462399f5ef68445177ba",
+      "prompt_token_sha256": "4e37c7427f83e3ec54922eb312cde34c63dae25c18c10c76335ae8bf4bd90fd5",
+      "prompt_tokens": 81,
+      "prompt_tps": 57.796844936242536,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/reasoning-03.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/reasoning-03.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/reasoning-03.json",
+      "total_seconds": 6.762677291000728,
+      "ttft_seconds": 1.401460583001608
+    },
+    {
+      "cache_state_signature": "ccf0a33b43afca1faeb045ac6cf6ada3b5b3251b3191f25f2ffafee67bacb74d",
+      "case_id": "reasoning-04",
+      "category": "reasoning",
+      "checks": {
+        "answer_ok": true,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 2,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {},
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.386666265220269,
+      "decoded_output": "Total records = (7 × 18) + 5 = 126 + 5 = 131.\nFinal: 131",
+      "decoded_output_sha256": "37953b266a9be5787722be72e97b844e2b72474b1a3de9d88917be8a2b5aca28",
+      "early_eos": false,
+      "elapsed_seconds": 4.549810666998383,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "118b0eecfed844237360cf7804a65739682b88efcd758d9f4bb9dcb3d9b19880",
+        "top1_id": 7354,
+        "top_k_ids": [
+          7354,
+          760,
+          1206,
+          46270,
+          22,
+          5170,
+          18770,
+          45593
+        ],
+        "top_k_logprobs": [
+          -1.125,
+          -1.75,
+          -2.0,
+          -2.25,
+          -2.25,
+          -2.875,
+          -3.625,
+          -4.5
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "5139f083a947e5964956e999efd0df9289bf1c77c974e5666a5991085a3d3542",
+      "generated_tokens": 35,
+      "max_tokens": 384,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11667917052,
+        "active_plus_cache_gib": 10.866594549268484,
+        "cache_bytes": 44469490,
+        "cache_gib": 0.041415439918637276,
+        "elapsed_seconds": 290.9766879589879,
+        "label": "stage4:evaluation:mixed34-final:reasoning-04:after_generation",
+        "peak_bytes": 11955319950,
+        "peak_gib": 11.134259356185794,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "045449658e6ad824db1a1976b30f4c5e9ee6a31a69488b84d4a8ca2e8540ed6c",
+      "prompt_token_sha256": "730aac7a187e56f19f9eddef4f2c355ed29a0c9cab7626379751b564aea1b657",
+      "prompt_tokens": 66,
+      "prompt_tps": 45.31308639395829,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/reasoning-04.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/reasoning-04.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/reasoning-04.json",
+      "total_seconds": 4.44248145801248,
+      "ttft_seconds": 1.4565328749886248
+    },
+    {
+      "cache_state_signature": "f12bc3a095b1938df3fb90e615fcd95fb8394136a822effc53b7775cdc296ee0",
+      "case_id": "retrieval-01",
+      "category": "retrieval",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 1,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 10.812505744101179,
+      "decoded_output": "Record 017: owner=Iris; shard=amber; retry_window=37; checksum=A7C9",
+      "decoded_output_sha256": "376c039d174948ca028e6664f98dafec3ab2f8e62826a0c4c0f1afa76be00f04",
+      "early_eos": false,
+      "elapsed_seconds": 72.17291679198388,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "a7031780bcdfaccaa64127230934c96eb072ad1538837c8ae19f006eb938308a",
+        "top1_id": 6269,
+        "top_k_ids": [
+          6269,
+          27775,
+          7862,
+          13405,
+          1206,
+          332,
+          12,
+          760
+        ],
+        "top_k_logprobs": [
+          -0.875,
+          -1.0,
+          -3.0,
+          -3.75,
+          -3.875,
+          -4.125,
+          -4.25,
+          -4.625
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "72b5a0d7fcb22d1fd86e95440960f42bdc880a5f316a5886178b7f958f93cb8a",
+      "generated_tokens": 27,
+      "max_tokens": 256,
+      "memory_after_generation": {
+        "active_bytes": 11975769098,
+        "active_gib": 11.153304109349847,
+        "active_plus_cache_bytes": 12037445620,
+        "active_plus_cache_gib": 11.210744846612215,
+        "cache_bytes": 61676522,
+        "cache_gib": 0.0574407372623682,
+        "elapsed_seconds": 363.1407643749844,
+        "label": "stage4:evaluation:mixed34-final:retrieval-01:after_generation",
+        "peak_bytes": 14866545718,
+        "peak_gib": 13.845549633726478,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "9e72b8281cc0f6e6989e1506f3592765c8fb5418b60ef43932de4ab995e436fa",
+      "prompt_token_sha256": "3b90c6cdd6d4c9fbcfae4caf9635a1f19b8b36d7216633767659ba70996e9739",
+      "prompt_tokens": 5418,
+      "prompt_tps": 77.81756022702056,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/retrieval-01.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/retrieval-01.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/retrieval-01.json",
+      "total_seconds": 72.02901091700187,
+      "ttft_seconds": 69.62438791699242
+    },
+    {
+      "cache_state_signature": "0f2a5bbf475782936e48aff9f0c38a5d32c4380b86c7874929ddf79733270bf9",
+      "case_id": "retrieval-02",
+      "category": "retrieval",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 4,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.079319038717955,
+      "decoded_output": "Based on the provided ledger, here are the details for **Record 088**:\n\n*   **Shard:** violet\n*   **Status:** paused\n*   **Note Concerns:** tenant isolation review",
+      "decoded_output_sha256": "8edaac0dfc499a4aadd10d706c0c18c872d48137e6ef50282c769e99dcd21479",
+      "early_eos": false,
+      "elapsed_seconds": 72.42715362500167,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "534a7fb33fc896646546c05f915e274f9acfe64003e8201e940ae64284168199",
+        "top1_id": 27775,
+        "top_k_ids": [
+          27775,
+          1948,
+          2381,
+          898,
+          6269,
+          1206,
+          332,
+          760
+        ],
+        "top_k_logprobs": [
+          -0.375,
+          -2.25,
+          -2.625,
+          -2.875,
+          -3.5,
+          -4.125,
+          -4.75,
+          -6.0
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "a9cfe77519c745771dca6adc430d2c6867258a68b1124bd00c63251bfa93de36",
+      "generated_tokens": 45,
+      "max_tokens": 256,
+      "memory_after_generation": {
+        "active_bytes": 11975769098,
+        "active_gib": 11.153304109349847,
+        "active_plus_cache_bytes": 12037478388,
+        "active_plus_cache_gib": 11.21077536419034,
+        "cache_bytes": 61709290,
+        "cache_gib": 0.0574712548404932,
+        "elapsed_seconds": 435.566223834001,
+        "label": "stage4:evaluation:mixed34-final:retrieval-02:after_generation",
+        "peak_bytes": 14866545718,
+        "peak_gib": 13.845549633726478,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "7e5fc9b34cdde0e38a50c3298bb7eb278051dba750e955832e05087daf2c67d6",
+      "prompt_token_sha256": "8216ce232980fe90a027b70db8ec1715850a7262ef3c1f0c40fcdff38f7e92b0",
+      "prompt_tokens": 5419,
+      "prompt_tps": 79.33398986150941,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/retrieval-02.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/retrieval-02.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/retrieval-02.json",
+      "total_seconds": 72.27752062500804,
+      "ttft_seconds": 68.30615741701331
+    },
+    {
+      "cache_state_signature": "41bd894caa6c3dbee7802c117281b8e3be1c7e7a09abe62c855f9f8a99d8ac09",
+      "case_id": "retrieval-03",
+      "category": "retrieval",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 3,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 10.956830271550555,
+      "decoded_output": "Record 119: owner=Uma; shard=copper; retry_window=28; status=active; checksum=U119Z; note=never retry after terminal state.\n\nExact checksum: U119Z\nNote: never retry after terminal state",
+      "decoded_output_sha256": "233bb0479c1dc7649f870da16f56ded42cd29a461826ea2df6db2b6b6519af7a",
+      "early_eos": false,
+      "elapsed_seconds": 73.6552487089939,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "d799d2f5aca53e795d8b39127d1feaf9dcfd4d8ebaaa88604779e55765416845",
+        "top1_id": 6269,
+        "top_k_ids": [
+          6269,
+          27775,
+          68346,
+          1206,
+          332,
+          70701,
+          760,
+          40
+        ],
+        "top_k_logprobs": [
+          -0.875,
+          -1.0,
+          -3.375,
+          -3.375,
+          -4.0,
+          -4.125,
+          -4.5,
+          -5.0
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "0c34881762d84851a54d2bc0b059ddc0f644c3f75b464ca61d5566d5f05eefa1",
+      "generated_tokens": 58,
+      "max_tokens": 256,
+      "memory_after_generation": {
+        "active_bytes": 11975769098,
+        "active_gib": 11.153304109349847,
+        "active_plus_cache_bytes": 12037511156,
+        "active_plus_cache_gib": 11.210805881768465,
+        "cache_bytes": 61742058,
+        "cache_gib": 0.0575017724186182,
+        "elapsed_seconds": 509.2238523749984,
+        "label": "stage4:evaluation:mixed34-final:retrieval-03:after_generation",
+        "peak_bytes": 14866545718,
+        "peak_gib": 13.845549633726478,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "1ccbd4236229a43c00760842a1bb2fb5c7756fa7870680ae92acc7f371c594c4",
+      "prompt_token_sha256": "661a91ef4bfecf9f923c1ac795535ad13dd38fedb1f6a6da909930cb6aa7ac57",
+      "prompt_tokens": 5420,
+      "prompt_tps": 79.35833931438259,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/retrieval-03.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/retrieval-03.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/retrieval-03.json",
+      "total_seconds": 73.50003462500172,
+      "ttft_seconds": 68.29780016600853
+    },
+    {
+      "cache_state_signature": "d53ea614cf473c0b59cd3c404b7e9d7675f32ed26c64a6f8f50294648c05b226",
+      "case_id": "retrieval-04",
+      "category": "retrieval",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {},
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 11,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": true,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true,
+          "5": true
+        },
+        "score_kind": "objective",
+        "semi_objective_pass": null
+      },
+      "decode_tps": 11.102417655031,
+      "decoded_output": "Based on the provided ledger records, here is the comparison between Record 017 and Record 139:\n\n**Record 017:**\n*   **Shard:** amber\n*   **Checksum:** A7C9\n\n**Record 139:**\n*   **Shard:** drift\n*   **Checksum:** DRIFT-139\n\n**Last-Event Cursor Mention:**\nThe record that mentions the last-event cursor is **Record 139**.\n*   *Evidence:* The note for Record 139 states: \"last-event cursor is sequence-based.\"\n*   *Contrast:* The note for Record 017 states: \"priority handoff after audit.\"",
+      "decoded_output_sha256": "3067cee0039cad67657c95d616f5cf4045e522bfe6b7aaaa07842f504817ad62",
+      "early_eos": false,
+      "elapsed_seconds": 82.0077737919928,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "2e09814191c979f62cea31b1e1457fe252146b2b233de760c66263dd80cf47ac",
+        "top1_id": 27775,
+        "top_k_ids": [
+          27775,
+          1206,
+          332,
+          8160,
+          6269,
+          13962,
+          760,
+          16619
+        ],
+        "top_k_logprobs": [
+          -0.125,
+          -2.375,
+          -3.25,
+          -3.5,
+          -5.25,
+          -5.5,
+          -7.1875,
+          -7.4375
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "5081272d81fb51f8ff75011cca09c51b3b70fc3374df8009dba5445ee53fb825",
+      "generated_tokens": 152,
+      "max_tokens": 256,
+      "memory_after_generation": {
+        "active_bytes": 11975769098,
+        "active_gib": 11.153304109349847,
+        "active_plus_cache_bytes": 12037724148,
+        "active_plus_cache_gib": 11.211004246026278,
+        "cache_bytes": 61955050,
+        "cache_gib": 0.0577001366764307,
+        "elapsed_seconds": 591.2294887919852,
+        "label": "stage4:evaluation:mixed34-final:retrieval-04:after_generation",
+        "peak_bytes": 14866545718,
+        "peak_gib": 13.845549633726478,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "f5d16c597a26977e2d7124cfc11f5ad2ce836a45dfe1cb88e85c221d62944207",
+      "prompt_token_sha256": "d82cc3088a1813e287fd3f302482e0517d32d0c24df3b35458a491e7c42b165d",
+      "prompt_tokens": 5429,
+      "prompt_tps": 79.53667797406632,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/retrieval-04.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/retrieval-04.json",
+      "score_kind": "objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/retrieval-04.json",
+      "total_seconds": 81.85845816700021,
+      "ttft_seconds": 68.25781687500421
+    },
+    {
+      "cache_state_signature": "2cdbbc24d17868fda2b7e223478a6f4221fdcc30d898e7032c66b4a6d49840d8",
+      "case_id": "prose-01",
+      "category": "prose",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {
+          "gun": true,
+          "sword": true,
+          "weapon": true,
+          "west sill": true
+        },
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 1,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": null,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true,
+          "5": true
+        },
+        "score_kind": "semi-objective",
+        "semi_objective_pass": true
+      },
+      "decode_tps": 11.509565887938106,
+      "decoded_output": "Mira traced the cool, polished surface of the brass key resting on the east sill, her fingers lingering in the quiet stillness of the room. Sol watched her with a gentle, patient gaze, his presence a steady anchor in the dim, starlit observatory. The two of them stood in shared silence, letting the weight of the moment settle around them without a word.",
+      "decoded_output_sha256": "9f5e05097e9c1c5826cb4a8533b952d0b7867c5c8f48ca899bfb2366943a31cd",
+      "early_eos": false,
+      "elapsed_seconds": 7.714865542016923,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "bc13271f0ca2bd9e7bd82241dcbbdf9de6f2ca0ffa2a1bc662060dee63722b9a",
+        "top1_id": 44,
+        "top_k_ids": [
+          44,
+          760,
+          47179,
+          32,
+          39997,
+          73418,
+          16,
+          29535
+        ],
+        "top_k_logprobs": [
+          -0.25,
+          -1.75,
+          -3.75,
+          -3.875,
+          -5.5,
+          -5.5,
+          -5.625,
+          -5.75
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "7c31b4af66482493ea28f9a9def37dca0a31be990efd371c9eaa4f00e9f1d1bf",
+      "generated_tokens": 77,
+      "max_tokens": 256,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11668261060,
+        "active_plus_cache_gib": 10.866914931684732,
+        "cache_bytes": 44813498,
+        "cache_gib": 0.0417358223348856,
+        "elapsed_seconds": 598.9551874999888,
+        "label": "stage4:evaluation:mixed34-final:prose-01:after_generation",
+        "peak_bytes": 14866545718,
+        "peak_gib": 13.845549633726478,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "de92512e8a073ecc7bf3ef518678de4f5a3e28fc6cdf447166e52bf701a72c92",
+      "prompt_token_sha256": "d9eafc37e1c5a6c1c0055e6496821f797a5901a240a031adbb9be9ca1afeb4d4",
+      "prompt_tokens": 52,
+      "prompt_tps": 51.9599605381382,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/prose-01.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/prose-01.json",
+      "score_kind": "semi-objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/prose-01.json",
+      "total_seconds": 7.603973582998151,
+      "ttft_seconds": 1.0007705829921179
+    },
+    {
+      "cache_state_signature": "c1b8a7c11a0f93265140cd2683cfee0805bbcd428681cbafb60766b3dd4c812b",
+      "case_id": "prose-02",
+      "category": "prose",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {
+          "castle": true,
+          "mountain": true,
+          "red map": true
+        },
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 1,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": null,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true,
+          "5": true
+        },
+        "score_kind": "semi-objective",
+        "semi_objective_pass": true
+      },
+      "decode_tps": 11.47402524984871,
+      "decoded_output": "Niko promised to return the blue map to Tessa before dusk. The bridge is closed.",
+      "decoded_output_sha256": "f37672391740932085e1ebf8159d7787b59c7594b02afc25b97ba3c3a089d540",
+      "early_eos": false,
+      "elapsed_seconds": 2.7411040410224814,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "b7b2b3ed760fde1f7b3e06779279c27e6f881b4e98544bff796912a122b51022",
+        "top1_id": 45,
+        "top_k_ids": [
+          45,
+          760,
+          16,
+          12189,
+          1206,
+          17413,
+          32,
+          33
+        ],
+        "top_k_logprobs": [
+          0.0,
+          -6.875,
+          -8.75,
+          -9.25,
+          -9.8125,
+          -9.8125,
+          -10.3125,
+          -10.5
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "d24fa5352df9ae6b8da87b12df89515999ef1d8e7f701779e20e01af25088a2c",
+      "generated_tokens": 20,
+      "max_tokens": 256,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11667998924,
+        "active_plus_cache_gib": 10.866670798510313,
+        "cache_bytes": 44551362,
+        "cache_gib": 0.041491689160466194,
+        "elapsed_seconds": 601.7092982500035,
+        "label": "stage4:evaluation:mixed34-final:prose-02:after_generation",
+        "peak_bytes": 14866545718,
+        "peak_gib": 13.845549633726478,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "3fbe08f9509f56ce302ca19105200d80483bf172393b1bf11e9858271731f78b",
+      "prompt_token_sha256": "3c2c8c3a9fd42bbb2e4f8115ad89fe25cfab98df2cb780956122e5a9be67f9e9",
+      "prompt_tokens": 52,
+      "prompt_tps": 51.93024252167795,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/prose-02.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/prose-02.json",
+      "score_kind": "semi-objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/prose-02.json",
+      "total_seconds": 2.657257374987239,
+      "ttft_seconds": 1.0013432919804472
+    },
+    {
+      "cache_state_signature": "62154f72a229ee80f1b0cb00dd5f5d0ff99b656c19cfc7c3470a10c3cdd71401",
+      "case_id": "prose-03",
+      "category": "prose",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {
+          "castle": true,
+          "north gate": true,
+          "west gate": true
+        },
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 4,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": null,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true,
+          "5": true
+        },
+        "score_kind": "semi-objective",
+        "semi_objective_pass": true
+      },
+      "decode_tps": 11.505923143024457,
+      "decoded_output": "Eda: \"The garden bell is completely broken, so we can't use it to signal the start of the ceremony.\"\nJun: \"Then let's just wait by the east gate until the guests arrive.\"\nEda: \"That sounds like a practical solution given the circumstances.\"\nJun: \"Agreed, we'll head to the east gate now.\"",
+      "decoded_output_sha256": "613ee8e9da3c96a92b8de3aa4c7f339b053ea840fa5bbb6f2d0fbb500abe0e03",
+      "early_eos": false,
+      "elapsed_seconds": 7.540612417011289,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "69054f00c1383b63c71400023a56b16c7adec4400c20a27b5379497952094223",
+        "top1_id": 2628,
+        "top_k_ids": [
+          2628,
+          760,
+          332,
+          1,
+          9726,
+          2005,
+          16,
+          13577
+        ],
+        "top_k_logprobs": [
+          -0.375,
+          -1.875,
+          -3.375,
+          -3.5,
+          -3.75,
+          -3.875,
+          -5.0,
+          -5.5
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "afdccdbeed23f20aa63838ec515be89ebd3448100125c1d7f8d6cb848467ab96",
+      "generated_tokens": 75,
+      "max_tokens": 256,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11668228288,
+        "active_plus_cache_gib": 10.866884410381317,
+        "cache_bytes": 44780726,
+        "cache_gib": 0.0417053010314703,
+        "elapsed_seconds": 609.2361372919986,
+        "label": "stage4:evaluation:mixed34-final:prose-03:after_generation",
+        "peak_bytes": 14866545718,
+        "peak_gib": 13.845549633726478,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "ff32a210175b3772a2f07c43be72614051b88be2d09401b99d2b471beecfbbc7",
+      "prompt_token_sha256": "ae6acd401852e58d65f8b33db8f77ffdff5af9084664b6ad8aa1f8ec3fb773e5",
+      "prompt_tokens": 51,
+      "prompt_tps": 50.99954952182364,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/prose-03.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/prose-03.json",
+      "score_kind": "semi-objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/prose-03.json",
+      "total_seconds": 7.431478874990717,
+      "ttft_seconds": 1.0000088329834398
+    },
+    {
+      "cache_state_signature": "9e436b167e8943846460494dd8467688adba4d0152d69172856632c27d9de49d",
+      "case_id": "prose-04",
+      "category": "prose",
+      "checks": {
+        "answer_ok": null,
+        "exact_lines_ok": true,
+        "forbidden_terms_absent": {
+          "midnight": true,
+          "morning": true,
+          "trusts the river": true
+        },
+        "json_parse_ok": null,
+        "json_shape_ok": null,
+        "json_types_ok": null,
+        "json_values_ok": null,
+        "line_count": 1,
+        "line_shape_ok": true,
+        "max_chars_ok": true,
+        "mechanical_pass": true,
+        "objective_pass": null,
+        "parsed_json": null,
+        "repeated_ngram_count": 0,
+        "repeated_ngram_size": null,
+        "repetition_detected": false,
+        "required_groups": {
+          "1": true,
+          "2": true,
+          "3": true,
+          "4": true,
+          "5": true
+        },
+        "score_kind": "semi-objective",
+        "semi_objective_pass": true
+      },
+      "decode_tps": 11.45463875648287,
+      "decoded_output": "Orin is in possession of a sealed letter, while Vale maintains his distrust of the river road. The narrative then advances to the next scene, which commences at noon.",
+      "decoded_output_sha256": "dabc95fbe4617b8835fc2658eaf0b6ce8db53b6574a753eed29b3177720a7a16",
+      "early_eos": false,
+      "elapsed_seconds": 4.135284749994753,
+      "exception": null,
+      "finish_reason": "eos",
+      "first_logprob_summary": {
+        "logprob_sha256": "e5e73458fdf12d34d8984260a8d9a45e6857649b846ae734143727fadbfda464",
+        "top1_id": 2126,
+        "top_k_ids": [
+          2126,
+          8585,
+          2278,
+          16,
+          6737,
+          623,
+          5901,
+          39
+        ],
+        "top_k_logprobs": [
+          0.0,
+          -5.5,
+          -5.625,
+          -5.875,
+          -6.125,
+          -6.5,
+          -7.5,
+          -7.75
+        ],
+        "vocab_size": 248320
+      },
+      "generated_token_hash": "3a1a869b80e2a5938cce95b6eca4af228beb28a30ff0d61ad976592f56e00115",
+      "generated_tokens": 36,
+      "max_tokens": 256,
+      "memory_after_generation": {
+        "active_bytes": 11623447562,
+        "active_gib": 10.825179109349847,
+        "active_plus_cache_bytes": 11668064452,
+        "active_plus_cache_gib": 10.866731826215982,
+        "cache_bytes": 44616890,
+        "cache_gib": 0.0415527168661356,
+        "elapsed_seconds": 613.3866529589868,
+        "label": "stage4:evaluation:mixed34-final:prose-04:after_generation",
+        "peak_bytes": 14866545718,
+        "peak_gib": 13.845549633726478,
+        "rss_max_bytes": 7133855744
+      },
+      "prompt_sha256": "c1a3ba42125febb7b79de75b36be3f37a89fd74ba4024fabe939858e201cf3a1",
+      "prompt_token_sha256": "d098d5fab8741b31a860f74c0af763b5ef712cbdffbace1d4067ebd79f7a2309",
+      "prompt_tokens": 49,
+      "prompt_tps": 49.15448847770273,
+      "raw_output_path": "research/stage4/artifacts/quality-v2/mixed34-final/outputs/prose-04.txt",
+      "raw_token_path": "research/stage4/artifacts/quality-v2/mixed34-final/tokens/prose-04.json",
+      "score_kind": "semi-objective",
+      "state_signature_path": "research/stage4/artifacts/quality-v2/mixed34-final/state_signatures/prose-04.json",
+      "total_seconds": 4.052387750009075,
+      "ttft_seconds": 0.9968570829951204
+    }
+  ],
+  "exception": null,
+  "experiment_id": "P1-EVALUATION-MIXED34-FINAL-QUALITY-V2",
+  "git_commit": "757e0cc0755dad44e09f8a3fe0442e04ec488c1a",
+  "memory_after_model_load": {
+    "active_bytes": 11452021768,
+    "active_gib": 10.665526397526264,
+    "active_plus_cache_bytes": 11452032332,
+    "active_plus_cache_gib": 10.665536236017942,
+    "cache_bytes": 10564,
+    "cache_gib": 9.838491678237915e-06,
+    "elapsed_seconds": 4.76830012499704,
+    "label": "stage4_evaluation_mixed34-final_after_model_load",
+    "peak_bytes": 11452021768,
+    "peak_gib": 10.665526397526264,
+    "rss_max_bytes": 7133855744
+  },
+  "model": {
+    "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+    "mlx_lm_version": "0.31.3",
+    "mlx_version": "0.32.1",
+    "model_path": "/Users/artem/models/Qwen3.8-27B-mixed-3-4-control-g128",
+    "python_executable": "/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.1/.venv/bin/python3",
+    "python_version": "3.14.7",
+    "quantization": {
+      "bits": 3,
+      "group_size": 128,
+      "language_model.lm_head": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.embed_tokens": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.0.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.1.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.10.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.11.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.12.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.13.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.14.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.15.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.16.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.17.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.18.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.19.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.2.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.20.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.21.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.22.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.23.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.24.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.25.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.26.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.27.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.28.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.29.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.3.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.30.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.31.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.32.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.33.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.34.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.35.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.36.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.37.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.38.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.39.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.4.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.40.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.41.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.42.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.43.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.44.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.45.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.46.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.47.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.48.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.49.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.5.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.50.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.51.self_attn.v_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.52.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.53.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.54.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.55.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.56.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.57.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.58.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.59.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.6.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.60.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.61.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.62.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.63.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.mlp.down_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.self_attn.k_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.self_attn.o_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.self_attn.q_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.7.self_attn.v_proj": {
+        "bits": 4,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.8.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.linear_attn.in_proj_a": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.linear_attn.in_proj_b": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.linear_attn.in_proj_qkv": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.linear_attn.in_proj_z": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.linear_attn.out_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.mlp.down_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.mlp.gate_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "language_model.model.layers.9.mlp.up_proj": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "mode": "affine"
+    },
+    "wired_policy": "direct generate_step; MLX wired state untouched"
+  },
+  "model_label": "mixed34-final",
+  "model_path": "/Users/artem/models/Qwen3.8-27B-mixed-3-4-control-g128",
+  "os_memory_after": {
+    "memory_pressure": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 29%\n"
+    },
+    "vm_stat": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                              182584.\nPages active:                             76243.\nPages inactive:                           74233.\nPages speculative:                          922.\nPages throttled:                              0.\nPages wired down:                        802960.\nPages purgeable:                            484.\n\"Translation faults\":                 265881407.\nPages copy-on-write:                    6746238.\nPages zero filled:                    929784493.\nPages reactivated:                     11264536.\nPages purged:                           1449315.\nFile-backed pages:                        72175.\nAnonymous pages:                          79223.\nPages stored in compressor:              151439.\nPages occupied by compressor:              2265.\nDecompressions:                       432819108.\nCompressions:                         439111934.\nPageins:                              144035663.\nPageouts:                                 86341.\nSwapins:                              116729598.\nSwapouts:                             117209861.\n"
+    },
+    "vm_swapusage": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "vm.swapusage: total = 2048.00M  used = 906.44M  free = 1141.56M  (encrypted)\n"
+    }
+  },
+  "os_memory_before": {
+    "memory_pressure": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 89%\n"
+    },
+    "vm_stat": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                              792233.\nPages active:                            106672.\nPages inactive:                           68350.\nPages speculative:                        53937.\nPages throttled:                              0.\nPages wired down:                        107367.\nPages purgeable:                            722.\n\"Translation faults\":                 264768467.\nPages copy-on-write:                    6731330.\nPages zero filled:                    920967140.\nPages reactivated:                     11183983.\nPages purged:                           1443694.\nFile-backed pages:                       130866.\nAnonymous pages:                          98093.\nPages stored in compressor:              135929.\nPages occupied by compressor:             10784.\nDecompressions:                       428932494.\nCompressions:                         435195628.\nPageins:                              143338485.\nPageouts:                                 85958.\nSwapins:                              116521747.\nSwapouts:                             116985593.\n"
+    },
+    "vm_swapusage": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "vm.swapusage: total = 2048.00M  used = 642.44M  free = 1405.56M  (encrypted)\n"
+    }
+  },
+  "overall_classification": "OBJECTIVE_OR_HARNESS_FAILURES_PRESENT",
+  "phase": 1,
+  "selected_case_ids": [
+    "coding-01",
+    "coding-02",
+    "coding-03",
+    "coding-04",
+    "coding-05",
+    "coding-06",
+    "coding-07",
+    "coding-08",
+    "instruction-01",
+    "instruction-02",
+    "instruction-03",
+    "instruction-04",
+    "structured-01",
+    "structured-02",
+    "structured-03",
+    "structured-04",
+    "reasoning-01",
+    "reasoning-02",
+    "reasoning-03",
+    "reasoning-04",
+    "retrieval-01",
+    "retrieval-02",
+    "retrieval-03",
+    "retrieval-04",
+    "prose-01",
+    "prose-02",
+    "prose-03",
+    "prose-04"
+  ],
+  "split": "evaluation",
+  "suite_path": "/Users/artem/projects/benchmark-qwen-3.8/research/stage4/evaluation/evaluation_v2.jsonl",
+  "suite_sha256": "ee6e02f56479b16310a864503fc933f9f4928111739ccf5c06776a88918ef721",
+  "timestamp": "2026-08-25T06:31:04+0400",
+  "total_elapsed_seconds": 613.4214275419945
+}

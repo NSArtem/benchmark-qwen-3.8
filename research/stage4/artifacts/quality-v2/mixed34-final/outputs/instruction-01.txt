@@ -1,0 +1,4 @@
+MODE: greedy
+CHECK: schema
+LIMIT: one
+END: DONE

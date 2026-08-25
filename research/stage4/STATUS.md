@@ -20,7 +20,9 @@ preserved generation runs.
 
 - Frozen calibration split: 12 cases, SHA-256
   `e856f39622c48f29f913d65d55f18d4ff9fb9bca16b0b23736361347472b9558`.
-- Frozen evaluation split: 28 cases, SHA-256
+- Frozen evaluation split: 28 cases, final corrected SHA-256
+  `f24e3983efbd898084852c3fde7b0f824604bc6a63349de5f32efeaa36ca3de0`.
+  The pre-correction run hash was
   `ee6e02f56479b16310a864503fc933f9f4928111739ccf5c06776a88918ef721`.
 - Categories: coding 8, instruction 4, structured 4, reasoning 4, retrieval
   4, prose 4. Coding/reasoning budgets are 512/384 tokens; retrieval-01 is
@@ -42,6 +44,11 @@ preserved generation runs.
 - Calibration failures are retained as calibration observations, not final
   evaluation claims: `cal-coding-02` is semantically underspecified and
   `cal-structured-02` distinguishes a JSON object from a one-element list.
+- After the finalist run, `coding-03` was corrected to accept semantically
+  equivalent `transaction boundary`/`atomic transaction` wording for the
+  required single-transaction boundary. That exact case was rerun for g64,
+  g128, and Candidate A; all three passed. The correction is preserved in the
+  final hash and raw rerun artifacts.
 
 ## Phase 2 — Turn-17 early EOS
 
@@ -113,6 +120,26 @@ preserved generation runs.
   known arithmetic miss and changed the supplied west-room fact to east. It is
   rejected without a full suite run.
 
+## Phase 6 — Full finalist comparison
+
+- Final corrected evaluation hash:
+  `f24e3983efbd898084852c3fde7b0f824604bc6a63349de5f32efeaa36ca3de0`.
+- g64: 23/24 objective, 4/4 semi-objective; only `reasoning-03` failed.
+- g128: 23/24 objective, 4/4 semi-objective; only `reasoning-03` failed.
+- Candidate A mixed-3/4: 24/24 objective, 4/4 semi-objective. It passed the
+  corrected `coding-03` and also answered `reasoning-03` correctly. All 28
+  cases had no repetition; 27 ended by EOS and coding-07 reached its length
+  cap after satisfying the objective checks.
+- Full-suite maximum generation peaks were g64 14.143 GiB, g128 13.361 GiB,
+  and Candidate A 13.846 GiB. Mean evaluation decode was 11.075, 11.935,
+  and 11.362 tok/s respectively.
+- Teacher-forced six-case subset: g64 weighted NLL 1.4034/top-1 70.06%, g128
+  1.3690/69.46%, Candidate A 1.3855/70.06%. Candidate A's NLL delta versus
+  g64 was −0.0180 nats/token and its top-1 delta was 0.00 percentage points.
+- Provisional role decision: Candidate A is the DEFAULT finalist; g128 is the
+  PERFORMANCE/LONG-CONTEXT mode; g64 remains the conservative quality/reference
+  mode rather than a measured winner. Persistent 8K/16K validation is next.
+
 ## Validated facts from Stage 3
 
 - Hardware: Apple M3 Pro, 18 GB unified memory, macOS 15.7.8.
@@ -163,11 +190,11 @@ all-3-bit manifest diagnostic is excluded from candidate counts. No targeted
 
 ## Current best configuration
 
-Candidate A is the provisional full-suite finalist. Until Phase 6 and runtime
-validation complete, g128 normal KV remains the practical performance baseline
-for approximately 8K initial context; g64 remains the quality/reference
-baseline. Corrected V2 currently shows no objective-rate or teacher-forced
-penalty for g128.
+Candidate A mixed-3/4 g128 is the provisional DEFAULT after the corrected full
+suite: 24/24 objective and 4/4 semi-objective. g128 normal KV remains the
+PERFORMANCE/LONG-CONTEXT mode at 10.180 GiB and the fastest measured decode;
+g64 remains the conservative QUALITY/reference mode. Persistent validation and
+runtime productionization are still outstanding.
 
 ## Active risks
 
@@ -175,12 +202,12 @@ penalty for g128.
 - the source snapshot is local and must not be re-downloaded or committed.
 - the sensitivity proxy must be clearly labeled if it is weight-distortion
   rather than activation-aware; calibration ranking must not be overclaimed.
-- the full finalist suite and 8K/16K persistent validation remain outstanding.
+- 8K/16K persistent validation remains outstanding.
 - production CLI regression coverage and the learned-quant feasibility memo
   remain outstanding.
 
 ## Next action
 
-Run the full frozen evaluation suite for g64, g128, and Candidate A; compute the
-final objective/teacher-forced comparison, then validate the selected runtime at
-8K and 16K before productionizing `qwen38-chat`.
+Validate Candidate A at 8K and 16K exact-suffix persistent chat, then
+productionize and test `qwen38-chat`; afterward record the bounded learned-quant
+Stage 5 feasibility recommendation.

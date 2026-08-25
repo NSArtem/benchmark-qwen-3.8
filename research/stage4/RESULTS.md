@@ -144,3 +144,47 @@ The mixed control is the only new candidate with enough corrected-suite
 evidence to justify a full comparison. Its mini result is a gate result, not a
 claim that it is globally better than g64 or g128; Phase 6 will make that
 classification on the frozen 28-case evaluation.
+
+## Phase 6 — Full finalist comparison
+
+### Measured facts
+
+The finalist run initially exposed one objective rubric false negative in
+`coding-03`: Candidate A used “single, atomic transaction boundary,” which is
+the requested fix but did not contain the rubric's contiguous “single
+transaction” phrase. The rubric was corrected to accept `transaction boundary`
+and `atomic transaction`, and `coding-03` was rerun for all three models. All
+three passed the corrected case. The final evaluation hash is
+`f24e3983efbd898084852c3fde7b0f824604bc6a63349de5f32efeaa36ca3de0`.
+
+| model | objective | semi-objective | failures | mean decode | max eval peak |
+|---|---:|---:|---|---:|---:|
+| g64 | 23/24 | 4/4 | reasoning-03 | 11.075 tok/s | 14.143 GiB |
+| g128 | 23/24 | 4/4 | reasoning-03 | 11.935 tok/s | 13.361 GiB |
+| mixed 3/4 control | 24/24 | 4/4 | none | 11.362 tok/s | 13.846 GiB |
+
+All three models had zero repetition detections. g64 and g128 ended all 28
+cases by EOS. Candidate A ended 27 by EOS and reached its 512-token cap on
+coding-07 after satisfying every objective check; it was not marked wrong for
+the cap.
+
+Teacher-forced metrics on the same six reference answers and 167 target tokens:
+
+| model | weighted mean NLL | delta vs g64 | weighted top-1 | delta vs g64 |
+|---|---:|---:|---:|---:|
+| g64 | 1.4034 | 0.0000 | 70.06% | 0.00 pp |
+| g128 | 1.3690 | −0.0344 | 69.46% | −0.60 pp |
+| mixed 3/4 control | 1.3855 | −0.0180 | 70.06% | 0.00 pp |
+
+### Inference
+
+On this corrected suite, g128 is not materially worse than g64 on objective
+quality: it is tied on objective rate and slightly better on this teacher NLL
+subset, with a 7.8% higher evaluation decode mean and 0.783 GiB less payload.
+Candidate A is the strongest measured practical compromise in this study: it
+passed every corrected objective case, retained g64's teacher top-1 rate, and
+cost 0.485 GiB over g128 while remaining 0.298 GiB smaller than g64.
+
+Provisional roles are Candidate A as DEFAULT, g64 as conservative QUALITY /
+reference mode, and g128 normal-KV as PERFORMANCE/LONG-CONTEXT mode. The role
+decision remains subject to persistent 8K/16K validation.

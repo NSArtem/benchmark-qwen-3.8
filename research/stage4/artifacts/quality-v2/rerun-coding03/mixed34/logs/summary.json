@@ -1,0 +1,11 @@
+{
+  "case_count": 1,
+  "exceptions": 0,
+  "experiment_id": "P1-EVALUATION-MIXED34-CODING03-RERUN-QUALITY-V2",
+  "model_label": "mixed34-coding03-rerun",
+  "objective_pass": 1,
+  "overall_classification": "PASS",
+  "semi_objective_pass": 0,
+  "split": "evaluation",
+  "total_elapsed_seconds": 28.342593292007223
+}

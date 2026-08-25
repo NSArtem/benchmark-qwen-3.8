@@ -13,8 +13,8 @@ only where the launcher cannot read the default cache.
 | 3 | Bounded per-module sensitivity map and budget curve | completed |
 | 4 | At most three serious new candidates: mixed 3/4 control, guided 3/4, optional 3/6 | completed |
 | 5 | Mini tournament; advance at most one new candidate | completed |
-| 6 | Full frozen-suite finalist comparison and role classification | in progress |
-| 7 | Winner validation at approximately 8K and 16K persistent exact-suffix chat | pending |
+| 6 | Full frozen-suite finalist comparison and role classification | completed |
+| 7 | Winner validation at approximately 8K and 16K persistent exact-suffix chat | in progress |
 | 8 | Production `qwen38-chat` runtime, tests, and documentation | pending |
 | 9 | Learned-quant feasibility assessment only after primary work | pending |
 
