@@ -1,0 +1,68 @@
+"""Lightweight token/state regression tests for qwen38_chat.
+
+These tests intentionally use no model weights and no Metal execution.
+"""
+
+from __future__ import annotations
+
+import unittest
+
+from research.runtime.qwen38_chat import (
+    HistoryTurn,
+    TokenLedger,
+    exact_suffix,
+    normalize_cache_boundary,
+    response_replay_detected,
+)
+
+
+class TokenLedgerTests(unittest.TestCase):
+    def test_later_turn_suffix_does_not_add_bos(self) -> None:
+        bos = 101
+        self.assertEqual(exact_suffix([bos, 10, 20, 30], [bos, 10]), [20, 30])
+        self.assertNotIn(bos, exact_suffix([bos, 10, 20, 30], [bos, 10]))
+
+    def test_cached_logical_prefix_accounting(self) -> None:
+        ledger = TokenLedger()
+        ledger.commit([101, 10, 20], [30, 31])
+        self.assertEqual(ledger.cached_token_ids, [101, 10, 20, 30, 31])
+        self.assertEqual(
+            ledger.suffix_for([101, 10, 20, 30, 31, 40, 41]),
+            [40, 41],
+        )
+
+    def test_stale_prefix_is_rejected(self) -> None:
+        ledger = TokenLedger()
+        ledger.commit([1, 2, 3], [4])
+        with self.assertRaisesRegex(RuntimeError, "exact prefix"):
+            ledger.suffix_for([1, 2, 9, 4, 5])
+
+    def test_reset_clears_transcript_token_state(self) -> None:
+        ledger = TokenLedger()
+        ledger.commit([1, 2], [3, 4])
+        ledger.reset()
+        self.assertEqual(ledger.cached_token_ids, [])
+        self.assertEqual(ledger.suffix_for([9, 10]), [9, 10])
+
+    def test_replay_regression_is_detected_at_token_level(self) -> None:
+        self.assertTrue(response_replay_detected(list(range(8)), list(range(9))))
+        self.assertFalse(response_replay_detected([8, 7], [7, 8, 9]))
+        self.assertFalse(response_replay_detected([], [7, 8, 9]))
+
+    def test_duplicate_template_eos_is_removed_at_boundary(self) -> None:
+        history = [
+            HistoryTurn(
+                user_text="old",
+                prompt_token_count=2,
+                generated_ids=[20, 99],
+                assistant_text="answer",
+            )
+        ]
+        canonical = {"token_ids": [1, 2, 20, 99, 99, 3]}
+        adjusted = normalize_cache_boundary(canonical, history, {99})
+        self.assertEqual(adjusted["token_ids"], [1, 2, 20, 99, 3])
+        self.assertEqual(len(adjusted["cache_boundary_adjustments"]), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

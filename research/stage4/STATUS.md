@@ -1,14 +1,14 @@
 # Stage 4 Status
 
-Last updated: 2026-08-25 — Phases 0–7 complete; Phase 8 in progress.
+Last updated: 2026-08-25 — Phases 0–8 complete; Phase 9 in progress.
 
 ## Current phase
 
-Phase 8: productionize the validated exact-suffix chat runtime. Phases 0–7 are
+Phase 9: bounded learned-quant feasibility assessment. Phases 0–8 are
 complete, including the Quality Suite V2 validation gate, focused early-EOS
 control, bounded sensitivity map, two candidate conversions, the mini
 tournament, corrected full finalist comparison, and mixed-3/4 8K/16K runtime
-validation.
+validation, plus the production CLI and token/state regression tests.
 
 ## Completed experiments
 
@@ -168,9 +168,26 @@ preserved generation runs.
 
 ## Phase 8 — Production runtime
 
-- In progress. The next action is to implement and test the user-facing
-  `research/runtime/qwen38_chat.py` exact-suffix CLI, then document its command
-  and safe reset/error behavior.
+- `research/runtime/qwen38_chat.py` is the user-facing single-user CLI. It
+  maintains the complete logical transcript, validates the measured hybrid
+  cache offset, computes the exact canonical suffix, supports `/reset`,
+  `/stats`, `/context`, and `/quit`, and resets the session after generation
+  exceptions or Ctrl-C. Thinking is opt-in; greedy is the default and
+  practical sampling is available with `--mode sample`.
+- Optional KV8 is exposed as `--kv-bits 8`; no wired-limit helper or system
+  wired setting is used. The runtime intentionally provides no concurrent or
+  multi-user endpoint.
+- Six token/state regression tests pass in the canonical environment, including
+  no-new-BOS suffix behavior, stale-prefix rejection, prefix accounting,
+  replay heuristic behavior, EOS-boundary normalization, and reset clearing.
+  `py_compile`, `--help`, and a two-turn real-model CLI smoke all pass. The
+  smoke used suffixes of 18 and 20 tokens, reported 42 cached logical tokens,
+  and had replay=false on both turns. Raw smoke output is in
+  `artifacts/runtime-validation/qwen38-chat-smoke/cli-smoke.txt`.
+- One initial smoke exposed a false positive for a short repeated `OK` answer;
+  the replay diagnostic now requires at least eight identical tokens, and the
+  corrected smoke was rerun successfully. Exact cache/accounting checks remain
+  the authoritative correctness gate.
 
 ## Validated facts from Stage 3
 
@@ -234,11 +251,12 @@ complete; runtime productionization is still outstanding.
 - the source snapshot is local and must not be re-downloaded or committed.
 - the sensitivity proxy must be clearly labeled if it is weight-distortion
   rather than activation-aware; calibration ranking must not be overclaimed.
-- The production CLI and regression tests are not yet complete.
+- Learned-quant feasibility remains to be documented; no unsafe learned-quant
+  conversion or training job is authorized.
 - production CLI regression coverage and the learned-quant feasibility memo
   remain outstanding.
 
 ## Next action
 
-Productionize and test `qwen38-chat`, then record the bounded learned-quant
-Stage 5 feasibility recommendation.
+Record the bounded learned-quant Stage 5 feasibility recommendation, then
+assemble and inspect the final report artifacts.

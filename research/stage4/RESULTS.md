@@ -216,3 +216,33 @@ conversations. Warm TTFT remains near one second at both contexts. Its 16K
 decode is materially slower than the earlier same-harness g128 normal-KV
 baseline (~10.409 tok/s), so g128 retains the PERFORMANCE/LONG-CONTEXT role;
 this is a measured performance tradeoff of Candidate A, not a cache failure.
+
+## Phase 8 — Production qwen38-chat
+
+### Measured facts
+
+`research/runtime/qwen38_chat.py` now provides a single-user production CLI
+around the validated direct MLX API. It keeps the full logical transcript,
+renders the canonical chat template every turn, checks the measured cache
+offset, and sends only the exact suffix. `/reset`, `/stats`, `/context`, and
+`/quit` are implemented; greedy non-thinking chat is the default, sampling is
+available with `--mode sample`, and `--kv-bits 8` is optional. Generation
+exceptions and Ctrl-C reset the session before another turn. No wired-limit
+setting is called.
+
+The six no-model token/state regression tests pass in the canonical environment.
+They cover later-turn BOS exclusion, exact suffix calculation, cached prefix
+accounting, stale-prefix rejection, short-answer replay heuristic behavior,
+EOS-boundary normalization, and reset clearing. A two-turn real-model smoke
+also passed: exact suffixes were 18 and 20 tokens, the final logical context
+was 42 tokens, both responses had `replay=false`, and the measured peaks were
+10.931 and 10.944 GiB. The raw capture is
+`research/stage4/artifacts/runtime-validation/qwen38-chat-smoke/cli-smoke.txt`.
+
+### Inference
+
+The runtime is ready for normal single-user local chat/coding-agent use. It is
+not an OpenAI-compatible endpoint and intentionally does not implement
+multi-user scheduling or shared prefix caches. The first smoke caught and
+corrected a false positive on a short repeated “OK” answer; exact cache offset
+and transcript accounting remain the stronger correctness checks.
