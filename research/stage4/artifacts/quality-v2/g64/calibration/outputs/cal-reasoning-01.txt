@@ -1,0 +1,3 @@
+The reducer processes incoming version updates sequentially. It applies version 3, updating the current state to 3. Subsequently, it receives version 2. Since version 2 is lower than the current state (3), it is considered stale and is ignored. No further updates are mentioned. Therefore, the state remains at the last applied version.
+
+Final: 3

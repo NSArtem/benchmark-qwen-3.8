@@ -1,0 +1,34 @@
+# Regression Test Plan: Stale Event After Terminal State
+
+## 1. Objective
+Verify that the system correctly rejects any event arriving **after** a terminal state has been reached, ensuring the terminal state remains immutable and no state corruption or re-opening occurs.
+
+## 2. Terminal-State Invariant
+**Invariant:** Once an entity (e.g., `Order`, `Ticket`, `Session`) enters a terminal state (e.g., `COMPLETED`, `CANCELLED`, `EXPIRED`), **no subsequent event may transition the entity out of that state or modify its core fields.**
+
+Formal statement:
+```
+∀ entity e, if e.state ∈ TerminalStates, then for any event e' arriving after e.state was set:
+    e.state remains unchanged
+    e.core_fields remain unchanged
+    e' is logged as "rejected_stale_event"
+```
+
+## 3. Event Sequences
+
+### Sequence A: Normal Happy Path (Baseline)
+| Step | Event | Expected State Transition |
+|------|-------|---------------------------|
+| 1 | `OrderCreated` | `PENDING` |
+| 2 | `PaymentReceived` | `PAID` |
+| 3 | `FulfillmentCompleted` | `COMPLETED` (terminal) |
+
+### Sequence B: Stale Event After Terminal State (Test Case)
+| Step | Event | Expected Behavior |
+|------|-------|-------------------|
+| 1 | `OrderCreated` | `PENDING` |
+| 2 | `PaymentReceived` | `PAID` |
+| 3 | `FulfillmentCompleted` | `COMPLETED` (terminal) |
+| 4 | `RefundRequested` (stale) | **REJECTED** — state remains `COMPLETED` |
+
+### Sequence C:

@@ -1,0 +1,14 @@
+To resolve the race condition where a client disconnects after reading durable events but before subscribing to Redis Streams, implement a cursor-based synchronization mechanism.
+
+1.  **Monotonic Sequence**: Assign a strictly increasing, unique sequence number (e.g., `seq_id`) to every event in both PostgreSQL and Redis Streams. This ensures a total order across both storage systems.
+
+2.  **Last-Event-ID**: When the SSE stream starts, the client sends a `Last-Event-ID` header containing the last `seq_id` it successfully processed. If no prior event exists, this is null or 0.
+
+3.  **Overlap De-duplication**:
+    *   **Step 1 (PostgreSQL)**: Query durable events where `seq_id > Last-Event-ID`.
+    *   **Step 2 (Redis Streams)**: Subscribe to the stream, but filter incoming events to only those where `seq_id > Last-Event-ID`.
+    *   **De-duplication**: Maintain a small in-memory window (e.g., last 100 `seq_id`s) of events already sent. Before pushing any event from Redis Streams, check if its `seq_id` exists in this window. If it does, discard it to prevent duplicates caused by the overlap between the two sources.
+
+4.  **Synchronization**: Only send events from Redis Streams if their `seq_id` is greater than the maximum `seq_id` sent from PostgreSQL. This ensures no gap or duplication occurs during the transition from durable to real-time data.
+
+This approach guarantees exactly-once delivery semantics by using the monotonic sequence as a global cursor and explicitly filtering out overlapping events.

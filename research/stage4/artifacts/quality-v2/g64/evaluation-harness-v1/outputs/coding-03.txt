@@ -1,0 +1,27 @@
+### Atomicity Failure Explanation
+
+The described scenario violates the **Atomicity** principle of ACID (Atomicity, Consistency, Isolation, Durability) because the two operations are executed in **two separate, independent transactions**.
+
+1.  **Transaction 1:** Updates the job state and commits.
+2.  **Transaction 2:** Inserts the outbox row.
+
+Because these are distinct transactions, there is a **time window** between the commit of Transaction 1 and the commit of Transaction 2. If the system fails (e.g., crash, power loss, network partition) during this window, the job state is permanently updated, but the outbox row is never inserted. This creates an **inconsistent state** where the business logic has changed, but the event notification mechanism (the outbox) has no record of it. This is a classic case of **partial failure** leading to data inconsistency.
+
+### Required Transaction Boundary
+
+To ensure atomicity, **both operations must be contained within a single transaction boundary**:
+
+> **The job state update and the outbox row insertion must occur within the same database transaction.**
+
+This ensures that either **both** operations succeed and commit together, or **neither** succeeds and both are rolled back. This is the core principle of the **Transactional Outbox Pattern**.
+
+### Failure Symptom
+
+The primary failure symptom is:
+
+> **The job state is updated in the database, but no corresponding outbox entry exists, resulting in the event never being published to downstream consumers (e.g., message brokers, event streams).**
+
+This leads to:
+- **Event loss**: Downstream systems (e.g., notification services, analytics pipelines) never receive the event.
+- **Data inconsistency**: The source of truth (job state) and the event log (outbox) are out of sync.
+- **Operational

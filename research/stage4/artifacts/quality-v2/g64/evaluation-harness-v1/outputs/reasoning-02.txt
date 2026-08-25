@@ -1,0 +1,27 @@
+To determine the final version, we must process the events in the specific order they were received, applying the rule: "Apply a version only when it is greater than the current version."
+
+**Step 1: Initial State**
+*   Current Version: 1
+
+**Step 2: Process Event Version 2**
+*   Incoming Version: 2
+*   Comparison: Is 2 > 1? Yes.
+*   Action: Apply version 2.
+*   New Current Version: 2
+
+**Step 3: Process Event Version 5**
+*   Incoming Version: 5
+*   Comparison: Is 5 > 2? Yes.
+*   Action: Apply version 5.
+*   New Current Version: 5
+
+**Step 4: Process Event Version 4**
+*   Incoming Version: 4
+*   Comparison: Is 4 > 5? No.
+*   Action: Do not apply.
+*   Current Version remains: 5
+
+**Conclusion**
+The reducer ends with version 5.
+
+Final: 5

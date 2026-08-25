@@ -1,0 +1,379 @@
+{
+  "case_alignment": [
+    {
+      "case_id": "coding-01",
+      "g128_generated_tokens": 326,
+      "g64_generated_tokens": 306,
+      "token_equal": false,
+      "token_lcp": 3
+    },
+    {
+      "case_id": "coding-02",
+      "g128_generated_tokens": 277,
+      "g64_generated_tokens": 164,
+      "token_equal": false,
+      "token_lcp": 2
+    },
+    {
+      "case_id": "coding-03",
+      "g128_generated_tokens": 253,
+      "g64_generated_tokens": 273,
+      "token_equal": false,
+      "token_lcp": 0
+    },
+    {
+      "case_id": "coding-04",
+      "g128_generated_tokens": 346,
+      "g64_generated_tokens": 319,
+      "token_equal": false,
+      "token_lcp": 5
+    },
+    {
+      "case_id": "coding-05",
+      "g128_generated_tokens": 368,
+      "g64_generated_tokens": 347,
+      "token_equal": false,
+      "token_lcp": 0
+    },
+    {
+      "case_id": "coding-06",
+      "g128_generated_tokens": 306,
+      "g64_generated_tokens": 301,
+      "token_equal": false,
+      "token_lcp": 4
+    },
+    {
+      "case_id": "coding-07",
+      "g128_generated_tokens": 340,
+      "g64_generated_tokens": 369,
+      "token_equal": false,
+      "token_lcp": 3
+    },
+    {
+      "case_id": "coding-08",
+      "g128_generated_tokens": 448,
+      "g64_generated_tokens": 419,
+      "token_equal": false,
+      "token_lcp": 1
+    },
+    {
+      "case_id": "instruction-01",
+      "g128_generated_tokens": 16,
+      "g64_generated_tokens": 16,
+      "token_equal": true,
+      "token_lcp": 16
+    },
+    {
+      "case_id": "instruction-02",
+      "g128_generated_tokens": 10,
+      "g64_generated_tokens": 10,
+      "token_equal": true,
+      "token_lcp": 10
+    },
+    {
+      "case_id": "instruction-03",
+      "g128_generated_tokens": 19,
+      "g64_generated_tokens": 18,
+      "token_equal": false,
+      "token_lcp": 4
+    },
+    {
+      "case_id": "instruction-04",
+      "g128_generated_tokens": 4,
+      "g64_generated_tokens": 4,
+      "token_equal": true,
+      "token_lcp": 4
+    },
+    {
+      "case_id": "structured-01",
+      "g128_generated_tokens": 32,
+      "g64_generated_tokens": 27,
+      "token_equal": false,
+      "token_lcp": 0
+    },
+    {
+      "case_id": "structured-02",
+      "g128_generated_tokens": 36,
+      "g64_generated_tokens": 36,
+      "token_equal": true,
+      "token_lcp": 36
+    },
+    {
+      "case_id": "structured-03",
+      "g128_generated_tokens": 33,
+      "g64_generated_tokens": 33,
+      "token_equal": true,
+      "token_lcp": 33
+    },
+    {
+      "case_id": "structured-04",
+      "g128_generated_tokens": 30,
+      "g64_generated_tokens": 30,
+      "token_equal": true,
+      "token_lcp": 30
+    },
+    {
+      "case_id": "reasoning-01",
+      "g128_generated_tokens": 5,
+      "g64_generated_tokens": 68,
+      "token_equal": false,
+      "token_lcp": 0
+    },
+    {
+      "case_id": "reasoning-02",
+      "g128_generated_tokens": 78,
+      "g64_generated_tokens": 96,
+      "token_equal": false,
+      "token_lcp": 0
+    },
+    {
+      "case_id": "reasoning-03",
+      "g128_generated_tokens": 79,
+      "g64_generated_tokens": 68,
+      "token_equal": false,
+      "token_lcp": 0
+    },
+    {
+      "case_id": "reasoning-04",
+      "g128_generated_tokens": 85,
+      "g64_generated_tokens": 71,
+      "token_equal": false,
+      "token_lcp": 8
+    },
+    {
+      "case_id": "retrieval-01",
+      "g128_generated_tokens": 56,
+      "g64_generated_tokens": 81,
+      "token_equal": false,
+      "token_lcp": 0
+    },
+    {
+      "case_id": "retrieval-02",
+      "g128_generated_tokens": 43,
+      "g64_generated_tokens": 38,
+      "token_equal": false,
+      "token_lcp": 3
+    },
+    {
+      "case_id": "retrieval-03",
+      "g128_generated_tokens": 50,
+      "g64_generated_tokens": 59,
+      "token_equal": false,
+      "token_lcp": 0
+    },
+    {
+      "case_id": "retrieval-04",
+      "g128_generated_tokens": 121,
+      "g64_generated_tokens": 123,
+      "token_equal": false,
+      "token_lcp": 3
+    },
+    {
+      "case_id": "prose-01",
+      "g128_generated_tokens": 81,
+      "g64_generated_tokens": 76,
+      "token_equal": false,
+      "token_lcp": 5
+    },
+    {
+      "case_id": "prose-02",
+      "g128_generated_tokens": 32,
+      "g64_generated_tokens": 20,
+      "token_equal": false,
+      "token_lcp": 2
+    },
+    {
+      "case_id": "prose-03",
+      "g128_generated_tokens": 69,
+      "g64_generated_tokens": 68,
+      "token_equal": false,
+      "token_lcp": 4
+    },
+    {
+      "case_id": "prose-04",
+      "g128_generated_tokens": 22,
+      "g64_generated_tokens": 22,
+      "token_equal": true,
+      "token_lcp": 22
+    }
+  ],
+  "experiment_id": "P1-G64-VS-G128-QUALITY-V2",
+  "g128": {
+    "category_summary": {
+      "coding": {
+        "cases": 8,
+        "objective_pass": 8,
+        "objective_total": 8,
+        "semi_objective_pass": 0,
+        "semi_objective_total": 0
+      },
+      "instruction": {
+        "cases": 4,
+        "objective_pass": 4,
+        "objective_total": 4,
+        "semi_objective_pass": 0,
+        "semi_objective_total": 0
+      },
+      "prose": {
+        "cases": 4,
+        "objective_pass": 0,
+        "objective_total": 0,
+        "semi_objective_pass": 4,
+        "semi_objective_total": 4
+      },
+      "reasoning": {
+        "cases": 4,
+        "objective_pass": 3,
+        "objective_total": 4,
+        "semi_objective_pass": 0,
+        "semi_objective_total": 0
+      },
+      "retrieval": {
+        "cases": 4,
+        "objective_pass": 4,
+        "objective_total": 4,
+        "semi_objective_pass": 0,
+        "semi_objective_total": 0
+      },
+      "structured": {
+        "cases": 4,
+        "objective_pass": 4,
+        "objective_total": 4,
+        "semi_objective_pass": 0,
+        "semi_objective_total": 0
+      }
+    },
+    "decode_tps_mean": 11.935493197661073,
+    "decode_tps_median": 12.004808246451539,
+    "early_eos_count": 0,
+    "finish_reasons": {
+      "eos": 28
+    },
+    "generated_tokens_mean": 127.32142857142857,
+    "label": "g128",
+    "model": {
+      "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "mlx_lm_version": "0.31.3",
+      "mlx_version": "0.32.1",
+      "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+      "python_executable": "/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.1/.venv/bin/python3",
+      "python_version": "3.14.7",
+      "quantization": {
+        "bits": 3,
+        "group_size": 128,
+        "mode": "affine"
+      },
+      "wired_policy": "direct generate_step; MLX wired state untouched"
+    },
+    "objective_failures": [
+      "reasoning-03"
+    ],
+    "objective_pass": 23,
+    "objective_total": 24,
+    "peak_gib_max": 13.360625317320228,
+    "raw_total_elapsed_seconds": 604.7251780000224,
+    "semi_objective_pass": 4,
+    "semi_objective_total": 4,
+    "suite_sha256": "ee6e02f56479b16310a864503fc933f9f4928111739ccf5c06776a88918ef721",
+    "teacher_forced": {
+      "case_count": 6,
+      "mean_nll_nats": 1.0676687852195983,
+      "mean_top1_accuracy": 0.7613094162687659,
+      "total_target_tokens": 167,
+      "weighted_mean_nll_nats": 1.3690119760479043,
+      "weighted_top1_accuracy": 0.6946107784431138
+    }
+  },
+  "g64": {
+    "category_summary": {
+      "coding": {
+        "cases": 8,
+        "objective_pass": 8,
+        "objective_total": 8,
+        "semi_objective_pass": 0,
+        "semi_objective_total": 0
+      },
+      "instruction": {
+        "cases": 4,
+        "objective_pass": 4,
+        "objective_total": 4,
+        "semi_objective_pass": 0,
+        "semi_objective_total": 0
+      },
+      "prose": {
+        "cases": 4,
+        "objective_pass": 0,
+        "objective_total": 0,
+        "semi_objective_pass": 4,
+        "semi_objective_total": 4
+      },
+      "reasoning": {
+        "cases": 4,
+        "objective_pass": 3,
+        "objective_total": 4,
+        "semi_objective_pass": 0,
+        "semi_objective_total": 0
+      },
+      "retrieval": {
+        "cases": 4,
+        "objective_pass": 4,
+        "objective_total": 4,
+        "semi_objective_pass": 0,
+        "semi_objective_total": 0
+      },
+      "structured": {
+        "cases": 4,
+        "objective_pass": 4,
+        "objective_total": 4,
+        "semi_objective_pass": 0,
+        "semi_objective_total": 0
+      }
+    },
+    "decode_tps_mean": 11.074514260869401,
+    "decode_tps_median": 11.111698092966375,
+    "early_eos_count": 0,
+    "finish_reasons": {
+      "eos": 28
+    },
+    "generated_tokens_mean": 123.64285714285714,
+    "label": "g64",
+    "model": {
+      "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+      "mlx_lm_version": "0.31.3",
+      "mlx_version": "0.32.1",
+      "model_path": "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7",
+      "python_executable": "/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.1/.venv/bin/python3",
+      "python_version": "3.14.7",
+      "quantization": {
+        "bits": 3,
+        "group_size": 64,
+        "mode": "affine"
+      },
+      "wired_policy": "direct generate_step; MLX wired state untouched"
+    },
+    "objective_failures": [
+      "reasoning-03"
+    ],
+    "objective_pass": 23,
+    "objective_total": 24,
+    "peak_gib_max": 14.14329438470304,
+    "raw_total_elapsed_seconds": 623.564009958005,
+    "semi_objective_pass": 4,
+    "semi_objective_total": 4,
+    "suite_sha256": "ee6e02f56479b16310a864503fc933f9f4928111739ccf5c06776a88918ef721",
+    "teacher_forced": {
+      "case_count": 6,
+      "mean_nll_nats": 1.0628917709812018,
+      "mean_top1_accuracy": 0.7653744569191723,
+      "total_target_tokens": 167,
+      "weighted_mean_nll_nats": 1.403443113772455,
+      "weighted_top1_accuracy": 0.7005988023952096
+    }
+  },
+  "mean_token_lcp": 7.071428571428571,
+  "objective_rate_delta_g128_minus_g64": 0.0,
+  "phase": 1,
+  "suite_sha256": "ee6e02f56479b16310a864503fc933f9f4928111739ccf5c06776a88918ef721",
+  "teacher_forced_weighted_nll_delta_g128_minus_g64": -0.03443113772455075,
+  "token_equal_count": 7
+}

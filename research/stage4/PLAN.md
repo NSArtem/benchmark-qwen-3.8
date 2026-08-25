@@ -8,9 +8,9 @@ only where the launcher cannot read the default cache.
 | Phase | Gate / deliverable | Status |
 |---|---|---|
 | 0 | Recover Stage 3 evidence; create Stage 4 memory | completed |
-| 1 | Corrected 30–40 case Quality Suite V2, validated and frozen | in progress |
-| 2 | One focused turn-17 early-EOS control study | pending |
-| 3 | Bounded per-module sensitivity map and budget curve | pending |
+| 1 | Corrected 30–40 case Quality Suite V2, validated and frozen | completed |
+| 2 | One focused turn-17 early-EOS control study | completed |
+| 3 | Bounded per-module sensitivity map and budget curve | in progress |
 | 4 | At most three serious new candidates: mixed 3/4 control, guided 3/4, optional 3/6 | pending |
 | 5 | Mini tournament; advance at most one new candidate | pending |
 | 6 | Full frozen-suite finalist comparison and role classification | pending |

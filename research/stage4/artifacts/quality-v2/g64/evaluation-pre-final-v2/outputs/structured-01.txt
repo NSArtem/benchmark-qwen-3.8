@@ -1,0 +1,5 @@
+{
+  "state": "queued",
+  "safe": true,
+  "attempts": 1
+}

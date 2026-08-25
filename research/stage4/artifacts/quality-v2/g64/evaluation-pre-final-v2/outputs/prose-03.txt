@@ -1,0 +1,4 @@
+Eda: "That garden bell is completely broken, so we can't rely on it to signal the others."
+Jun: "In that case, let's just wait by the east gate until they arrive."
+Eda: "Fine, the east gate it is."
+Jun: "I'll keep watch from there."

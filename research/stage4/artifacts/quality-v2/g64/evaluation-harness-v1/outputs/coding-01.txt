@@ -1,0 +1,29 @@
+### Diagnosis of the Race Condition
+
+The current implementation suffers from a classic **TOCTOU (Time-of-Check to Time-of-Use)** race condition.
+
+1.  **Check:** Both concurrent requests execute `SELECT` to check if the idempotency key exists.
+2.  **Race:** Because the requests are concurrent, both threads see that the key does *not* exist in the database (the row hasn't been committed by either thread yet).
+3.  **Use:** Both threads proceed to execute `INSERT`.
+4.  **Result:**
+    *   Thread A inserts successfully.
+    *   Thread B attempts to insert the same key.
+    *   **Failure:** Thread B fails with a **Unique Constraint Violation** (e.g., `SQLIntegrityError` or `UniqueViolationError`) because the key already exists due to Thread A's commit.
+    *   **Side Effect:** Depending on the application logic, this might result in a 500 Internal Server Error, a duplicate job entry if the insert partially succeeded before failing, or simply a failed request that requires a client retry.
+
+### The Smallest Database-Level Fix
+
+The smallest and most robust fix is to **enforce uniqueness at the database level** and **handle the conflict gracefully** in the application code.
+
+#### 1. Add a Unique Constraint
+Ensure the `idempotency_key` column (or a composite key of `tenant_id` + `idempotency_key`) has a **UNIQUE constraint** in the database schema.
+
+```sql
+-- Example for PostgreSQL
+ALTER TABLE jobs
+ADD CONSTRAINT unique_tenant_idempotency_key
+UNIQUE (tenant_id, idempotency_key);
+```
+
+#### 2. Change the Insert Strategy: "Insert First, Then Check"
+Instead of `SELECT

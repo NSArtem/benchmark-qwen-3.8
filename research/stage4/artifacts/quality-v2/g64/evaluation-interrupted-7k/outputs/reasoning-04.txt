@@ -1,0 +1,13 @@
+To find the total number of records, we need to calculate the sum of the records in the groups and the independent records.
+
+1.  **Calculate the records in the groups:**
+    There are 7 groups, and each group contains 18 records.
+    $$ 7 \times 18 = 126 $$
+
+2.  **Add the independent records:**
+    There are 5 independent records.
+    $$ 126 + 5 = 131 $$
+
+So, the total number of records is 131.
+
+Final: 131

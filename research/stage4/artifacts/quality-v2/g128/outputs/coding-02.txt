@@ -1,0 +1,17 @@
+**Invariant**
+The system state must remain stable once a terminal status is reached. Specifically, if a job is marked as `succeeded`, `failed`, or `canceled`, its state is immutable. No subsequent event may alter the job’s status from a terminal state to a non-terminal (active) state.
+
+**Guard**
+The guard checks the current state of the job before processing any new event.
+*   **Condition:** If `current_status` is in the set of terminal states `{succeeded, failed, canceled}`, the guard returns `true` (blocking the transition).
+*   **Logic:** If the guard returns `true`, the incoming event is rejected. If the guard returns `false` (job is active), the event is processed.
+
+**Action for Event 7**
+Event 7 attempts to transition the job from `succeeded` (terminal) to `running` (active).
+1.  The reducer checks the guard.
+2.  Since the current state is `succeeded`, the guard triggers.
+3.  The reducer **ignores** event 7.
+4.  The job state remains `succeeded`.
+
+**Conclusion**
+The reducer must discard event 7 to preserve the invariant that terminal jobs cannot become active again. This ensures data integrity and prevents invalid state transitions.

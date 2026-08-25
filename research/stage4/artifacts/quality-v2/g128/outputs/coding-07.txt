@@ -1,0 +1,19 @@
+**Test: Concurrent Idempotent Retry with Commit Timeout**
+
+**Setup**
+1.  **Database**: Initialize a `transactions` table with a unique constraint on `idempotency_key`.
+2.  **Worker**: Configure the background worker to sleep 100ms before committing the transaction.
+3.  **Client**: Prepare two concurrent HTTP clients to send `POST /api/transfer` with the same `Idempotency-Key: "key-123"`.
+
+**Execution**
+1.  Fire both requests simultaneously.
+2.  Allow the worker to process and commit.
+3.  Query the database state.
+
+**Assertions**
+1.  **Unique Persistence**: Assert that the `transactions` table contains **exactly one** row for `idempotency_key = 'key-123'`. The second request must be rejected or return the cached response from the first, ensuring no duplicate data is written.
+2.  **Atomic Commit**: Assert that the transaction status is `COMMITTED` and the associated balance update is visible in the `accounts` table. This verifies that the commit timeout did not corrupt the atomicity of the operation.
+3.  **Outbox Integrity**: Assert that the `outbox` table contains **exactly one** event for `idempotency_key = 'key-123'`. This ensures the event is published only once, preventing duplicate side-effects in downstream consumers.
+
+**Conclusion**
+The system correctly handles race conditions by enforcing idempotency at the database level, ensuring data consistency and event integrity despite concurrent commit delays.

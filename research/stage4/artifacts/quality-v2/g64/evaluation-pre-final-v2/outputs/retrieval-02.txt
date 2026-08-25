@@ -1,0 +1,5 @@
+Based on the ledger entry for Record 088:
+
+*   **Shard:** violet
+*   **Status:** paused
+*   **Note Concern:** tenant isolation review

@@ -1,0 +1,8 @@
+Start with 12 jobs.
+1. Four complete: 12 - 4 = 8
+2. Three cancelled: 8 - 3 = 5
+3. Two new arrive: 5 + 2 = 7
+
+Nonterminal jobs are those not completed or cancelled.
+
+Final: 7

@@ -1,0 +1,6 @@
+Start at version 1.
+1. Event version 2: 2 > 1, so apply. Current version becomes 2.
+2. Event version 5: 5 > 2, so apply. Current version becomes 5.
+3. Event version 4: 4 is not greater than 5, so ignore.
+
+Final: 5

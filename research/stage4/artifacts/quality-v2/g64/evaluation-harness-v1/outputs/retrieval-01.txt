@@ -1,0 +1,7 @@
+Record 017: owner=Iris; shard=amber; retry_window=37; status=active; checksum=A7C9; note=priority handoff after audit.
+
+**Retrieved Details:**
+*   **Owner:** Iris
+*   **Shard:** amber
+*   **Retry Window:** 37
+*   **Checksum:** A7C9

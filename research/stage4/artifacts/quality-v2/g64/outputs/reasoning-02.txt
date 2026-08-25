@@ -1,0 +1,8 @@
+The reducer starts at version 1.
+1. Receives version 2: 2 > 1, so it applies. Current version becomes 2.
+2. Receives version 5: 5 > 2, so it applies. Current version becomes 5.
+3. Receives version 4: 4 is not greater than 5, so it is ignored.
+
+The final version displayed is 5.
+
+Final: 5

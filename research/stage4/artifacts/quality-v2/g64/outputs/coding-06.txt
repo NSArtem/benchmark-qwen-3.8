@@ -1,0 +1,20 @@
+**Security Defect:**
+The method suffers from **Insecure Direct Object Reference (IDOR)** or **Broken Access Control**. By filtering only on `jobId`, the application ignores the `tenantId` provided in the request. An attacker can enumerate or guess valid `jobId` values to access, modify, or delete jobs belonging to other tenants, bypassing logical isolation boundaries.
+
+**Required Query Predicate:**
+The query must enforce multi-tenant isolation by including both identifiers in the `WHERE` clause.
+
+**SQL:**
+```sql
+SELECT * FROM jobs
+WHERE id = :jobId
+AND tenant_id = :tenantId
+```
+
+**Verbal Description:**
+"Select the job record where the job ID matches the requested ID **AND** the tenant ID matches the authenticated user’s tenant ID."
+
+**What the Test Must Prove:**
+1.  **Isolation:** A request with a valid `jobId` but an incorrect `tenantId` (belonging to a different tenant) must return **no results** (empty set) or a 403/404 error.
+2.  **Authorization:** A request with a valid `jobId` and the **correct** `tenantId` must successfully retrieve the job.
+3.  **Consistency:** Ensure the repository method signature or implementation explicitly requires and validates the `tenantId` parameter, preventing any code path from querying by `jobId` alone.

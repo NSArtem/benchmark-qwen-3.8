@@ -1,0 +1,22 @@
+**Completion Predicate**
+`lease_id == current_lease_id AND status == 'pending'`
+
+**Fencing Mechanism**
+1.  **Atomic Check-and-Set:** Use a Redis `WATCH`/`MULTI`/`EXEC` transaction (or Lua script) on the job key.
+2.  **Logic:**
+    *   `WATCH job_key`
+    *   `GET job:lease_id`
+    *   If `GET` result matches Worker A’s `lease_id`, proceed.
+    *   `SET job:status 'completed'`
+    *   `EXEC`
+3.  **Failure Handling:** If the lease ID has changed (Worker B acquired it), `EXEC` returns nil. Worker A must abort publishing and discard the result.
+
+**Why It Works**
+*   **Single Source of Truth:** Redis maintains the authoritative `lease_id` per job.
+*   **Atomicity:** The check and update happen in one atomic operation, preventing race conditions where Worker A reads the old lease ID but writes after Worker B has already updated it.
+*   **Fencing:** The stale `lease_id` acts as a fence. Any write attempt by the old worker fails because the current state no longer matches the precondition.
+
+**Database Alternative**
+If using SQL, use an optimistic lock:
+`UPDATE jobs SET status='completed' WHERE id=? AND lease_id=?`
+Check `affected_rows == 1`. If 0, the lease was stolen; abort.

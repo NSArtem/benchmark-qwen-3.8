@@ -1,0 +1,5 @@
+The worker started with 5 tasks. After completing 2, the number of remaining tasks is calculated by subtracting the completed tasks from the total.
+
+$5 - 2 = 3$
+
+Final: 3

@@ -1,0 +1,55 @@
+# Integration Test: Timeout-After-Commit Retry with Idempotency Key
+
+## Test Scenario
+
+Two concurrent `POST /orders` requests share the same idempotency key (`idem-123`). The first request commits successfully, but the client times out before receiving the response. The client retries with the same key. The worker (async job) is artificially delayed. We verify that:
+1. Only **one** order row exists in the database (no duplicate).
+2. The retry returns the **original** order (not a new one).
+
+---
+
+## Setup
+
+```python
+# tests/test_idempotent_retry_after_timeout.py
+
+import time
+import threading
+import pytest
+import requests
+from unittest.mock import patch, MagicMock
+from sqlalchemy import create_engine, text
+from myapp.db import Base, Order
+from myapp.models import Order as OrderModel
+from myapp.services.order_service import create_order
+from myapp.workers.order_worker import process_order  # async worker
+
+# --- Configuration ---
+IDEMPOTENCY_KEY = "idem-123"
+PAYLOAD = {"item_id": "SKU-001", "quantity": 2, "price": 99.99}
+WORKER_DELAY_SECONDS = 5  # Artificial delay injected into the worker
+TIMEOUT_SECONDS = 2       # Client-side timeout (shorter than worker delay)
+
+# --- Database Setup ---
+engine = create_engine("sqlite:///:memory:")
+Base.metadata.create_all(engine)
+
+# --- Test Client (in-process, no real HTTP) ---
+# In a real integration test, you'd use a real HTTP client against a
+# running server. Here we simulate the HTTP layer with a callable.
+
+class TestClient:
+    """Simulates an HTTP client with configurable timeout."""
+    def __init__(self, timeout: float):
+        self.timeout = timeout
+
+    def post(self, url: str, json: dict, headers: dict = None) -> dict:
+        # Simulate the server-side handler
+        response = _handle_post(url, json, headers)
+        # Simulate client-side timeout: if the server takes longer than
+        # self.timeout, the client raises a TimeoutError
+        # (In a real test, this would be a real HTTP timeout.)
+        return response
+
+
+def _handle_post(url: str, json: dict, headers: dict = None) -> dict:

@@ -1,0 +1,33 @@
+**Regression Test Plan: Stale Event Handling**
+
+**Objective:** Verify that the system correctly rejects events arriving after a terminal state has been reached, ensuring the final state remains immutable.
+
+**Terminal-State Invariant:**
+Once an entity (e.g., `Order`) reaches a terminal status (e.g., `COMPLETED` or `CANCELLED`), its state is locked. No subsequent event may modify the entity’s status, data, or side-effects. The system must treat any event referencing a terminal entity as stale and discard it without error.
+
+**Event Sequences:**
+
+1.  **Sequence A (Happy Path):**
+    *   Event 1: `OrderCreated`
+    *   Event 2: `OrderPaid`
+    *   Event 3: `OrderCompleted` (Terminal State reached)
+    *   *Expected:* Order status is `COMPLETED`.
+
+2.  **Sequence B (Stale Event - Late Arrival):**
+    *   Event 1: `OrderCreated`
+    *   Event 2: `OrderPaid`
+    *   Event 3: `OrderCompleted` (Terminal State reached)
+    *   Event 4: `OrderPaid` (Duplicate/Stale event arriving after completion)
+    *   *Expected:* Event 4 is rejected. Order status remains `COMPLETED`.
+
+3.  **Sequence C (Stale Event - Different Type):**
+    *   Event 1: `OrderCreated`
+    *   Event 2: `OrderCancelled` (Terminal State reached)
+    *   Event 3: `OrderPaid` (Stale event arriving after cancellation)
+    *   *Expected:* Event 3 is rejected. Order status remains `CANCELLED`.
+
+**Assertions:**
+1.  After Sequence B, assert `order.status == COMPLETED`.
+2.  After Sequence C, assert `order.status == CANCELLED`.
+3.  Assert that no error is thrown for stale events (graceful handling).
+4.  Assert that the entity’s data fields (e.g., `total_amount`) are unchanged by the stale events.
