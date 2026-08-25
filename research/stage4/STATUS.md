@@ -1,14 +1,15 @@
 # Stage 4 Status
 
-Last updated: 2026-08-25 — Phases 0–8 complete; Phase 9 in progress.
+Last updated: 2026-08-25 — Stage 4 complete; final report and raw-artifact audit complete.
 
 ## Current phase
 
-Phase 9: bounded learned-quant feasibility assessment. Phases 0–8 are
-complete, including the Quality Suite V2 validation gate, focused early-EOS
-control, bounded sensitivity map, two candidate conversions, the mini
-tournament, corrected full finalist comparison, and mixed-3/4 8K/16K runtime
-validation, plus the production CLI and token/state regression tests.
+Stage 4 complete; no further experiments are scheduled. Phases 0–9 and the
+final raw-artifact audit are complete, including the Quality Suite V2
+validation gate, focused early-EOS control, bounded sensitivity map, two
+candidate conversions, the mini tournament, corrected full finalist
+comparison, mixed-3/4 8K/16K runtime validation, production CLI, token/state
+regression tests, and learned-quant feasibility assessment.
 
 ## Completed experiments
 
@@ -189,6 +190,22 @@ preserved generation runs.
   corrected smoke was rerun successfully. Exact cache/accounting checks remain
   the authoritative correctness gate.
 
+## Phase 9 — Learned-quant feasibility
+
+- Static inspection of the pinned Dynamic Quantization, DWQ, AWQ, and GPTQ
+  implementations is complete. Source hashes, model configuration, safety
+  decisions, and ranked recommendations are in
+  `artifacts/learned-quant/source-inspection.json` and
+  `learned-quant-feasibility.md`.
+- No learned-quant conversion, unsafe full-model dry run, live calibration
+  download, or wired-limit call was performed. Dynamic Quant and DWQ are
+  unsafe as pinned; AWQ has a Qwen3.5 hybrid-architecture support gap; GPTQ is
+  the most promising alternative but requires serial Hessian capture and fixed
+  local tokens.
+- Stage 5 ranking: bounded gradient/logit Dynamic Quant first, serial GPTQ
+  second, architecture-adapted AWQ third if a quality gap remains, and DWQ
+  only after a bounded offline teacher-target design.
+
 ## Validated facts from Stage 3
 
 - Hardware: Apple M3 Pro, 18 GB unified memory, macOS 15.7.8.
@@ -239,11 +256,11 @@ all-3-bit manifest diagnostic is excluded from candidate counts. No targeted
 
 ## Current best configuration
 
-Candidate A mixed-3/4 g128 is the provisional DEFAULT after the corrected full
-suite: 24/24 objective and 4/4 semi-objective. g128 normal KV remains the
-PERFORMANCE/LONG-CONTEXT mode at 10.180 GiB and the fastest measured decode;
-g64 remains the conservative QUALITY/reference mode. Persistent validation is
-complete; runtime productionization is still outstanding.
+Candidate A mixed-3/4 g128 is the DEFAULT after the corrected full suite:
+24/24 objective and 4/4 semi-objective, with persistent 8K/16K validation
+passed. g128 normal KV remains the PERFORMANCE/LONG-CONTEXT mode at 10.180
+GiB and the fastest measured decode; g64 remains the conservative
+QUALITY/reference mode.
 
 ## Active risks
 
@@ -251,12 +268,12 @@ complete; runtime productionization is still outstanding.
 - the source snapshot is local and must not be re-downloaded or committed.
 - the sensitivity proxy must be clearly labeled if it is weight-distortion
   rather than activation-aware; calibration ranking must not be overclaimed.
-- Learned-quant feasibility remains to be documented; no unsafe learned-quant
-  conversion or training job is authorized.
-- production CLI regression coverage and the learned-quant feasibility memo
-  remain outstanding.
+- No learned-quant implementation was run; any Stage 5 branch must retain the
+  bounded/local-data/wired-limit safety constraints documented in the memo.
+- The final report preserves the distinction between measured facts,
+  inferences, and future hypotheses; no learned-quant branch was run.
 
 ## Next action
 
-Record the bounded learned-quant Stage 5 feasibility recommendation, then
-assemble and inspect the final report artifacts.
+Deliver `FINAL_REPORT.md` and stop. No additional Stage 4 experiments are
+authorized by the current result.

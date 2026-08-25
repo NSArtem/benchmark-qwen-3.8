@@ -246,3 +246,31 @@ not an OpenAI-compatible endpoint and intentionally does not implement
 multi-user scheduling or shared prefix caches. The first smoke caught and
 corrected a false positive on a short repeated “OK” answer; exact cache offset
 and transcript accounting remain the stronger correctness checks.
+## Phase 9 — Learned-quant feasibility
+
+### Measured facts
+
+The canonical pinned `dynamic_quant.py`, `dwq.py`, `awq.py`, and `gptq.py`
+implementations were inspected without running a 27B learned-quant job.
+Dynamic Quant's estimator deep-copies the full model and quantized layer set,
+and its threshold search repeats full-model copies. DWQ computes full-model
+teacher targets, trains a full quantized student, defaults to a remote dataset,
+and its pinned main calls `mx.set_wired_limit`. AWQ is block-oriented but has
+no `qwen3_5` configuration and does not describe Qwen3.8's hybrid
+`linear_attn`/`self_attn` blocks. GPTQ accumulates a Hessian for every
+quantizable linear layer before quantizing; at hidden size 5,120, one float32
+5,120×5,120 Hessian is about 100 MiB before multiplying across modules and
+adding model residency.
+
+No learned-quant conversion, unsafe dry run, network calibration download, or
+wired-limit call was performed. Full source hashes and machine-readable facts
+are in `research/stage4/artifacts/learned-quant/source-inspection.json`.
+
+### Inference
+
+Dynamic Quant is the highest-value Stage 5 direction, but only as a bounded
+gradient/logit sensitivity implementation. Serial GPTQ is second and could
+test whether Hessian-aware reconstruction improves the selected sensitive
+modules. Architecture-adapted AWQ is third if a quality gap remains. DWQ is
+last until offline teacher targets and layer/block-wise distillation are
+designed; it is not a safe Stage 4 default experiment.

@@ -16,7 +16,7 @@ only where the launcher cannot read the default cache.
 | 6 | Full frozen-suite finalist comparison and role classification | completed |
 | 7 | Winner validation at approximately 8K and 16K persistent exact-suffix chat | completed |
 | 8 | Production `qwen38-chat` runtime, tests, and documentation | completed |
-| 9 | Learned-quant feasibility assessment only after primary work | in progress |
+| 9 | Learned-quant feasibility assessment only after primary work | completed |
 
 Safety gates:
 
