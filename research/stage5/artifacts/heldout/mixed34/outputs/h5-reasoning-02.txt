@@ -1,0 +1,27 @@
+To determine the final version displayed, we must track the state of the display through each step of the process. The rule states that a new version is accepted **only if** it is strictly greater than the current version.
+
+**Step-by-Step Deduction:**
+
+1.  **Initial State:**
+    *   Current Version: 3
+
+2.  **Input: 4**
+    *   Condition: Is $4 > 3$?
+    *   Result: Yes.
+    *   Action: Accept 4.
+    *   New Current Version: 4
+
+3.  **Input: 2**
+    *   Condition: Is $2 > 4$?
+    *   Result: No ($2 < 4$).
+    *   Action: Reject 2.
+    *   Current Version remains: 4
+
+4.  **Input: 9**
+    *   Condition: Is $9 > 4$?
+    *   Result: Yes.
+    *   Action: Accept 9.
+    *   New Current Version: 9
+
+5.  **Input: 7**
+    *   Condition: Is $7 > 9$?

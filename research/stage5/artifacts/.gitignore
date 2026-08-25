@@ -1,0 +1,3 @@
+# Generated cache-state diagnostics are retained locally for audit, but are
+# too repetitive to version alongside the compact model summaries.
+heldout/*/state_signatures/

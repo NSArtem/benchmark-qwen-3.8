@@ -1,0 +1,32 @@
+### 1. The Essential Conditional UPDATE Predicate
+
+To fence a worker, the database update must atomically verify that the worker’s `lease_epoch` is still the current, highest epoch in the system. If a newer claimant has already taken over (epoch 13), the worker’s epoch (12) is stale, and the update must fail.
+
+The essential conditional `UPDATE` predicate is:
+
+```sql
+UPDATE job_table
+SET status = 'completed',
+    completed_at = NOW()
+WHERE job_id = :job_id
+  AND lease_epoch = :worker_epoch
+  AND lease_epoch = (
+      SELECT MAX(lease_epoch)
+      FROM job_table
+      WHERE job_id = :job_id
+  );
+```
+
+**Key Logic:**
+- `lease_epoch = :worker_epoch`: Ensures the row still belongs to *this* worker.
+- `lease_epoch = (SELECT MAX(lease_epoch) ...)`**: Ensures this worker’s epoch is the **maximum** epoch for that job. If a newer claimant (epoch 13) has claimed the job, `MAX(lease_epoch)` will be 13, which does not equal 12. The condition fails, and no rows are updated.
+
+> **Note:** In many production systems, this is simplified to:
+> ```sql
+> UPDATE job_table
+> SET status = 'completed'
+> WHERE job_id = :job_id
+>   AND lease_epoch = :worker_epoch
+>   AND lease_epoch = (SELECT lease_epoch FROM job_table WHERE job_id = :job_id)
+> ```
+> This assumes the `lease_epoch` column in the row *is* the current epoch. If the row’s epoch has been overwritten by a newer claimant, the stored `lease_epoch` will be 13, not 

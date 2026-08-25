@@ -1,0 +1,28 @@
+To ensure robust idempotency in an API where JSON whitespace variations are common, the system must treat semantically identical requests as identical, regardless of formatting differences. Below are the specific rules for the database, hashing, and behavioral logic.
+
+### 1. Database Uniqueness Rule
+
+The uniqueness constraint must be scoped to the **logical identity** of the request, not the raw byte string. Since `request_sha256` is derived from the *canonicalized* body, the uniqueness constraint should apply to the tuple of logical identifiers.
+
+**Rule:**
+```sql
+UNIQUE (tenant_id, route, key)
+```
+
+**Rationale:**
+- `tenant_id`: Isolates data per customer/organization.
+- `route`: Identifies the specific API endpoint (e.g., `POST /v1/orders`).
+- `key`: The client-provided idempotency key (e.g., a UUID or string).
+- **Crucially:** `request_sha256` is **not** part of the uniqueness constraint. If it were, two retries with the same logical request but different whitespace would generate different hashes, violating the uniqueness constraint and causing a false "conflict" error. The hash is stored for verification, not for uniqueness enforcement.
+
+> **Note:** If the same `(tenant_id, route, key)` exists, the request is considered a **retry**, not a new request.
+
+---
+
+### 2. Canonicalization Rule for Hashing
+
+The `request_sha256` must be computed from a **canonical form** of the JSON body to ensure that semantically equivalent JSON documents produce identical hashes.
+
+**Canonicalization Steps:**
+1. **Parse** the raw JSON body into a data structure (e.g., a tree or map).
+2. **Normalize Keys:** Sort all object keys in **

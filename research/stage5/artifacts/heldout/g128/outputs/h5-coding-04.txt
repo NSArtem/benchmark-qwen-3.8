@@ -1,0 +1,30 @@
+Based on the scenario provided, here is the analysis of the browser reducer's behavior regarding the ordering invariant, terminal-state guard, and the handling of late events.
+
+### 1. The Ordering Invariant
+
+The **ordering invariant** (often referred to as the **Monotonic Sequence Invariant**) states that:
+
+> **A valid state transition must only be applied if its sequence number is strictly greater than the current `lastAppliedSequence` in the reducer’s state.**
+
+In other words, the reducer maintains a `lastAppliedSequence` (or `lastSeq`) that tracks the highest sequence number successfully applied to the current state. Any incoming event with a sequence number **≤** `lastAppliedSequence` is considered **stale** or **duplicate** and must be **ignored** (not applied to the state).
+
+This ensures that:
+- State changes are applied in strict chronological order.
+- Duplicate events do not cause double-application of side effects or state corruption.
+- Out-of-order (late) events do not overwrite newer, already-applied state.
+
+---
+
+### 2. The Terminal-State Guard
+
+The **terminal-state guard** (or **Terminal State Immutability**) states that:
+
+> **Once a job reaches a terminal state (e.g., `succeeded`, `failed`, `canceled`), no subsequent events for that job may modify its state.**
+
+Terminal states are final; they represent the end of the job’s lifecycle. Any event received after a terminal state has been applied for a given job ID must be **discarded**, regardless of its sequence number, to prevent resurrection or corruption of the completed job’s state.
+
+---
+
+### 3. Handling of Each Late Event
+
+Let’s trace the sequence of events and how the reducer handles each one, assuming the job ID is consistent (e.g., `job_123

@@ -1,0 +1,26 @@
+### Minimal Ordering Fix
+
+**Fix:** The server must perform the **overlap check (deduplication) before publishing the live event**, or more precisely, the client must reconcile the snapshot and live stream by **ignoring any live event whose ID is less than or equal to the snapshot’s final cursor**.
+
+In practice, the minimal fix is implemented on the **client side** (or in the SSE proxy layer) by enforcing a strict rule:
+
+> **When receiving a live event, discard it if its event ID is ≤ the snapshot’s last event ID.**
+
+This ensures that Event 41, which was published after the snapshot was taken but before the live subscription was fully active, is **not** delivered twice.
+
+---
+
+### Explanation of the Overlap Check
+
+The core issue arises from a **race condition** between two asynchronous operations:
+
+1.  **Snapshot Operation:** The server generates a durable snapshot at cursor 40. This means the snapshot contains all events up to and including Event 40.
+2.  **Live Subscription:** The client subscribes to live events *after* the snapshot is taken.
+3.  **Race Condition:** Event 41 is published by the server **between** the snapshot operation and the live subscription.
+
+#### Why This Causes Duplication
+- The snapshot contains Events 1–40.
+- The live stream starts delivering events from the point of subscription.
+- If the live stream begins at cursor 40 (inclusive), it will deliver Event 40 again (duplicate).
+- If the live stream begins at cursor 41, it will deliver Event 41.
+- **However**, if Event 41 was already included in the snapshot (because the snapshot was taken *after* Event 41 was published, but the cursor was recorded as 40 due to a

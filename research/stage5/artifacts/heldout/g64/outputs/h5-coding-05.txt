@@ -1,0 +1,32 @@
+The vulnerability in `SELECT * FROM jobs WHERE id = $1` is a classic **Insecure Direct Object Reference (IDOR)** or **Broken Access Control**. Because the query only filters by the global `id`, any authenticated user (Tenant A) can retrieve data belonging to another tenant (Tenant B) if they know or guess the `id`.
+
+### Corrected Predicate
+
+You must add the tenant identifier to the `WHERE` clause to enforce row-level isolation.
+
+```sql
+SELECT * FROM jobs WHERE id = $1 AND tenant_id = $2
+```
+
+*   `$1`: The job ID provided by the caller.
+*   `$2`: The tenant ID of the **authenticated user** (derived from the session/token, **not** from user input).
+
+> **Critical Note:** The `tenant_id` ($2) must be sourced from the server-side session context (e.g., JWT claim, session store), **never** from the client request. If the client supplies `tenant_id`, they can simply pass a different tenant’s ID and bypass the check.
+
+---
+
+### Security Regression Assertion
+
+**Test Scenario:**
+- **Tenant A** (ID: `100`) owns a job with `id = 500`.
+- **Tenant B** (ID: `200`) also has a job with the same `id = 500` (due to independent ID sequences or shared ID space).
+
+**Assertion:**
+> When an authenticated user from **Tenant A** requests job `id = 500`, the system **must not** return the job record belonging to **Tenant B**.
+
+**Implementation Example (Pseudocode/Unit Test):**
+
+```python
+def test_idor_prevention():
+    # Setup: Two tenants with the same job ID
+    tenant_a_id = 1

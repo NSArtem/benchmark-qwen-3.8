@@ -1,0 +1,14 @@
+Based on the ledger provided, here is the comparison between Entry 014 and Entry 093:
+
+**Entry 014**
+*   **Zone:** orchid
+*   **Digest:** ORC-14
+*   **Note:** priority handoff after audit
+
+**Entry 093**
+*   **Zone:** iron
+*   **Digest:** IRON-93
+*   **Note:** cursor resumes after reconnect
+
+**Identification:**
+**Entry 093** is the entry that mentions cursor resumption.

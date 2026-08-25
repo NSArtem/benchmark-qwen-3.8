@@ -1,0 +1,70 @@
+{
+  "case_count": 24,
+  "case_ids": [
+    "h5-coding-01",
+    "h5-coding-02",
+    "h5-coding-03",
+    "h5-coding-04",
+    "h5-coding-05",
+    "h5-coding-06",
+    "h5-instruction-01",
+    "h5-instruction-02",
+    "h5-instruction-03",
+    "h5-instruction-04",
+    "h5-structured-01",
+    "h5-structured-02",
+    "h5-structured-03",
+    "h5-structured-04",
+    "h5-reasoning-01",
+    "h5-reasoning-02",
+    "h5-reasoning-03",
+    "h5-reasoning-04",
+    "h5-retrieval-01",
+    "h5-retrieval-02",
+    "h5-retrieval-03",
+    "h5-prose-01",
+    "h5-prose-02",
+    "h5-prose-03"
+  ],
+  "categories": {
+    "coding": 6,
+    "instruction": 4,
+    "prose": 3,
+    "reasoning": 4,
+    "retrieval": 3,
+    "structured": 4
+  },
+  "local_only": true,
+  "manual_verification": {
+    "objective_arithmetic": {
+      "h5-reasoning-01": 12,
+      "h5-reasoning-02": 9,
+      "h5-reasoning-03": 115,
+      "h5-reasoning-04": 4
+    },
+    "prose_named_facts_checked": true,
+    "retrieval_anchor_entries_checked": [
+      14,
+      57,
+      93
+    ],
+    "status": "passed",
+    "structured_values_checked": true
+  },
+  "selection_policy": "Not used for Stage 5 calibration, sensitivity, allocation, mini-tournament selection, or candidate rejection.",
+  "stage4_calibration_sha256": "e856f39622c48f29f913d65d55f18d4ff9fb9bca16b0b23736361347472b9558",
+  "stage4_evaluation_sha256": "f24e3983efbd898084852c3fde7b0f824604bc6a63349de5f32efeaa36ca3de0",
+  "suite": "Qwen3.8 Stage 5 Completely Held-Out Quality Suite",
+  "suite_path": "/Users/artem/projects/benchmark-qwen-3.8/research/stage5/heldout/heldout_v1.jsonl",
+  "suite_sha256": "6fe7bd7da6732e9057a75764292b18b29c3262a96eb39391b700f038f641851b",
+  "teacher_forced_case_ids": [
+    "h5-coding-01",
+    "h5-instruction-01",
+    "h5-structured-01",
+    "h5-reasoning-01",
+    "h5-retrieval-01",
+    "h5-prose-01"
+  ],
+  "teacher_forced_count": 6,
+  "version": 1
+}

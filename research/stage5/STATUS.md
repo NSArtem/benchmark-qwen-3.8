@@ -1,12 +1,14 @@
 # Stage 5 Status
 
-Last updated: 2026-08-25 — Phase 1 complete under the safety gate; Phase 2 is next.
+Last updated: 2026-08-25 — Phase 2 held-out baseline comparison complete; Phase 3 sensitivity is next.
 
 ## Current phase
 
-Phase 0 and the safety-limited Phase 1 cliff study are complete. No Stage 5
-candidate weights have been created. The exact onset below 16K is intentionally
-unmeasured because repeated 27B prefills accumulated dangerous swap pressure.
+Phase 0, the safety-limited Phase 1 cliff study, and the Phase 2 baseline
+comparison are complete. No Stage 5 candidate weights have been created. The
+exact cliff onset below 16K is
+intentionally unmeasured because repeated 27B prefills accumulated dangerous
+swap pressure.
 
 ## Completed experiments
 
@@ -30,14 +32,25 @@ unmeasured because repeated 27B prefills accumulated dangerous swap pressure.
 - The fresh 8K g128 point `P1B-8192-G128` completed coherently at 11.137
   tok/s and 13.983 GiB peak. The following mixed34 8K process was stopped
   during load/setup at 32% free memory and ~13.7 GiB swap.
+- Frozen Stage 5 held-out suite v1: 24 cases, categories coding 6,
+  instruction 4, structured 4, reasoning 4, retrieval 3, prose 3; six
+  teacher-forced anchors. Suite SHA-256:
+  `6fe7bd7da6732e9057a75764292b18b29c3262a96eb39391b700f038f641851b`.
+  A direct prompt and ID overlap check against Stage 4 calibration/evaluation
+  passed. This suite is final-selection evidence only.
+- Fresh final-selection baselines completed for all three entering models. g64
+  scored 18/21 objective and 2/3 semi-objective; g128 scored 17/21 and 3/3;
+  mixed34 scored 18/21 and 2/3. Every run had zero exceptions, early-EOS
+  events, and repetition flags. Raw per-case outputs and diagnostics are under
+  `research/stage5/artifacts/heldout/{g64,g128,mixed34}`.
 
 ## Current Pareto frontier
 
 | role | model/path | payload | quality evidence | runtime evidence |
 |---|---|---:|---|---|
-| reference | g64: `/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7` | 11,771,132,928 B / 10.962722 GiB | V2 23/24 objective, 4/4 semi | Stage 4 long-context not rerun |
-| performance candidate | g128: `/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX` | 10,930,715,648 B / 10.180022 GiB | V2 23/24 objective, NLL 1.3690 | prior 8K/12K/16K-class decode 11.105/10.803/10.409 tok/s |
-| default candidate | mixed34: `/Users/artem/models/Qwen3.8-27B-mixed-3-4-control-g128` | 11,451,399,168 B / 10.664947 GiB | V2 24/24 objective, 4/4 semi, NLL 1.3855 | prior 8K/16K-class decode 10.743/5.719 tok/s |
+| reference | g64: `/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7` | 11,771,132,928 B / 10.962722 GiB | V2 23/24; held-out 18/21 objective, 2/3 semi | Stage 4 long-context not rerun |
+| performance/default candidate | g128: `/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX` | 10,930,715,648 B / 10.180022 GiB | V2 23/24; held-out 17/21 objective, 3/3 semi, NLL 1.3690 | fresh 8K/16K 11.137/10.583 tok/s; no cliff observed |
+| quality alternate | mixed34: `/Users/artem/models/Qwen3.8-27B-mixed-3-4-control-g128` | 11,451,399,168 B / 10.664947 GiB | V2 24/24; held-out 18/21 objective, 2/3 semi, NLL 1.3855 | fresh 16K 4.890 tok/s; cliff reproduced |
 
 ## Candidate model paths/sizes
 
@@ -46,8 +59,19 @@ No new Stage 5 model exists yet. Do not count Stage 4 Candidate B as a Stage
 
 ## Held-out suite
 
-Not created or hashed yet. It must be frozen before any Stage 5 candidate
-selection and must remain absent from calibration/sensitivity inputs.
+Frozen v1 at `research/stage5/heldout/heldout_v1.jsonl`; SHA-256
+`6fe7bd7da6732e9057a75764292b18b29c3262a96eb39391b700f038f641851b`.
+It is excluded from all calibration, sensitivity, allocation, and mini-
+tournament inputs.
+
+Baseline raw summaries:
+
+- g64: `research/stage5/artifacts/heldout/g64/logs/summary.json`, 18/21
+  objective, 2/3 semi-objective, 528.175 s.
+- g128: `research/stage5/artifacts/heldout/g128/logs/summary.json`, 17/21
+  objective, 3/3 semi-objective, 485.303 s.
+- mixed34: `research/stage5/artifacts/heldout/mixed34/logs/summary.json`,
+  18/21 objective, 2/3 semi-objective, 505.363 s.
 
 ## Rejected branches
 
@@ -70,8 +94,12 @@ rejected. No DWQ, activation-quant, or MTP run has occurred in Stage 5.
   interrupted before prefill completion.
 - No wired-memory setting has been changed; no `mx.set_wired_limit()` call is
   permitted in the canonical runtime.
+- The three held-out runs each completed in a fresh serialized process and the
+  system recovered to 89% free memory afterward.
 
 ## Next action
 
-Create and freeze the completely held-out Stage 5 quality suite, using no
-Stage 5 calibration or candidate-selection data from it.
+Re-read `AGENTS.md`, `TASK.md`, and this file, then inspect the pinned learned-
+quantization implementation and build a bounded end-to-end calibration-only
+loss/KL/logit sensitivity ranking. The frozen held-out suite must remain
+excluded from every allocation decision.

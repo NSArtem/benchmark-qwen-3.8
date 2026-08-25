@@ -1,0 +1,2 @@
+The migration window is scheduled for Friday 03:00 UTC.
+The backup region is Dublin, and the operator is Niko.

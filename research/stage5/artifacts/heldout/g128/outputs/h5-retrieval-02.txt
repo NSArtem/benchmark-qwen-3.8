@@ -1,0 +1,5 @@
+Based on the data provided for Entry 057:
+
+*   **Zone:** teal
+*   **State:** paused
+*   **Note concerns:** tenant boundary review

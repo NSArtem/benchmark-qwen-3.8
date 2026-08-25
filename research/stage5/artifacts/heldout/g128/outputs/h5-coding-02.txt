@@ -1,0 +1,33 @@
+To fence a worker in a distributed system using epoch-based lease fencing, the database must verify that the worker's current lease is still the most recent one. If a newer claimant has already taken over (epoch 13), the older worker (epoch 12) must be rejected.
+
+### Essential Conditional UPDATE Predicate
+
+The core of the fencing mechanism is a **conditional UPDATE** that includes a check on the `lease_epoch` column. The predicate ensures that the update only succeeds if the row’s current `lease_epoch` matches the worker’s claimed epoch.
+
+```sql
+UPDATE jobs
+SET status = 'COMPLETED',
+    completed_at = NOW()
+WHERE id = :job_id
+  AND lease_epoch = :worker_epoch
+```
+
+**Key Logic:**
+- `:job_id` is the identifier of the specific job.
+- `:worker_epoch` is the epoch value the worker holds (e.g., 12).
+- The `AND lease_epoch = :worker_epoch` clause is the **fence**.
+
+### What Zero Affected Rows Means
+
+If the database returns **zero affected rows** (i.e., the `UPDATE` statement did not modify any rows), it means:
+
+> **The worker’s lease is no longer valid.**
+
+Specifically:
+- The current `lease_epoch` stored in the database for that job is **not** equal to the worker’s `lease_epoch`.
+- In this scenario, the database has `lease_epoch = 13` (from the newer claimant), but the worker is trying to update with `lease_epoch = 12`.
+- Since `12 ≠ 13`, the `WHERE` clause fails, and no rows are updated.
+
+This is the **fencing signal**: the worker’s lease has been superseded by a newer one.
+
+### What the

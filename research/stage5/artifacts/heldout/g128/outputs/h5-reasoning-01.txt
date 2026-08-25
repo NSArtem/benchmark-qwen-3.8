@@ -1,0 +1,19 @@
+To determine the number of nonterminal jobs, we need to track the changes in the queue size based on the events described.
+
+**1. Analyze the initial state:**
+*   Initial number of jobs: 19
+*   All jobs are assumed to be in a nonterminal state (active/pending) initially.
+
+**2. Analyze the changes:**
+*   **Six succeed:** Successful jobs reach a terminal state. They are removed from the queue of active jobs.
+    *   Change: $-6$
+*   **Four are cancelled:** Cancelled jobs also reach a terminal state. They are removed from the queue of active jobs.
+    *   Change: $-4$
+*   **Three new jobs arrive:** These jobs enter the queue in a nonterminal state.
+    *   Change: $+3$
+
+**3. Calculate the final count:**
+*   Start with 19 jobs.
+*   Subtract the 6 successful jobs: $19 - 6 = 13$
+*   Subtract the 4 cancelled jobs: $13 - 4 = 9$
+*   Add the 3 new jobs: $9 + 3 = 12

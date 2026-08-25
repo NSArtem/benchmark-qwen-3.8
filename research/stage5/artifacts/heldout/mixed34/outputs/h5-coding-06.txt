@@ -1,0 +1,25 @@
+To fix the race condition where Event 41 is published between the snapshot and the subscription, the minimal ordering fix is to **subscribe to the live event stream before taking the durable snapshot**.
+
+### The Minimal Ordering Fix
+
+1.  **Subscribe first:** Establish the live SSE connection (or register the listener) to start receiving new events in real-time.
+2.  **Take the snapshot second:** After the subscription is active, generate the durable snapshot at cursor 40.
+3.  **Replay from the snapshot:** Send the historical events (up to cursor 40) to the client.
+4.  **Merge with live stream:** Continue delivering live events from cursor 41 onward via the already-established subscription.
+
+### Why This Works: The Overlap Check
+
+The key to guaranteeing **no duplicate delivery** is the **overlap check** at the boundary between the historical snapshot and the live stream.
+
+#### How the Overlap Check Guarantees No Duplicates
+
+When you subscribe *before* taking the snapshot, the live stream may already contain events that are also included in the snapshot (e.g., if Event 41 is published before the snapshot is finalized, it might appear in both the snapshot and the live stream).
+
+To prevent the client from receiving Event 41 twice, the server must perform an **overlap check** at the junction:
+
+1.  **Identify the boundary:** The snapshot ends at cursor 40. The live stream starts from the cursor value at the time of subscription.
+2.  **Compare cursors:**
+    *   Let `C_snap` be the last cursor in the snapshot (40).
+    *   Let `C_sub` be the cursor value when the live subscription was established.
+3.  **Discard overlapping live events:**
+    *   If `C_sub

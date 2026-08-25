@@ -1,0 +1,7 @@
+Entry 014: owner=Kira; zone=orchid; window=33; state=ready; digest=ORC-14; note=priority handoff after audit.
+
+**Retrieved Details:**
+*   **Owner:** Kira
+*   **Zone:** orchid
+*   **Window:** 33
+*   **Digest:** ORC-14

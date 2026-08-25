@@ -1,0 +1,31 @@
+To determine the final version displayed, we must process the incoming versions sequentially, applying the rule that a version is accepted only if it is strictly greater than the current version.
+
+**Step 1: Initial State**
+*   Current Version: 3
+
+**Step 2: Process Input 4**
+*   Incoming Version: 4
+*   Condition: Is 4 > 3? Yes.
+*   Action: Accept.
+*   New Current Version: 4
+
+**Step 3: Process Input 2**
+*   Incoming Version: 2
+*   Condition: Is 2 > 4? No.
+*   Action: Reject.
+*   Current Version remains: 4
+
+**Step 4: Process Input 9**
+*   Incoming Version: 9
+*   Condition: Is 9 > 4? Yes.
+*   Action: Accept.
+*   New Current Version: 9
+
+**Step 5: Process Input 7**
+*   Incoming Version: 7
+*   Condition: Is 7 > 9? No.
+*   Action: Reject.
+*   Current Version remains: 9
+
+**Conclusion**
+After processing all inputs

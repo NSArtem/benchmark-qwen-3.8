@@ -1,0 +1,6 @@
+Based on the provided ledger, here are the details for Entry 014:
+
+*   **Owner:** Kira
+*   **Zone:** orchid
+*   **Window:** 33
+*   **Digest:** ORC-14

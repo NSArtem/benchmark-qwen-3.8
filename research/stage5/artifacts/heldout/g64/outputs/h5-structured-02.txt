@@ -1,0 +1,7 @@
+```json
+{
+  "tenant": "cobalt",
+  "sequence": 17,
+  "terminal": true
+}
+```
