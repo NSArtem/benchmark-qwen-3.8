@@ -1,0 +1,56 @@
+{
+  "experiment_id": "P3-UPSTREAM-LEARNED-QUANT-INSPECTION",
+  "phase": 3,
+  "canonical_environment": "envs/mlx-0.32.1",
+  "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+  "source_root": "/Users/artem/.cache/uv/archive-v0/GD4ii1Q6IhKy2-zq/mlx_lm/quant",
+  "source_sha256": {
+    "dynamic_quant.py": "7f50bfde16bc5ec6a9d30cc1caea3a58af80d4bd7343851985975c1650f66cf8",
+    "dwq.py": "38f018583c879a96972e5ac5b3b315021321c66b532a62e37dabf37850f7f1e1",
+    "awq.py": "a2d632786bd54d3aef9325940712961cd3c5c8556df248152f49113b83ed5f7c",
+    "gptq.py": "feab955de774b6975ff2287c0fffbede74c2cdc459bd33afaaa17c5c47f31c04"
+  },
+  "findings": {
+    "dynamic_quant": {
+      "classification": "UNSAFE_AS_PINNED",
+      "evidence": [
+        "estimate_sensitivities deep-copies the full model and quantizable layer set",
+        "estimate_threshold deep-copies the model repeatedly during target-BPW threshold search"
+      ],
+      "stage5_adaptation": "fixed explicit module ranking; no threshold search"
+    },
+    "dwq": {
+      "classification": "UNSAFE_AS_PINNED",
+      "evidence": [
+        "teacher targets are produced by a full model",
+        "the student is copied or loaded as a full model",
+        "the default path uses remote Tulu data",
+        "the pinned main calls mx.set_wired_limit"
+      ],
+      "stage5_gate": "offline targets and serialized layer-wise dry run required"
+    },
+    "awq": {
+      "classification": "ARCHITECTURE_GAP",
+      "evidence": [
+        "AWQ_MODEL_CONFIGS contains qwen3 but not qwen3_5",
+        "Qwen3.8 requires hybrid linear_attn and self_attn module handling"
+      ]
+    },
+    "gptq": {
+      "classification": "SERIALIZATION_REQUIRED",
+      "evidence": [
+        "one hidden-size-5120 float32 Hessian is about 100 MiB",
+        "the implementation catches every quantizable linear layer before serial quantization"
+      ]
+    }
+  },
+  "stage5_method": {
+    "teacher": "g64 affine 3-bit group64 logits captured to local files",
+    "student": "g128 affine 3-bit group128",
+    "promotion": "one source-backed affine 4-bit group128 module at a time",
+    "signal": "end-to-end teacher KL and teacher-argmax logit recovery",
+    "allocation": "frozen descending recovery-per-added-byte order",
+    "heldout_excluded": true,
+    "wired_limit_calls": 0
+  }
+}

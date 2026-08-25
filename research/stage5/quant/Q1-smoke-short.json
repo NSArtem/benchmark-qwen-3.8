@@ -1,0 +1,233 @@
+{
+  "classification": "COHERENT",
+  "decode_tps": 11.727850824803443,
+  "exception": null,
+  "experiment_id": "P4-SMOKE-Q1-SHORT",
+  "generated_token_hash": "13834b069bc5d8a8aa41829b4a7695cada72d9624280a7832444c30606af1bad",
+  "generated_token_ids": [
+    2064,
+    27028,
+    279,
+    9400,
+    314,
+    21814,
+    7189,
+    539,
+    59724,
+    421,
+    279,
+    850,
+    3157,
+    349,
+    2179,
+    1328,
+    1902,
+    381,
+    4752,
+    11,
+    26600,
+    21873,
+    421,
+    11173,
+    7154,
+    440,
+    279,
+    1788,
+    1328,
+    460,
+    279,
+    3889,
+    1965,
+    4370,
+    314,
+    29234,
+    279,
+    5488,
+    1495,
+    13,
+    248046
+  ],
+  "generated_tokens": 41,
+  "generation_seconds": 4.903786166018108,
+  "git_commit": "808f4b29229310d4727d4767a96fcf3a02ba0e6f",
+  "kv_bits": null,
+  "kv_group_size": 64,
+  "memory_snapshots": [
+    {
+      "active_bytes": 8,
+      "active_gib": 7.450580596923828e-09,
+      "active_plus_cache_bytes": 8,
+      "active_plus_cache_gib": 7.450580596923828e-09,
+      "cache_bytes": 0,
+      "cache_gib": 0.0,
+      "elapsed_seconds": 0.02566762501373887,
+      "label": "process_start",
+      "peak_bytes": 8,
+      "peak_gib": 7.450580596923828e-09,
+      "rss_max_bytes": 100810752,
+      "timestamp": 1787683373.9850838
+    },
+    {
+      "active_bytes": 11088755720,
+      "active_gib": 10.327208526432514,
+      "active_plus_cache_bytes": 11088766284,
+      "active_plus_cache_gib": 10.327218364924192,
+      "cache_bytes": 10564,
+      "cache_gib": 9.838491678237915e-06,
+      "elapsed_seconds": 3.9271457499999087,
+      "label": "after_model_load",
+      "peak_bytes": 11088755720,
+      "peak_gib": 10.327208526432514,
+      "rss_max_bytes": 6797344768,
+      "timestamp": 1787683377.886635
+    },
+    {
+      "active_bytes": 11088755720,
+      "active_gib": 10.327208526432514,
+      "active_plus_cache_bytes": 11088766284,
+      "active_plus_cache_gib": 10.327218364924192,
+      "cache_bytes": 10564,
+      "cache_gib": 9.838491678237915e-06,
+      "elapsed_seconds": 3.929216417018324,
+      "label": "after_model_materialization",
+      "peak_bytes": 11088755720,
+      "peak_gib": 10.327208526432514,
+      "rss_max_bytes": 6797344768,
+      "timestamp": 1787683377.8887072
+    },
+    {
+      "active_bytes": 11088755720,
+      "active_gib": 10.327208526432514,
+      "active_plus_cache_bytes": 11088766284,
+      "active_plus_cache_gib": 10.327218364924192,
+      "cache_bytes": 10564,
+      "cache_gib": 9.838491678237915e-06,
+      "elapsed_seconds": 3.946451000025263,
+      "label": "after_prompt_tokenization",
+      "peak_bytes": 11088755720,
+      "peak_gib": 10.327208526432514,
+      "rss_max_bytes": 6797344768,
+      "timestamp": 1787683377.905941
+    },
+    {
+      "active_bytes": 11088755868,
+      "active_gib": 10.327208664268255,
+      "active_plus_cache_bytes": 11088766432,
+      "active_plus_cache_gib": 10.327218502759933,
+      "cache_bytes": 10564,
+      "cache_gib": 9.838491678237915e-06,
+      "elapsed_seconds": 3.946512292022817,
+      "label": "before_generate_step",
+      "peak_bytes": 11088755868,
+      "peak_gib": 10.327208664268255,
+      "rss_max_bytes": 6797344768,
+      "timestamp": 1787683377.906003
+    },
+    {
+      "active_bytes": 11294423724,
+      "active_gib": 10.51875178143382,
+      "active_plus_cache_bytes": 11318757860,
+      "active_plus_cache_gib": 10.541414711624384,
+      "cache_bytes": 24334136,
+      "cache_gib": 0.022662930190563202,
+      "elapsed_seconds": 5.439616209012456,
+      "label": "after_prefill_first_token",
+      "peak_bytes": 11426720794,
+      "peak_gib": 10.641963029280305,
+      "rss_max_bytes": 6797344768,
+      "timestamp": 1787683379.3991349
+    },
+    {
+      "active_bytes": 11089263626,
+      "active_gib": 10.327681550756097,
+      "active_plus_cache_bytes": 11305685520,
+      "active_plus_cache_gib": 10.529240146279335,
+      "cache_bytes": 216421894,
+      "cache_gib": 0.20155859552323818,
+      "elapsed_seconds": 8.850372250017244,
+      "label": "after_completion",
+      "peak_bytes": 11426720794,
+      "peak_gib": 10.641963029280305,
+      "rss_max_bytes": 6797344768,
+      "timestamp": 1787683382.8099499
+    }
+  ],
+  "mlx_lm_metadata_version": "0.31.3",
+  "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+  "mlx_version": "0.32.1",
+  "model_nbytes": 11088002048,
+  "model_path": "/private/tmp/qwen38-stage5-Q1-kl-g128",
+  "model_quantization": {
+    "bits": 3,
+    "group_size": 128,
+    "mode": "affine"
+  },
+  "os_memory_after": {
+    "memory_pressure": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 26%\n"
+    },
+    "vm_stat": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                8464.\nPages active:                            149788.\nPages inactive:                          129747.\nPages speculative:                        18838.\nPages throttled:                              0.\nPages wired down:                        807437.\nPages purgeable:                            198.\n\"Translation faults\":                 318831281.\nPages copy-on-write:                    7975700.\nPages zero filled:                   1025269453.\nPages reactivated:                     15275983.\nPages purged:                           2125260.\nFile-backed pages:                       145046.\nAnonymous pages:                         153327.\nPages stored in compressor:              979637.\nPages occupied by compressor:             24688.\nDecompressions:                       494198662.\nCompressions:                         504110143.\nPageins:                              177322624.\nPageouts:                                113678.\nSwapins:                              133903041.\nSwapouts:                             135502708.\n"
+    },
+    "vm_swapusage": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "vm.swapusage: total = 13312.00M  used = 12204.75M  free = 1107.25M  (encrypted)\n"
+    }
+  },
+  "os_memory_before": {
+    "memory_pressure": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "The system has 19327352832 (1179648 pages with a page size of 16384).\nSystem-wide memory free percentage: 87%\n"
+    },
+    "vm_stat": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                               41783.\nPages active:                            179469.\nPages inactive:                          728995.\nPages speculative:                        52329.\nPages throttled:                              0.\nPages wired down:                        111574.\nPages purgeable:                           3912.\n\"Translation faults\":                 318088937.\nPages copy-on-write:                    7974838.\nPages zero filled:                   1024541402.\nPages reactivated:                     15274090.\nPages purged:                           2121804.\nFile-backed pages:                       830118.\nAnonymous pages:                         130675.\nPages stored in compressor:              980480.\nPages occupied by compressor:             24650.\nDecompressions:                       493605307.\nCompressions:                         503517105.\nPageins:                              176663566.\nPageouts:                                113571.\nSwapins:                              133902953.\nSwapouts:                             135502708.\n"
+    },
+    "vm_swapusage": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "vm.swapusage: total = 13312.00M  used = 12204.75M  free = 1107.25M  (encrypted)\n"
+    }
+  },
+  "prefill_step_size": 2048,
+  "prefill_tokens": 36,
+  "progress_callbacks": [
+    {
+      "elapsed": 0.10955300001660362,
+      "processed": 0,
+      "total": 37
+    },
+    {
+      "elapsed": 1.3149815410142764,
+      "processed": 36,
+      "total": 37
+    },
+    {
+      "elapsed": 1.4929831250046846,
+      "processed": 37,
+      "total": 37
+    }
+  ],
+  "prompt_path": "research/stage5/quant/smoke-prompts/short-factual.txt",
+  "prompt_sha256": "c9373fb38c7af0a64a3f2d582c4f91aad99317b4fb0da761742b9fa8a193f5c4",
+  "prompt_tokens": 37,
+  "prompt_tps": 24.78259759291245,
+  "python_executable": "/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.1/.venv/bin/python3",
+  "python_version": "3.14.7",
+  "quantized_kv_start": 0,
+  "raw_prompt_tokens": 26,
+  "safety_stop_reason": null,
+  "target_prompt_tokens": null,
+  "timestamp": "2026-08-25T22:42:53+0400",
+  "total_seconds": 8.89162220901926,
+  "ttft_seconds": 1.493101583007956,
+  "wired_limit_touched": false,
+  "wired_policy": "no-wired helper; MLX wired state untouched"
+}

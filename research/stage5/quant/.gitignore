@@ -1,0 +1,3 @@
+# Teacher logits are local calibration intermediates; the compact manifest is
+# versioned, but the 232 MiB tensor payload is retained only on the machine.
+teacher_logits_g64_v1/

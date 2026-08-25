@@ -1,0 +1,1 @@
+It prevents the creation of duplicate records by enforcing that the idempotency key must be unique, thereby ensuring that repeated requests with the same key return the original response instead of executing the operation again.<|im_end|>
