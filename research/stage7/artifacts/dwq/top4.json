@@ -1,0 +1,942 @@
+{
+  "activation_rows_per_case": 128,
+  "baseline": {
+    "train": {
+      "by_domain": {
+        "coding": {
+          "actual_token_nll": 6.40192618736854,
+          "kl": 0.13669977738307074,
+          "logit_mse": 0.8029800194960374,
+          "target_count": 104,
+          "teacher_argmax_nll": 0.34430911907782924,
+          "top1_agreement": 0.9134615384615384
+        },
+        "instruction_following": {
+          "actual_token_nll": 7.3742473164542774,
+          "kl": 0.09898265854257052,
+          "logit_mse": 1.0487572404204821,
+          "target_count": 61,
+          "teacher_argmax_nll": 0.252689682069372,
+          "top1_agreement": 0.9180327868852459
+        },
+        "patch_reasoning": {
+          "actual_token_nll": 7.486363676405444,
+          "kl": 0.2781540388913499,
+          "logit_mse": 0.8211392274836904,
+          "target_count": 97,
+          "teacher_argmax_nll": 0.33087903445528954,
+          "top1_agreement": 0.8969072164948454
+        },
+        "prose_continuity": {
+          "actual_token_nll": 9.01434814453125,
+          "kl": 0.05623142957687378,
+          "logit_mse": 0.6719519805908203,
+          "target_count": 100,
+          "teacher_argmax_nll": 0.11162373065948486,
+          "top1_agreement": 0.98
+        },
+        "reasoning": {
+          "actual_token_nll": 7.287927567331415,
+          "kl": 0.20112096886885794,
+          "logit_mse": 0.6522203746594881,
+          "target_count": 95,
+          "teacher_argmax_nll": 0.37941600398013464,
+          "top1_agreement": 0.8947368421052632
+        },
+        "retrieval": {
+          "actual_token_nll": 8.415666302430976,
+          "kl": 0.1900041635754039,
+          "logit_mse": 0.8169999724452935,
+          "target_count": 103,
+          "teacher_argmax_nll": 0.28228460700766556,
+          "top1_agreement": 0.9320388349514563
+        },
+        "structured": {
+          "actual_token_nll": 8.057183779202974,
+          "kl": 0.14183350251271173,
+          "logit_mse": 0.7505410267756536,
+          "target_count": 104,
+          "teacher_argmax_nll": 0.2642147632745596,
+          "top1_agreement": 0.9423076923076923
+        },
+        "tool_agent": {
+          "actual_token_nll": 8.418252399989537,
+          "kl": 0.12920237013271876,
+          "logit_mse": 0.6681318623679025,
+          "target_count": 112,
+          "teacher_argmax_nll": 0.29836221252168926,
+          "top1_agreement": 0.875
+        }
+      },
+      "case_count": 16,
+      "cases": {
+        "s7-train-coding-01": {
+          "actual_token_nll": 5.626211065995066,
+          "kl": 0.1703357361910636,
+          "logit_mse": 0.8402579458136308,
+          "target_count": 57,
+          "teacher_argmax_nll": 0.3945774948387815,
+          "top1_agreement": 0.9122807017543859
+        },
+        "s7-train-coding-02": {
+          "actual_token_nll": 7.342687079247008,
+          "kl": 0.09590723159465384,
+          "logit_mse": 0.7577706194938497,
+          "target_count": 47,
+          "teacher_argmax_nll": 0.2833453442188019,
+          "top1_agreement": 0.9148936170212766
+        },
+        "s7-train-instruction-01": {
+          "actual_token_nll": 5.88477862322772,
+          "kl": 0.11189169353908962,
+          "logit_mse": 1.119288479840314,
+          "target_count": 27,
+          "teacher_argmax_nll": 0.2895454830593533,
+          "top1_agreement": 0.9259259259259259
+        },
+        "s7-train-instruction-02": {
+          "actual_token_nll": 8.557060690487132,
+          "kl": 0.08873136604533476,
+          "logit_mse": 0.9927471385282629,
+          "target_count": 34,
+          "teacher_argmax_nll": 0.2234218401067397,
+          "top1_agreement": 0.9117647058823529
+        },
+        "s7-train-patch-01": {
+          "actual_token_nll": 8.134100082072806,
+          "kl": 0.3854784864060422,
+          "logit_mse": 0.8706428040849402,
+          "target_count": 47,
+          "teacher_argmax_nll": 0.23034371720983626,
+          "top1_agreement": 0.9361702127659575
+        },
+        "s7-train-patch-02": {
+          "actual_token_nll": 6.877491455078125,
+          "kl": 0.17726905822753905,
+          "logit_mse": 0.7746058654785156,
+          "target_count": 50,
+          "teacher_argmax_nll": 0.4253822326660156,
+          "top1_agreement": 0.86
+        },
+        "s7-train-prose-01": {
+          "actual_token_nll": 9.021182789522058,
+          "kl": 0.08848832635318532,
+          "logit_mse": 0.6898437200808057,
+          "target_count": 51,
+          "teacher_argmax_nll": 0.12674745858884326,
+          "top1_agreement": 0.9803921568627451
+        },
+        "s7-train-prose-02": {
+          "actual_token_nll": 9.007234534438776,
+          "kl": 0.022657924768876056,
+          "logit_mse": 0.653329966019611,
+          "target_count": 49,
+          "teacher_argmax_nll": 0.09588270771260164,
+          "top1_agreement": 0.9795918367346939
+        },
+        "s7-train-reasoning-01": {
+          "actual_token_nll": 6.937017689580503,
+          "kl": 0.23228290806645932,
+          "logit_mse": 0.6613457721212636,
+          "target_count": 46,
+          "teacher_argmax_nll": 0.44754795406175696,
+          "top1_agreement": 0.8913043478260869
+        },
+        "s7-train-reasoning-02": {
+          "actual_token_nll": 7.617353166852679,
+          "kl": 0.17186690349968112,
+          "logit_mse": 0.6436536750014947,
+          "target_count": 49,
+          "teacher_argmax_nll": 0.3154553977810607,
+          "top1_agreement": 0.8979591836734694
+        },
+        "s7-train-retrieval-01": {
+          "actual_token_nll": 8.546026478643002,
+          "kl": 0.21726465225219727,
+          "logit_mse": 0.859892637833305,
+          "target_count": 46,
+          "teacher_argmax_nll": 0.36013943216075067,
+          "top1_agreement": 0.9347826086956522
+        },
+        "s7-train-retrieval-02": {
+          "actual_token_nll": 8.310463353207236,
+          "kl": 0.16800447095904433,
+          "logit_mse": 0.7823848389742667,
+          "target_count": 57,
+          "teacher_argmax_nll": 0.21945439723500035,
+          "top1_agreement": 0.9298245614035088
+        },
+        "s7-train-structured-01": {
+          "actual_token_nll": 7.891795765269887,
+          "kl": 0.17323428067294033,
+          "logit_mse": 0.6921662764115767,
+          "target_count": 55,
+          "teacher_argmax_nll": 0.3778753454034979,
+          "top1_agreement": 0.9272727272727272
+        },
+        "s7-train-structured-02": {
+          "actual_token_nll": 8.242823386678891,
+          "kl": 0.10658773110837352,
+          "logit_mse": 0.8160637057557398,
+          "target_count": 49,
+          "teacher_argmax_nll": 0.1366365588441187,
+          "top1_agreement": 0.9591836734693877
+        },
+        "s7-train-tool-01": {
+          "actual_token_nll": 9.146183136970766,
+          "kl": 0.07787997491898076,
+          "logit_mse": 0.7008415960496471,
+          "target_count": 62,
+          "teacher_argmax_nll": 0.22408760747601908,
+          "top1_agreement": 0.9032258064516129
+        },
+        "s7-train-tool-02": {
+          "actual_token_nll": 7.5156182861328125,
+          "kl": 0.19284214019775392,
+          "logit_mse": 0.627571792602539,
+          "target_count": 50,
+          "teacher_argmax_nll": 0.39046272277832034,
+          "top1_agreement": 0.84
+        }
+      },
+      "overall": {
+        "actual_token_nll": 7.83917478187797,
+        "kl": 0.15561478654133906,
+        "logit_mse": 0.7645989496683337,
+        "target_count": 776,
+        "teacher_argmax_nll": 0.2841425212388186,
+        "top1_agreement": 0.9188144329896907
+      }
+    },
+    "validation": {
+      "by_domain": {
+        "coding": {
+          "actual_token_nll": 4.495815477873149,
+          "kl": 0.17490931561118678,
+          "logit_mse": 0.8961116389224404,
+          "target_count": 76,
+          "teacher_argmax_nll": 0.26801922446803045,
+          "top1_agreement": 0.9342105263157895
+        },
+        "instruction_following": {
+          "actual_token_nll": 5.7022349039713545,
+          "kl": 0.06529181091873734,
+          "logit_mse": 0.8924227820502387,
+          "target_count": 27,
+          "teacher_argmax_nll": 0.26155182167335794,
+          "top1_agreement": 0.9259259259259259
+        },
+        "patch_reasoning": {
+          "actual_token_nll": 7.240674077248086,
+          "kl": 0.16900556914660395,
+          "logit_mse": 0.659211762097417,
+          "target_count": 49,
+          "teacher_argmax_nll": 0.3495707219960738,
+          "top1_agreement": 0.8775510204081632
+        },
+        "prose_continuity": {
+          "actual_token_nll": 8.885031307444853,
+          "kl": 0.03689690898446476,
+          "logit_mse": 0.6280237833658854,
+          "target_count": 51,
+          "teacher_argmax_nll": 0.11527017518585804,
+          "top1_agreement": 0.9803921568627451
+        },
+        "reasoning": {
+          "actual_token_nll": 7.578397216796875,
+          "kl": 0.07006596088409424,
+          "logit_mse": 0.7178257751464844,
+          "target_count": 50,
+          "teacher_argmax_nll": 0.21187313079833983,
+          "top1_agreement": 0.96
+        },
+        "retrieval": {
+          "actual_token_nll": 7.519878776705995,
+          "kl": 0.16147843185736208,
+          "logit_mse": 0.6902233824437979,
+          "target_count": 49,
+          "teacher_argmax_nll": 0.24715873173304967,
+          "top1_agreement": 0.8979591836734694
+        },
+        "structured": {
+          "actual_token_nll": 8.336173679517662,
+          "kl": 0.15677563003871753,
+          "logit_mse": 0.7259866465692935,
+          "target_count": 46,
+          "teacher_argmax_nll": 0.4081845076187797,
+          "top1_agreement": 0.8913043478260869
+        },
+        "tool_agent": {
+          "actual_token_nll": 7.584575108119419,
+          "kl": 0.24302138601030623,
+          "logit_mse": 0.8276164872305733,
+          "target_count": 56,
+          "teacher_argmax_nll": 0.36162199292864117,
+          "top1_agreement": 0.8571428571428571
+        }
+      },
+      "case_count": 8,
+      "cases": {
+        "s7-valid-coding-01": {
+          "actual_token_nll": 4.495815477873149,
+          "kl": 0.17490931561118678,
+          "logit_mse": 0.8961116389224404,
+          "target_count": 76,
+          "teacher_argmax_nll": 0.26801922446803045,
+          "top1_agreement": 0.9342105263157895
+        },
+        "s7-valid-instruction-01": {
+          "actual_token_nll": 5.7022349039713545,
+          "kl": 0.06529181091873734,
+          "logit_mse": 0.8924227820502387,
+          "target_count": 27,
+          "teacher_argmax_nll": 0.26155182167335794,
+          "top1_agreement": 0.9259259259259259
+        },
+        "s7-valid-patch-01": {
+          "actual_token_nll": 7.240674077248086,
+          "kl": 0.16900556914660395,
+          "logit_mse": 0.659211762097417,
+          "target_count": 49,
+          "teacher_argmax_nll": 0.3495707219960738,
+          "top1_agreement": 0.8775510204081632
+        },
+        "s7-valid-prose-01": {
+          "actual_token_nll": 8.885031307444853,
+          "kl": 0.03689690898446476,
+          "logit_mse": 0.6280237833658854,
+          "target_count": 51,
+          "teacher_argmax_nll": 0.11527017518585804,
+          "top1_agreement": 0.9803921568627451
+        },
+        "s7-valid-reasoning-01": {
+          "actual_token_nll": 7.578397216796875,
+          "kl": 0.07006596088409424,
+          "logit_mse": 0.7178257751464844,
+          "target_count": 50,
+          "teacher_argmax_nll": 0.21187313079833983,
+          "top1_agreement": 0.96
+        },
+        "s7-valid-retrieval-01": {
+          "actual_token_nll": 7.519878776705995,
+          "kl": 0.16147843185736208,
+          "logit_mse": 0.6902233824437979,
+          "target_count": 49,
+          "teacher_argmax_nll": 0.24715873173304967,
+          "top1_agreement": 0.8979591836734694
+        },
+        "s7-valid-structured-01": {
+          "actual_token_nll": 8.336173679517662,
+          "kl": 0.15677563003871753,
+          "logit_mse": 0.7259866465692935,
+          "target_count": 46,
+          "teacher_argmax_nll": 0.4081845076187797,
+          "top1_agreement": 0.8913043478260869
+        },
+        "s7-valid-tool-01": {
+          "actual_token_nll": 7.584575108119419,
+          "kl": 0.24302138601030623,
+          "logit_mse": 0.8276164872305733,
+          "target_count": 56,
+          "teacher_argmax_nll": 0.36162199292864117,
+          "top1_agreement": 0.8571428571428571
+        }
+      },
+      "overall": {
+        "actual_token_nll": 7.077143716340018,
+        "kl": 0.14221688101787378,
+        "logit_mse": 0.7573877041882807,
+        "target_count": 404,
+        "teacher_argmax_nll": 0.2776506383820335,
+        "top1_agreement": 0.9158415841584159
+      }
+    }
+  },
+  "clip_fraction": 0.25,
+  "completed_module_count": 4,
+  "exception": null,
+  "experiment_id": "P2-P3-BOUNDED-DWQ-G128",
+  "full_source_resident": false,
+  "full_teacher_resident": false,
+  "initial_patch": "/Users/artem/projects/benchmark-qwen-3.8/research/stage7/artifacts/dwq/reproduce-layer60.safetensors",
+  "learning_rate": 1e-06,
+  "max_peak_gib": 10.886572683230042,
+  "memory": [
+    {
+      "active_bytes": 10931338248,
+      "active_gib": 10.180602081120014,
+      "active_plus_cache_bytes": 10931348812,
+      "active_plus_cache_gib": 10.180611919611692,
+      "cache_bytes": 10564,
+      "label": "after_model_load",
+      "peak_bytes": 10931338248,
+      "peak_gib": 10.180602081120014,
+      "rss_bytes": 6609010688
+    },
+    {
+      "active_bytes": 10931338248,
+      "active_gib": 10.180602081120014,
+      "active_plus_cache_bytes": 10931352652,
+      "active_plus_cache_gib": 10.180615495890379,
+      "cache_bytes": 14404,
+      "label": "after_initial_patch",
+      "peak_bytes": 10931342088,
+      "peak_gib": 10.1806056573987,
+      "rss_bytes": 6609010688
+    },
+    {
+      "active_bytes": 10931338250,
+      "active_gib": 10.18060208298266,
+      "active_plus_cache_bytes": 10931338250,
+      "active_plus_cache_gib": 10.18060208298266,
+      "cache_bytes": 0,
+      "label": "after_baseline_metrics",
+      "peak_bytes": 11689347482,
+      "peak_gib": 10.886553192511201,
+      "rss_bytes": 6609010688
+    },
+    {
+      "active_bytes": 10932812810,
+      "active_gib": 10.181975373998284,
+      "active_plus_cache_bytes": 10932812810,
+      "active_plus_cache_gib": 10.181975373998284,
+      "cache_bytes": 0,
+      "label": "language_model.model.layers.49.linear_attn.in_proj_b:after_source_load",
+      "peak_bytes": 11689347482,
+      "peak_gib": 10.886553192511201,
+      "rss_bytes": 6609010688
+    },
+    {
+      "active_bytes": 10931342666,
+      "active_gib": 10.180606195703149,
+      "active_plus_cache_bytes": 10931342666,
+      "active_plus_cache_gib": 10.180606195703149,
+      "cache_bytes": 0,
+      "label": "language_model.model.layers.49.linear_attn.in_proj_b:after_optimization",
+      "peak_bytes": 11689347482,
+      "peak_gib": 10.886553192511201,
+      "rss_bytes": 6609010688
+    },
+    {
+      "active_bytes": 10932817226,
+      "active_gib": 10.181979486718774,
+      "active_plus_cache_bytes": 10932817226,
+      "active_plus_cache_gib": 10.181979486718774,
+      "cache_bytes": 0,
+      "label": "language_model.model.layers.18.linear_attn.in_proj_b:after_source_load",
+      "peak_bytes": 11689347482,
+      "peak_gib": 10.886553192511201,
+      "rss_bytes": 6609010688
+    },
+    {
+      "active_bytes": 10931347082,
+      "active_gib": 10.180610308423638,
+      "active_plus_cache_bytes": 10931347082,
+      "active_plus_cache_gib": 10.180610308423638,
+      "cache_bytes": 0,
+      "label": "language_model.model.layers.18.linear_attn.in_proj_b:after_optimization",
+      "peak_bytes": 11689347482,
+      "peak_gib": 10.886553192511201,
+      "rss_bytes": 6609010688
+    },
+    {
+      "active_bytes": 10932821642,
+      "active_gib": 10.181983599439263,
+      "active_plus_cache_bytes": 10932821642,
+      "active_plus_cache_gib": 10.181983599439263,
+      "cache_bytes": 0,
+      "label": "language_model.model.layers.21.linear_attn.in_proj_b:after_source_load",
+      "peak_bytes": 11689347482,
+      "peak_gib": 10.886553192511201,
+      "rss_bytes": 6609010688
+    },
+    {
+      "active_bytes": 10931351498,
+      "active_gib": 10.180614421144128,
+      "active_plus_cache_bytes": 10931351498,
+      "active_plus_cache_gib": 10.180614421144128,
+      "cache_bytes": 0,
+      "label": "language_model.model.layers.21.linear_attn.in_proj_b:after_optimization",
+      "peak_bytes": 11689347482,
+      "peak_gib": 10.886553192511201,
+      "rss_bytes": 6609010688
+    },
+    {
+      "active_bytes": 10931359178,
+      "active_gib": 10.180621573701501,
+      "active_plus_cache_bytes": 10931359178,
+      "active_plus_cache_gib": 10.180621573701501,
+      "cache_bytes": 0,
+      "label": "after_refinement_metrics",
+      "peak_bytes": 11689368410,
+      "peak_gib": 10.886572683230042,
+      "rss_bytes": 6609010688
+    }
+  ],
+  "memory_after_cleanup": {
+    "active_bytes": 10931359178,
+    "active_gib": 10.180621573701501,
+    "active_plus_cache_bytes": 10931359178,
+    "active_plus_cache_gib": 10.180621573701501,
+    "cache_bytes": 0,
+    "label": "after_cleanup",
+    "peak_bytes": 11689368410,
+    "peak_gib": 10.886572683230042,
+    "rss_bytes": 6609010688
+  },
+  "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+  "module_records": [
+    {
+      "activation_rows": 792,
+      "diverged_step": null,
+      "finite": true,
+      "local_loss_after": 0.048413682729005814,
+      "local_loss_before": 0.05777489393949509,
+      "local_loss_trace": [
+        0.05777489393949509,
+        0.057502631098032,
+        0.05514848604798317,
+        0.0527241975069046,
+        0.050484564155340195,
+        0.048413682729005814
+      ],
+      "local_relative_loss_reduction": 0.16202905054733335,
+      "max_bias_delta": 4.1425228118896484e-05,
+      "max_scale_delta": 0.0002703126519918442,
+      "path": "language_model.model.layers.49.linear_attn.in_proj_b",
+      "source_file": "/Users/artem/.cache/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0/model-00014-of-00018.safetensors",
+      "source_key": "model.language_model.layers.49.linear_attn.in_proj_b.weight",
+      "source_weight_bytes": 983040,
+      "steps_completed": 40
+    },
+    {
+      "activation_rows": 792,
+      "diverged_step": null,
+      "finite": true,
+      "local_loss_after": 0.05956331267952919,
+      "local_loss_before": 0.06964810192584991,
+      "local_loss_trace": [
+        0.06964810192584991,
+        0.06936748325824738,
+        0.06691152602434158,
+        0.06432417035102844,
+        0.06187748536467552,
+        0.05956331267952919
+      ],
+      "local_relative_loss_reduction": 0.14479632563508169,
+      "max_bias_delta": 4.8220157623291016e-05,
+      "max_scale_delta": 0.0003304705023765564,
+      "path": "language_model.model.layers.18.linear_attn.in_proj_b",
+      "source_file": "/Users/artem/.cache/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0/model-00006-of-00018.safetensors",
+      "source_key": "model.language_model.layers.18.linear_attn.in_proj_b.weight",
+      "source_weight_bytes": 983040,
+      "steps_completed": 40
+    },
+    {
+      "activation_rows": 792,
+      "diverged_step": null,
+      "finite": true,
+      "local_loss_after": 0.06675383448600769,
+      "local_loss_before": 0.07639490813016891,
+      "local_loss_trace": [
+        0.07639490813016891,
+        0.0761229619383812,
+        0.07375212758779526,
+        0.07127200067043304,
+        0.06894275546073914,
+        0.06675383448600769
+      ],
+      "local_relative_loss_reduction": 0.12620047435273887,
+      "max_bias_delta": 4.519522190093994e-05,
+      "max_scale_delta": 0.0002685077488422394,
+      "path": "language_model.model.layers.21.linear_attn.in_proj_b",
+      "source_file": "/Users/artem/.cache/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0/model-00006-of-00018.safetensors",
+      "source_key": "model.language_model.layers.21.linear_attn.in_proj_b.weight",
+      "source_weight_bytes": 983040,
+      "steps_completed": 40
+    }
+  ],
+  "patch_bytes": 31881,
+  "patch_path": "/Users/artem/projects/benchmark-qwen-3.8/research/stage7/artifacts/dwq/top4.safetensors",
+  "phase": 3,
+  "ranking_path": "/Users/artem/projects/benchmark-qwen-3.8/research/stage5/quant/loss_sensitivities_v1.json",
+  "rss_max_bytes": 6609010688,
+  "safety_stop_reason": null,
+  "selected_paths": [
+    "language_model.model.layers.60.linear_attn.in_proj_a",
+    "language_model.model.layers.49.linear_attn.in_proj_b",
+    "language_model.model.layers.18.linear_attn.in_proj_b",
+    "language_model.model.layers.21.linear_attn.in_proj_b"
+  ],
+  "source_path": "/Users/artem/.cache/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "stages": [
+    {
+      "module_count": 4,
+      "module_paths": [
+        "language_model.model.layers.18.linear_attn.in_proj_b",
+        "language_model.model.layers.21.linear_attn.in_proj_b",
+        "language_model.model.layers.49.linear_attn.in_proj_b",
+        "language_model.model.layers.60.linear_attn.in_proj_a"
+      ],
+      "patch_bytes": 31881,
+      "patch_path": "/Users/artem/projects/benchmark-qwen-3.8/research/stage7/artifacts/dwq/top4.safetensors",
+      "train": {
+        "by_domain": {
+          "coding": {
+            "actual_token_nll": 6.3846564659705525,
+            "kl": 0.13701586539928728,
+            "logit_mse": 0.8015465369591346,
+            "target_count": 104,
+            "teacher_argmax_nll": 0.34521873180682844,
+            "top1_agreement": 0.9038461538461539
+          },
+          "instruction_following": {
+            "actual_token_nll": 7.33843243708376,
+            "kl": 0.09867993339163358,
+            "logit_mse": 1.043310384281346,
+            "target_count": 61,
+            "teacher_argmax_nll": 0.2561748692246734,
+            "top1_agreement": 0.9180327868852459
+          },
+          "patch_reasoning": {
+            "actual_token_nll": 7.442921432023196,
+            "kl": 0.2713685969716495,
+            "logit_mse": 0.8226225154916036,
+            "target_count": 97,
+            "teacher_argmax_nll": 0.33286194948805975,
+            "top1_agreement": 0.8969072164948454
+          },
+          "prose_continuity": {
+            "actual_token_nll": 8.977885437011718,
+            "kl": 0.054703012704849244,
+            "logit_mse": 0.6711189651489258,
+            "target_count": 100,
+            "teacher_argmax_nll": 0.1130466890335083,
+            "top1_agreement": 0.98
+          },
+          "reasoning": {
+            "actual_token_nll": 7.238064093338815,
+            "kl": 0.19499482606586657,
+            "logit_mse": 0.6501453198884662,
+            "target_count": 95,
+            "teacher_argmax_nll": 0.3767563066984478,
+            "top1_agreement": 0.8947368421052632
+          },
+          "retrieval": {
+            "actual_token_nll": 8.377530292399879,
+            "kl": 0.1772672690234138,
+            "logit_mse": 0.8155654240580439,
+            "target_count": 103,
+            "teacher_argmax_nll": 0.27676455488482726,
+            "top1_agreement": 0.9320388349514563
+          },
+          "structured": {
+            "actual_token_nll": 8.014025174654448,
+            "kl": 0.14101073375115028,
+            "logit_mse": 0.7491433070256159,
+            "target_count": 104,
+            "teacher_argmax_nll": 0.2692835789460402,
+            "top1_agreement": 0.9326923076923077
+          },
+          "tool_agent": {
+            "actual_token_nll": 8.365146092006139,
+            "kl": 0.12186202832630702,
+            "logit_mse": 0.6695469106946673,
+            "target_count": 112,
+            "teacher_argmax_nll": 0.294066275869097,
+            "top1_agreement": 0.875
+          }
+        },
+        "case_count": 16,
+        "cases": {
+          "s7-train-coding-01": {
+            "actual_token_nll": 5.620009037486294,
+            "kl": 0.17218114618669478,
+            "logit_mse": 0.8409832067656935,
+            "target_count": 57,
+            "teacher_argmax_nll": 0.39632522850705865,
+            "top1_agreement": 0.9122807017543859
+          },
+          "s7-train-coding-02": {
+            "actual_token_nll": 7.311994836685505,
+            "kl": 0.09436860997626122,
+            "logit_mse": 0.7537190863426696,
+            "target_count": 47,
+            "teacher_argmax_nll": 0.28323851240442155,
+            "top1_agreement": 0.8936170212765957
+          },
+          "s7-train-instruction-01": {
+            "actual_token_nll": 5.919364646629051,
+            "kl": 0.10694600034643102,
+            "logit_mse": 1.124991946750217,
+            "target_count": 27,
+            "teacher_argmax_nll": 0.2875601450602214,
+            "top1_agreement": 0.9259259259259259
+          },
+          "s7-train-instruction-02": {
+            "actual_token_nll": 8.465339211856618,
+            "kl": 0.09211570375105914,
+            "logit_mse": 0.9784456140854779,
+            "target_count": 34,
+            "teacher_argmax_nll": 0.23125126782585592,
+            "top1_agreement": 0.9117647058823529
+          },
+          "s7-train-patch-01": {
+            "actual_token_nll": 8.091698179853724,
+            "kl": 0.3835484930809508,
+            "logit_mse": 0.8673400067268534,
+            "target_count": 47,
+            "teacher_argmax_nll": 0.23240629155585107,
+            "top1_agreement": 0.9361702127659575
+          },
+          "s7-train-patch-02": {
+            "actual_token_nll": 6.8330712890625,
+            "kl": 0.16591949462890626,
+            "logit_mse": 0.7805880737304688,
+            "target_count": 50,
+            "teacher_argmax_nll": 0.42729026794433594,
+            "top1_agreement": 0.86
+          },
+          "s7-train-prose-01": {
+            "actual_token_nll": 8.976604386871935,
+            "kl": 0.08649771821265127,
+            "logit_mse": 0.6826602711397058,
+            "target_count": 51,
+            "teacher_argmax_nll": 0.12995357139437808,
+            "top1_agreement": 0.9803921568627451
+          },
+          "s7-train-prose-02": {
+            "actual_token_nll": 8.979218774912308,
+            "kl": 0.021610564115096112,
+            "logit_mse": 0.6591065854442363,
+            "target_count": 49,
+            "teacher_argmax_nll": 0.09544972984158263,
+            "top1_agreement": 0.9795918367346939
+          },
+          "s7-train-reasoning-01": {
+            "actual_token_nll": 6.884003348972486,
+            "kl": 0.22742663259091583,
+            "logit_mse": 0.6606053891389266,
+            "target_count": 46,
+            "teacher_argmax_nll": 0.44616367505944293,
+            "top1_agreement": 0.8913043478260869
+          },
+          "s7-train-reasoning-02": {
+            "actual_token_nll": 7.570447649274554,
+            "kl": 0.16454864034847339,
+            "logit_mse": 0.6403256630410954,
+            "target_count": 49,
+            "teacher_argmax_nll": 0.3115983690534319,
+            "top1_agreement": 0.8979591836734694
+          },
+          "s7-train-retrieval-01": {
+            "actual_token_nll": 8.509073008661685,
+            "kl": 0.20062286957450534,
+            "logit_mse": 0.854416971621306,
+            "target_count": 46,
+            "teacher_argmax_nll": 0.3461151537687882,
+            "top1_agreement": 0.9347826086956522
+          },
+          "s7-train-retrieval-02": {
+            "actual_token_nll": 8.271373012609649,
+            "kl": 0.15841888963130482,
+            "logit_mse": 0.7842115435683936,
+            "target_count": 57,
+            "teacher_argmax_nll": 0.22079740490829736,
+            "top1_agreement": 0.9298245614035088
+          },
+          "s7-train-structured-01": {
+            "actual_token_nll": 7.836102849786932,
+            "kl": 0.17436148903586648,
+            "logit_mse": 0.6975827303799715,
+            "target_count": 55,
+            "teacher_argmax_nll": 0.38326173262162644,
+            "top1_agreement": 0.9090909090909091
+          },
+          "s7-train-structured-02": {
+            "actual_token_nll": 8.213733906648597,
+            "kl": 0.10357621251320352,
+            "logit_mse": 0.8070174236686862,
+            "target_count": 49,
+            "teacher_argmax_nll": 0.14134891665711694,
+            "top1_agreement": 0.9591836734693877
+          },
+          "s7-train-tool-01": {
+            "actual_token_nll": 9.087112918976814,
+            "kl": 0.0741089851625504,
+            "logit_mse": 0.7042395684026903,
+            "target_count": 62,
+            "teacher_argmax_nll": 0.2234540754748929,
+            "top1_agreement": 0.9032258064516129
+          },
+          "s7-train-tool-02": {
+            "actual_token_nll": 7.4699072265625,
+            "kl": 0.18107580184936523,
+            "logit_mse": 0.6265280151367187,
+            "target_count": 50,
+            "teacher_argmax_nll": 0.38162540435791015,
+            "top1_agreement": 0.84
+          }
+        },
+        "overall": {
+          "actual_token_nll": 7.7993005968860745,
+          "kl": 0.15097794044263585,
+          "logit_mse": 0.7636291956164173,
+          "target_count": 776,
+          "teacher_argmax_nll": 0.28397062697361425,
+          "top1_agreement": 0.9162371134020618
+        }
+      },
+      "validation": {
+        "by_domain": {
+          "coding": {
+            "actual_token_nll": 4.509686520225124,
+            "kl": 0.17776017439992806,
+            "logit_mse": 0.8841500533254523,
+            "target_count": 76,
+            "teacher_argmax_nll": 0.27161091252377156,
+            "top1_agreement": 0.9210526315789473
+          },
+          "instruction_following": {
+            "actual_token_nll": 5.720428466796875,
+            "kl": 0.06202092435624865,
+            "logit_mse": 0.8906744497793692,
+            "target_count": 27,
+            "teacher_argmax_nll": 0.2594903310139974,
+            "top1_agreement": 0.9259259259259259
+          },
+          "patch_reasoning": {
+            "actual_token_nll": 7.178836744658801,
+            "kl": 0.15974659822425064,
+            "logit_mse": 0.653247054742307,
+            "target_count": 49,
+            "teacher_argmax_nll": 0.34584823919802293,
+            "top1_agreement": 0.8775510204081632
+          },
+          "prose_continuity": {
+            "actual_token_nll": 8.841030345243567,
+            "kl": 0.03526148609086579,
+            "logit_mse": 0.6265375473920036,
+            "target_count": 51,
+            "teacher_argmax_nll": 0.117340274885589,
+            "top1_agreement": 0.9803921568627451
+          },
+          "reasoning": {
+            "actual_token_nll": 7.553822631835938,
+            "kl": 0.0640459680557251,
+            "logit_mse": 0.7139063262939453,
+            "target_count": 50,
+            "teacher_argmax_nll": 0.20960405349731445,
+            "top1_agreement": 0.96
+          },
+          "retrieval": {
+            "actual_token_nll": 7.463279879823023,
+            "kl": 0.15396502553200236,
+            "logit_mse": 0.6914130230339206,
+            "target_count": 49,
+            "teacher_argmax_nll": 0.24269650906932597,
+            "top1_agreement": 0.8979591836734694
+          },
+          "structured": {
+            "actual_token_nll": 8.321222056513248,
+            "kl": 0.15002672568611478,
+            "logit_mse": 0.7362452797267748,
+            "target_count": 46,
+            "teacher_argmax_nll": 0.40461154606031335,
+            "top1_agreement": 0.8913043478260869
+          },
+          "tool_agent": {
+            "actual_token_nll": 7.514350891113281,
+            "kl": 0.22921064921787807,
+            "logit_mse": 0.8266679218837193,
+            "target_count": 56,
+            "teacher_argmax_nll": 0.3551538331168039,
+            "top1_agreement": 0.8571428571428571
+          }
+        },
+        "case_count": 8,
+        "cases": {
+          "s7-valid-coding-01": {
+            "actual_token_nll": 4.509686520225124,
+            "kl": 0.17776017439992806,
+            "logit_mse": 0.8841500533254523,
+            "target_count": 76,
+            "teacher_argmax_nll": 0.27161091252377156,
+            "top1_agreement": 0.9210526315789473
+          },
+          "s7-valid-instruction-01": {
+            "actual_token_nll": 5.720428466796875,
+            "kl": 0.06202092435624865,
+            "logit_mse": 0.8906744497793692,
+            "target_count": 27,
+            "teacher_argmax_nll": 0.2594903310139974,
+            "top1_agreement": 0.9259259259259259
+          },
+          "s7-valid-patch-01": {
+            "actual_token_nll": 7.178836744658801,
+            "kl": 0.15974659822425064,
+            "logit_mse": 0.653247054742307,
+            "target_count": 49,
+            "teacher_argmax_nll": 0.34584823919802293,
+            "top1_agreement": 0.8775510204081632
+          },
+          "s7-valid-prose-01": {
+            "actual_token_nll": 8.841030345243567,
+            "kl": 0.03526148609086579,
+            "logit_mse": 0.6265375473920036,
+            "target_count": 51,
+            "teacher_argmax_nll": 0.117340274885589,
+            "top1_agreement": 0.9803921568627451
+          },
+          "s7-valid-reasoning-01": {
+            "actual_token_nll": 7.553822631835938,
+            "kl": 0.0640459680557251,
+            "logit_mse": 0.7139063262939453,
+            "target_count": 50,
+            "teacher_argmax_nll": 0.20960405349731445,
+            "top1_agreement": 0.96
+          },
+          "s7-valid-retrieval-01": {
+            "actual_token_nll": 7.463279879823023,
+            "kl": 0.15396502553200236,
+            "logit_mse": 0.6914130230339206,
+            "target_count": 49,
+            "teacher_argmax_nll": 0.24269650906932597,
+            "top1_agreement": 0.8979591836734694
+          },
+          "s7-valid-structured-01": {
+            "actual_token_nll": 8.321222056513248,
+            "kl": 0.15002672568611478,
+            "logit_mse": 0.7362452797267748,
+            "target_count": 46,
+            "teacher_argmax_nll": 0.40461154606031335,
+            "top1_agreement": 0.8913043478260869
+          },
+          "s7-valid-tool-01": {
+            "actual_token_nll": 7.514350891113281,
+            "kl": 0.22921064921787807,
+            "logit_mse": 0.8266679218837193,
+            "target_count": 56,
+            "teacher_argmax_nll": 0.3551538331168039,
+            "top1_agreement": 0.8571428571428571
+          }
+        },
+        "overall": {
+          "actual_token_nll": 7.046571788221303,
+          "kl": 0.13686600917636757,
+          "logit_mse": 0.7548053854762917,
+          "target_count": 404,
+          "teacher_argmax_nll": 0.2758729292614625,
+          "top1_agreement": 0.9133663366336634
+        }
+      }
+    }
+  ],
+  "steps": 40,
+  "timestamp": "2026-08-29T20:33:03+0400",
+  "total_elapsed_seconds": 85.47118320901063,
+  "train_calibration_sha256": "3fedf6d50c6f202f189f0d585fae418e3475eb4458e5f352af509e4f9a58db98",
+  "train_teacher_manifest": "/Users/artem/projects/benchmark-qwen-3.8/research/stage7/artifacts/teacher/g64_train/manifest.json",
+  "validation_calibration_sha256": "1193e48e77bee8ada73d27ab5a025eb7100c8072c03051bec8fe0fb6feaa91dd",
+  "validation_teacher_manifest": "/Users/artem/projects/benchmark-qwen-3.8/research/stage7/artifacts/teacher/g64_validation/manifest.json"
+}

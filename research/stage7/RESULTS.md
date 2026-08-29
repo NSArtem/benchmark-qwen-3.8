@@ -135,3 +135,39 @@ checkpoint is therefore safer than assuming additive gains.
 Refine only ranks 2–4 on top of the saved layer-60 patch. Measure the complete
 top-4 state on train/validation and inspect domain deltas before attempting
 top-8.
+
+## Phase 3 — top-4 incremental DWQ gate
+
+### MEASURED FACT
+
+- Top-4 resumed from the layer-60 patch and refined ranks 2–4:
+  `layers.49.linear_attn.in_proj_b`, `layers.18.linear_attn.in_proj_b`, and
+  `layers.21.linear_attn.in_proj_b`. Three local objectives reduced by
+  16.20%, 14.48%, and 12.62% respectively; all gradients remained finite.
+- Relative to the original g128 baseline, top-4 train KL changed
+  0.1567515774 -> 0.1509779404 and teacher-argmax NLL
+  0.2851869464 -> 0.2839706270. Validation KL changed
+  0.1429969692 -> 0.1368660092 and NLL 0.2775873937 -> 0.2758729293.
+- Top-4 train top-1 changed 0.9175257732 -> 0.9162371134 and validation
+  top-1 0.9183168317 -> 0.9133663366. The KL/NLL gains and top-1 regression
+  are both measured; no aggregate metric was substituted for the other.
+- Peak MLX memory was 10.886573 GiB and wall time 85.47 s. The cumulative
+  patch is `research/stage7/artifacts/dwq/top4.safetensors`; the base model
+  directory and payload are unchanged.
+- Eight disjoint validation-prompt greedy sanity cases ran for baseline and
+  top-4. Both had no exceptions, identical finish categories per case, and
+  coherent semantic content. The coding case was more concise in top-4; no
+  structured, retrieval, reasoning, tool, or prose case lost its requested
+  facts.
+
+### INFERENCE
+
+Top-4 passes the internal continuation gate on validation KL/NLL and practical
+sanity, although its token-level top-1 decline requires caution. The result is
+strong enough to test whether the next three modules continue the calibration
+gain, not strong enough for heldout evaluation or production promotion.
+
+### Next gate
+
+Resume from top-4 and refine ranks 5–8. Compare against the original baseline
+and top-4 state; do not inspect final heldout outputs yet.

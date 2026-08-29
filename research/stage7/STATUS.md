@@ -1,13 +1,13 @@
 # Stage 7 Status
 
-Last updated: 2026-08-29 (Phase 2 bounded DWQ reproduction complete)
+Last updated: 2026-08-29 (Phase 3 top-4 DWQ gate passed)
 
 ## Current phase
 
-Phase 2 — bounded DWQ primitive productionization and Stage 6 reproduction is
-complete. The reproduction loaded one source tensor at a time, stayed below
-10.887 GiB MLX peak, and finished with finite losses. Multi-module scaling has
-not yet started.
+Phase 3 — incremental DWQ scaling. Top-4 completed by resuming the layer-60
+patch and refining three additional ranked modules. Train/validation KL and
+argmax-NLL improved, generation sanity remained coherent, and the process
+stayed below 10.887 GiB MLX peak. The top-8 gate is next.
 
 ## System memory baseline
 
@@ -79,6 +79,16 @@ was 0.142997 -> 0.142217 while top-1 was 0.918317 -> 0.915842. This is a
 positive reproduction direction with a small validation top-1 tradeoff, not a
 promotion decision.
 
+Top-4 cumulative checkpoint:
+`research/stage7/artifacts/dwq/top4.safetensors`, four modules, 31.6 KiB on
+disk. Relative to the unpatched g128 baseline, train KL is 0.156752 ->
+0.150978 and validation KL is 0.142997 -> 0.136866. Train top-1 is
+0.917526 -> 0.916237 and validation top-1 is 0.918317 -> 0.913366; this
+small top-1 regression is retained as a cautionary metric. All eight
+validation-prompt sanity generations completed without exceptions; structured,
+retrieval, reasoning, instruction, and prose outputs remained coherent and
+matching in semantic content.
+
 ## Teacher/student baseline on frozen Stage 7 calibration
 
 Reference teacher: g64 logits captured in separate train and validation
@@ -127,6 +137,6 @@ deterministic coding-agent fixture/benchmark is pending.
 
 ## Next action
 
-Re-read the governing instructions and this status, then pass the layer-60
-patch as the resume checkpoint into the top-4 gate. Stop before top-8 if
-validation or practical sanity worsens.
+Re-read the governing instructions and this status, then pass the top-4 patch
+as the resume checkpoint into the top-8 gate. Stop if validation KL/NLL
+worsens, top-1 degradation grows, or generation sanity regresses.
