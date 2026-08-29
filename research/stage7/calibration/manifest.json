@@ -1,0 +1,53 @@
+{
+  "stage": 7,
+  "protocol": "diversity-aware bounded-DWQ calibration",
+  "local_deterministic": true,
+  "heldout_used_for_optimization": false,
+  "train": {
+    "path": "research/stage7/calibration/train.jsonl",
+    "sha256": "3fedf6d50c6f202f189f0d585fae418e3475eb4458e5f352af509e4f9a58db98",
+    "case_count": 16,
+    "domain_counts": {
+      "coding": 2,
+      "patch_reasoning": 2,
+      "structured": 2,
+      "retrieval": 2,
+      "reasoning": 2,
+      "instruction_following": 2,
+      "tool_agent": 2,
+      "prose_continuity": 2
+    }
+  },
+  "validation": {
+    "path": "research/stage7/calibration/validation.jsonl",
+    "sha256": "1193e48e77bee8ada73d27ab5a025eb7100c8072c03051bec8fe0fb6feaa91dd",
+    "case_count": 8,
+    "domain_counts": {
+      "coding": 1,
+      "patch_reasoning": 1,
+      "structured": 1,
+      "retrieval": 1,
+      "reasoning": 1,
+      "instruction_following": 1,
+      "tool_agent": 1,
+      "prose_continuity": 1
+    }
+  },
+  "final_evaluation": {
+    "corrected_heldout_v2": {
+      "path": "research/stage6/heldout/heldout_v2.jsonl",
+      "sha256": "1749a8b47e99bb3e0e04347d75e24d7022ed3ab8d5ffa5bc56926b9cf02cbcbd",
+      "case_count": 24
+    },
+    "quality_suite_v2": {
+      "path": "research/stage4/evaluation/evaluation_v2.jsonl",
+      "sha256": "f24e3983efbd898084852c3fde7b0f824604bc6a63349de5f32efeaa36ca3de0",
+      "case_count": 28
+    }
+  },
+  "domains_added_vs_stage5": [
+    "patch_reasoning",
+    "tool_agent"
+  ],
+  "selection_policy": "train and validation are calibration-only; final suites are held out from DWQ optimization and module-count selection"
+}

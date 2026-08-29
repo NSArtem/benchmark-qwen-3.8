@@ -1,0 +1,4 @@
+# Calibration logits are reproducible raw tensors and remain outside git.
+artifacts/**/*.safetensors
+artifacts/**/*.bin
+artifacts/**/*.pt
