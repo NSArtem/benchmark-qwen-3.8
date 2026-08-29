@@ -1,834 +1,895 @@
-# Stage 6 — Exploit the Stage 5 Frontier and Finish the Practical Runtime
+# Stage 7 — Bounded DWQ, Qwen3.8 MTP, and Real Agent Validation
 
 ## Mission
 
-Run an approximately 15-hour autonomous Stage 6.
+Run an autonomous Stage 7 for approximately 10-15 hours.
 
-Stage 6 is NOT a new broad exploration stage.
+This stage is deliberately narrower than Stages 4-6.
 
-Stage 5 already paid the expensive cost of creating a KL-guided frontier but
-stopped before proper evaluation because the machine entered an untrustworthy
-high-swap state.
+The static quantization frontier is considered largely saturated.
 
-Stage 6 must extract maximum value from those existing artifacts.
+Primary objectives:
+
+A. scale bounded DWQ from a one-module proof into a real diversity-aware
+   g128 refinement experiment;
+
+B. reverse-engineer and, if possible, implement a correct Qwen3.8 MTP decode
+   path using the MTP tensors already present in the original source model;
+
+C. evaluate the final runtime on realistic serialized coding-agent/tool-use
+   workloads.
 
 Critical path:
 
-    clean baseline
-    -> preserve/verify Q1/Q2/Q3
-    -> repair quality scoring truncation
-    -> evaluate Q1 deeply
-    -> gate Q2/Q3
-    -> validate KL-ranking reproducibility
-    -> bounded DWQ on winner
-    -> final Pareto decision
-    -> 20K envelope
-    -> gated Qwen3.8 MTP
-    -> real agent-server integration
+    recover state
+    -> freeze Stage 7 calibration/evaluation protocol
+    -> scalable bounded DWQ
+    -> DWQ quality decision
+    -> Qwen3.8 MTP architecture
+    -> MTP correctness prototype
+    -> MTP performance / quantized MTP
+    -> real coding-agent benchmark
+    -> production runtime decision
     -> final report
 
-Do not create new unrelated quants.
+Use gates.
+
+Do not begin another broad static quant search.
 
 ---
 
-# Phase 0 — Clean-Boot and Artifact Recovery
+# Phase 0 — Recover Stage 6 and Establish Clean Baseline
 
-Target: 30 minutes.
-
-Read:
-
-    AGENTS.md
-    research/stage5/FINAL_REPORT.md
-    research/stage5/STATUS.md
-    research/stage5/RESULTS.md
-    research/stage5/results.jsonl
+Target: 20-30 minutes.
 
 Start:
 
     git status
     git log --oneline -30
 
-Inspect running processes.
+Read:
 
-Record:
-
-    memory_pressure
-    vm_stat
-    swap usage
-    free disk
-
-If the machine is still in severe post-Stage-5 swap pressure, do not run
-headline benchmarks.
-
-Create:
-
-    research/stage6/PLAN.md
+    AGENTS.md
+    research/stage6/FINAL_REPORT.md
     research/stage6/STATUS.md
     research/stage6/RESULTS.md
     research/stage6/results.jsonl
 
-## Recover Q1/Q2/Q3
+Inspect raw artifacts for:
 
-Search expected locations:
+    g128 final quality
+    corrected heldout_v2
+    KL ranking reproducibility
+    bounded one-module DWQ
+    20K context
+    MTP tensor inventory
+    serialized agent smoke
 
-    /private/tmp/qwen38-stage5-Q1-kl-g128
-    /private/tmp/qwen38-stage5-Q2-kl-g128
-    /private/tmp/qwen38-stage5-Q3-kl-g128
+Verify canonical g128 path:
 
-and persistent model directories.
+    /Users/artem/models/Qwen3.8-27B-3bit-g128-MLX
 
-Recover exact model paths from Stage 5 artifacts.
+Verify high-precision/source path.
 
-For each candidate verify:
+Verify current runtime paths:
 
-    config.json
-    tokenizer files
-    weight shards
-    payload size
-    readable/loadable metadata
+    qwen38_chat.py
+    qwen38_agent_server.py
 
-If candidates still exist only under /private/tmp and disk permits, move them
-to persistent storage before benchmarking.
+Record system baseline:
 
-Preferred:
+    memory_pressure
+    vm_stat
+    swap
+    free disk
+    heavy running processes
 
-    /Users/artem/models/stage5-frontier/
+Create:
 
-Record final paths.
+    research/stage7/PLAN.md
+    research/stage7/STATUS.md
+    research/stage7/RESULTS.md
+    research/stage7/results.jsonl
 
-If Q2/Q3 are missing but Q1 exists:
-
-    do NOT immediately rebuild them.
-
-Evaluate Q1 first.
-
-If all are missing:
-
-    rebuild only Q1 from saved Stage 5 manifest/ranking as the first recovery.
-
-Do not repeat the full sensitivity sweep just to rebuild candidates.
-
-Commit scaffolding/status if useful.
+Do not rerun Stage 6 headline benchmarks.
 
 ---
 
-# Phase 1 — Repair Held-Out Scoring and Generation Budgets
+# Phase 1 — Build Diversity-Aware DWQ Calibration Protocol
 
 Target: 45-60 minutes.
 
-Before comparing Q1/Q2/Q3, inspect Stage 5 held-out failures.
+Stage 6 established that calibration composition materially changes sensitivity
+ranking.
 
-Identify cases where:
+Build a fixed Stage 7 optimization protocol.
 
-    answer is semantically correct
-    but generation stopped at max_tokens
-    before a required sentinel/final line
+## Create three disjoint sets
 
-Examples may include arithmetic/version tasks.
+### A. DWQ train calibration
 
-Do not change semantic expected answers unless objectively wrong.
+Target:
 
-Preferred fix:
+    ~16-24 compact examples
 
-    increase generation budget
-    OR
-    make scorer accept the correct semantic answer without requiring an
-    unnecessary final sentinel
+Balanced across:
 
-Apply the same correction to ALL models.
+    coding/debugging
+    patch reasoning
+    instruction following
+    structured output
+    supplied-context retrieval
+    general reasoning
+    tool/agent transcript
+    prose/continuity
 
-Keep a machine-readable record:
+### B. DWQ validation calibration
 
-    old case
-    old rule
-    reason invalid
-    new rule/budget
-    new hash
+Target:
 
-Freeze:
+    ~8-12 examples
 
-    heldout_v2
+Same broad domain distribution, different prompts/content.
 
-or equivalent.
+Used for:
 
-Do not use Q1 output to tailor the answer key.
+    early stopping
+    module-count selection
+    learning-rate/step validation
 
-## Regression rerun
+### C. Final evaluation
 
-Re-run only the affected held-out cases first on:
+Reuse:
 
-    g64
+    corrected heldout_v2
+    Quality Suite V2
+
+and optionally add a very small Stage 7 agent-specific final set.
+
+Do not train/tune against final evaluation.
+
+## Requirements
+
+All examples:
+
+    local
+    deterministic
+    reproducible
+    hashed
+
+Record:
+
+    train hash
+    validation hash
+    final suite hashes
+
+Do not scrape live web content.
+
+## Teacher target
+
+Run baseline teacher/student metrics on train and validation:
+
+    teacher/reference
     g128
-    mixed34
 
-Verify that truncation artifacts are actually removed.
+Record:
 
-Then freeze the corrected suite.
+    KL
+    NLL where appropriate
+    top-1 agreement
+
+This establishes headroom.
 
 Commit.
 
 Suggested:
 
-    benchmark: fix Stage 5 held-out truncation artifacts
+    benchmark: define diversity-aware Qwen3.8 DWQ calibration
 
 ---
 
-# Phase 2 — Q1 Full Validation
+# Phase 2 — Productionize the Bounded DWQ Primitive
 
-Target: 90-120 minutes.
+Target: 60-90 minutes.
 
-This is the highest-priority Stage 6 experiment.
+Recover the Stage 6 one-module bounded DWQ implementation.
 
-Model:
+Do not rewrite it from scratch unless necessary.
 
-    Q1 (~10.327 GiB)
+Refactor into a reusable harness capable of:
 
-Compare against:
+    selected module list
+    configurable learning rate
+    configurable steps
+    train calibration set
+    validation set
+    checkpoint/resume
+    per-module metrics
+    bounded source loading
+    deterministic seeds/order
+
+## Safety
+
+Before multi-module refinement:
+
+Run the known sensitive single-module case again.
+
+Require:
+
+    finite loss
+    safe memory
+    reproducible direction of improvement
+
+Do not require exact floating-point identity, but results should be consistent.
+
+Record:
+
+    local loss
+    train end-to-end target
+    validation end-to-end target
+    peak memory
+    wall time
+
+## Optimizer exploration
+
+Use a SMALL bounded sweep only if necessary.
+
+Example:
+
+    1e-6
+    3e-7
+    3e-6
+
+Do not run a large hyperparameter search.
+
+Stage 6 showed a much larger LR could diverge.
+
+Choose one stable default.
+
+Commit reusable implementation.
+
+Suggested:
+
+    feat: productionize bounded Qwen3.8 DWQ harness
+
+---
+
+# Phase 3 — DWQ Scaling Curve
+
+Target: 120-180 minutes.
+
+Primary student:
+
+    canonical g128
+
+Use the Stage 5/6 end-to-end KL sensitivity ranking as the initial module
+priority.
+
+Do NOT create a new static quant.
+
+Test refinement scales such as:
+
+    top 4 modules
+    top 8 modules
+    top 16 modules
+    top 32 modules
+
+These are suggested gates, not mandatory exact counts.
+
+The preferred procedure is incremental:
 
     g128
+    -> refine top 4
+    -> validate
+    -> optionally continue to top 8
+    -> validate
+    -> optionally continue to top 16
+    -> validate
+    -> optionally continue to top 32
 
-Use fresh processes for cold/performance comparisons.
+Do not create full duplicate checkpoint trees if a safe resume/copy-on-write
+workflow exists.
 
-## Quality
+Preserve enough checkpoints to compare best states.
+
+## Per-stage metrics
+
+On DWQ train:
+
+    teacher loss before/after
+
+On DWQ validation:
+
+    teacher loss before/after
+
+Also:
+
+    top-1 agreement
+    selected generation sanity
+    model payload
+    memory
+    wall time
+
+## Gate
+
+Continue module count only if:
+
+    validation improves or remains plausibly flat
+    no practical task regression appears
+    training remains stable
+
+Stop if:
+
+    validation worsens twice
+    train improves while validation clearly worsens
+    generation becomes degraded
+    runtime budget becomes excessive
+
+The best validation checkpoint becomes:
+
+    DWQ-CANDIDATE
+
+Do not use final held-out to choose top4/top8/top16/top32.
+
+---
+
+# Phase 4 — Calibration Robustness / Domain Ablation
+
+Target: 60-90 minutes.
+
+Question:
+
+> Is diversity-aware calibration actually more robust than optimizing against a
+> narrow domain?
+
+Do not train many full models.
+
+Use the DWQ harness on a small fixed module subset, e.g. top 4-8 modules.
+
+Compare:
+
+    diverse calibration
+    coding-heavy calibration
+    reasoning-heavy calibration
+
+Evaluate on the DWQ validation set split by domain.
+
+Report:
+
+    in-domain gain
+    cross-domain gain
+    regressions
+
+Primary decision:
+
+    keep diverse calibration
+    OR identify a clearly superior weighting strategy
+
+Do not optimize against final held-out.
+
+If the diverse corpus clearly dominates, stop the ablation early.
+
+Commit.
+
+Suggested:
+
+    experiment: measure Qwen3.8 DWQ calibration robustness
+
+---
+
+# Phase 5 — DWQ Final Quality Evaluation
+
+Target: 60-90 minutes.
+
+Only run on:
+
+    g128 baseline
+    best DWQ-CANDIDATE
+
+Optionally include g64 as teacher/reference metrics, not as a production
+candidate.
 
 Run:
 
-    full Quality Suite V2
     corrected heldout_v2
+    full Quality Suite V2
     teacher-forced NLL/KL subset
 
 Record:
 
     objective totals
-    per-category totals
+    category totals
+    coding results
+    reasoning
+    structured output
+    context retrieval
+    instruction following
+    prose/semi-objective
     early EOS
-    repetition
-    structured validity
+    malformed outputs
+    finish reason
+
+Teacher-forced:
+
     NLL
     KL
     top-1 agreement
-    finish reasons
 
-Manually inspect every Q1-vs-g128 disagreement.
-
-Do not use subjective impressions to override objective correct answers.
-
-## Runtime
-
-Run Q1 at:
-
-    short smoke
-    ~8K
-    ~12K
-    ~16K
-
-At 16K do at least two fresh repeats if results are surprising.
-
-Record:
-
-    prompt t/s
-    cold TTFT
-    warm exact-suffix TTFT
-    decode t/s
-    active
-    cache
-    active+cache
-    peak
-    RSS
-    memory pressure
-
-Use a 5-turn persistent validation at:
-
-    8K
-    16K
-
-if cold performance is healthy.
-
-## Q1 decision gate
-
-### Q1 wins
-
-Advance Q1 as the primary Stage 6 candidate if it offers:
-
-    measurable quality recovery
-    with no meaningful 16K runtime cliff
-
-or another real Pareto improvement.
-
-### Q1 ties g128
-
-If quality/runtime are effectively equal:
-
-    g128 remains default because it is smaller/simpler.
-
-Do not promote Q1 merely because it exists.
-
-### Q1 loses
-
-If Q1 is lower quality or significantly slower:
-
-    reject Q1.
-
-Then decide whether Q2/Q3 plausibly address the specific failure.
-
-Commit.
-
-Suggested:
-
-    benchmark: fully evaluate Stage 5 Q1 quant
-
----
-
-# Phase 3 — Gate Q2 and Q3
-
-Target: 60-120 minutes depending on Q1 result.
-
-Do NOT automatically run full suites on both.
-
-## If Q1 improves quality but not enough
-
-Test Q2 next.
-
-Mini gate:
-
-    selected quality disagreements
-    NLL/KL subset
-    8K decode
-    16K decode
-
-If Q2 improves quality further without a cliff:
-
-    run full corrected heldout + V2.
-
-Only then consider Q3.
-
-## If Q1 quality equals g128 but Q1 is slower
-
-Q2/Q3 are unlikely to be good defaults because they are larger.
-
-Only test Q2 if:
-
-    Q1 shows a clear monotonic quality signal that may justify a separate
-    QUALITY MODE.
-
-Otherwise skip Q2/Q3.
-
-## If Q1 already hits a 16K residency cliff
-
-Use Phase 1/Stage 5 cliff evidence.
-
-Q2/Q3 are larger and likely worse for long-context decode.
-
-Do not run expensive 16K repetitions unless testing a clear hypothesis.
-
-They may still be tested briefly as short-context quality modes.
-
-## If Q1 strongly wins
-
-Q2 may be tested as a quality-extension candidate.
-
-Q3 only if Q2 demonstrates additional useful recovery.
-
-At the end choose:
-
-    g128
-    Q1
-    Q2
-    Q3
-
-roles based on actual Pareto value.
-
-Commit meaningful evaluation.
-
----
-
-# Phase 4 — KL Ranking Reproducibility
-
-Target: 60-90 minutes.
-
-Stage 5's earlier correlation check changed calibration data.
-
-Stage 6 must perform a clean reproducibility test.
-
-Do not repeat all 498 modules unless justified.
-
-Select:
-
-    top ~25 Stage 5 modules
-    ~10 middle-ranked modules
-    ~10 low-ranked modules
-
-Use the SAME calibration examples as the original Stage 5 ranking.
-
-Repeat the sensitivity measurement under the same algorithm.
-
-Measure:
-
-    Spearman
-    top-k overlap
-    score magnitude stability
-    sign stability
-
-Then run a second comparison using an alternative calibration subset.
-
-Report separately:
-
-### Numerical repeatability
-
-    same data
-    same algorithm
-
-### Calibration robustness
-
-    different data
-
-Do not conflate them.
-
-Question:
-
-> Is the Stage 5 ranking stable enough to be used for future fixed-budget
-> allocations?
-
-If same-data reproducibility is poor:
-
-    diagnose numerical/reduction sensitivity.
-
-If same-data is strong but cross-data weak:
-
-    calibration diversity is the main issue.
-
-Commit.
-
-Suggested:
-
-    experiment: validate KL quant ranking reproducibility
-
----
-
-# Phase 5 — Finalize the Weight Pareto Frontier
-
-Target: 45-60 minutes.
-
-Using all Stage 6 evidence, create a concise table:
-
-    g64
-    g128
-    mixed34
-    Q1
-    Q2 if tested
-    Q3 if tested
-
-Include:
-
-    payload GiB
-    effective BPW
-    V2 quality
-    heldout_v2 quality
-    NLL/KL
-    8K decode
-    12K decode
-    16K decode
-    16K peak
-    role
-
-Select:
-
-    DEFAULT
-    optional QUALITY MODE
-    optional LONG-CONTEXT/PERFORMANCE MODE
-    REFERENCE/REJECTED
-
-It is acceptable for DEFAULT to remain g128.
-
-Do not force a new winner.
-
-This phase defines the student for DWQ.
-
----
-
-# Phase 6 — Bounded DWQ on One Selected Student
-
-Target: 150-210 minutes.
-
-Only begin after the weight Pareto decision.
-
-Choose ONE primary student:
-
-    DEFAULT candidate
-
-Optionally one tiny comparison student only if implementation work is shared.
-
-## Inspect upstream
-
-Read current DWQ implementation and exact source revision.
-
-Understand:
-
-    what parameters are trained
-    teacher target
-    optimizer
-    loss
-    calibration pipeline
-    checkpoint format
-
-## Design bounded version
-
-The target is a memory-safe streamed/layer-local method.
-
-Possible architecture:
-
-1. fixed calibration samples;
-2. capture layer input activations in bounded chunks;
-3. load teacher representation for one layer/module;
-4. run student quantized layer;
-5. optimize allowed scale/bias/non-quantized parameters;
-6. validate on held-out calibration subset;
-7. save updated layer;
-8. free teacher/student temporary arrays;
-9. continue.
-
-Do not claim this is exact upstream DWQ if materially different.
-
-## Dry run
-
-Use:
-
-    1 layer
-    then a small group of layers
-
-Measure:
-
-    memory peak
-    loss before/after
-    wall time
-    optimizer stability
-    output/logit impact
-
-## Expansion gate
-
-Expand to more layers only if:
-
-    loss consistently improves
-    memory is safe
-    runtime fits remaining stage window
-
-Prioritize layers/modules identified as highly valuable by Stage 5 KL ranking.
-
-Do not necessarily refine all 64 layers.
-
-A targeted bounded-DWQ pass over the most sensitive layers is allowed.
-
-## Artifact limit
-
-At most:
-
-    one main DWQ/refined 27B model
-
-plus one debug partial artifact.
-
-Do not create many refined checkpoints.
-
-## Evaluation
-
-If a usable refined model is produced:
-
-    NLL/KL subset
-    corrected heldout
-    selected V2 cases
-    8K decode
-    16K decode if size/residency unchanged and safe
-
-DWQ must produce a measurable practical improvement to become a mode.
-
-Commit.
-
-Suggested:
-
-    experiment: apply bounded DWQ to Qwen3.8 winner
-
----
-
-# Phase 7 — Final Weight/DWQ Tournament
-
-Target: 60-90 minutes.
-
-Compare at most:
-
-    g128
-    best KL-guided candidate
-    DWQ-refined winner
-
-mixed34/g64 only where useful as references.
-
-Run:
-
-    corrected heldout_v2
-    relevant full Quality Suite V2
-    teacher-forced NLL/KL
-
-Produce final quality verdict.
-
-This is the definitive weight-model selection for Stage 6.
-
----
-
-# Phase 8 — 20K Practical Context Envelope
-
-Target: 60-75 minutes.
-
-Run only after final model selection.
-
-Test DEFAULT at:
-
-    ~20K initial context
-    3 short exact-suffix persistent follow-ups
-
-Start with normal KV.
-
-Record:
-
-    cold prefill
-    prompt t/s
-    warm TTFT
-    decode
-    peak
-    active+cache
-    RSS
-    memory pressure
-    correctness
-
-If normal KV is marginal but system-safe:
-
-    test KV8 once.
-
-## 24K gate
-
-One 24K smoke is allowed only if:
-
-    20K is clearly stable
-    no severe swap pressure
-    useful decode remains
-    projected memory is safe
-
-Never 32K.
-
-Report:
-
-    recommended daily context
-    practical long-context mode
-    maximum tested safe context
-
-Do not equate "survived once" with "recommended".
-
-Commit.
-
----
-
-# Phase 9 — Qwen3.8 MTP Investigation
-
-Target: 90-150 minutes.
-
-Only run after final weight model selection and 20K context test if time permits.
-
-Stage 5 established that source checkpoint contains:
-
-    15 mtp.* tensors
-    ~0.791 GiB BF16 raw
-
-Now determine whether they can be used.
-
-## Static reverse engineering
-
-Inspect:
-
-    original config
-    tensor names/shapes
-    upstream/reference Qwen3.8 implementation
-    current Qwen3.x MTP implementations in mlx-lm
-    generation/speculative APIs
-
-Document:
-
-    exact MTP architecture
-    how hidden states feed the MTP head
-    how acceptance should work
-    cache implications
-    normalization
-    token embedding/head sharing
-
-Do not guess.
-
-## Memory reduction
-
-Estimate:
-
-    BF16 MTP payload
-    8-bit
-    4-bit
-    3-bit
-
-where supported.
-
-If a quantized MTP head can be safely generated from source, prefer it over raw
-BF16 if correctness remains acceptable.
-
-Do not overwrite the main model.
-
-## Minimal runtime
-
-Implement the smallest isolated MTP generation path needed for testing.
-
-Do not redesign the server.
-
-Correctness first.
-
-## Smoke
-
-Compare:
-
-    normal greedy
-    MTP-assisted
-
-Measure:
-
-    token correctness
-    acceptance rate
-    decode tok/s
-    added active/peak memory
-
-If the algorithm should preserve greedy output:
-
-    require token identity.
-
-## Context
-
-If short smoke succeeds:
-
-    4K
-    8K
-
-Then only if memory is comfortable:
-
-    16K
-
-Important:
-
-MTP that accelerates 4K but triggers the same kind of residency cliff at 16K is
-not the general default.
+Manually inspect every disagreement between g128 and DWQ candidate.
 
 ## Decision
 
-Classify:
+Promote DWQ to DEFAULT only if it offers a meaningful quality improvement
+without runtime regression.
 
-    PRACTICAL
-    SHORT-CONTEXT ONLY
-    NOT READY
-    UNSUPPORTED
+Possible outcomes:
+
+### DWQ DEFAULT
+
+    measurable held-out improvement
+    same model-size class
+    runtime essentially unchanged
+
+### DWQ QUALITY MODE
+
+    modest but real quality improvement
+    some operational cost
+
+### REJECTED / RESEARCH ONLY
+
+    calibration improves but held-out does not
+    or practical regressions appear
+
+Do not force a DWQ win.
 
 Commit.
 
 Suggested:
 
-    experiment: implement Qwen3.8 MTP decode prototype
+    benchmark: evaluate bounded-DWQ Qwen3.8 quality
 
 ---
 
-# Phase 10 — Real Serialized Agent-Backend Validation
+# Phase 6 — DWQ Runtime Validation
+
+Target: 45-60 minutes.
+
+Only if a DWQ candidate survives Phase 5.
+
+Compare:
+
+    g128
+    DWQ candidate
+
+At:
+
+    ~8K
+    ~16K
+
+Use exact-suffix persistent chat.
+
+Record:
+
+    payload
+    prompt t/s
+    decode
+    warm TTFT
+    peak
+    active+cache
+    RSS
+    correctness
+
+DWQ should not materially change payload/residency if implemented as intended.
+
+If it unexpectedly changes runtime behavior:
+
+    investigate configuration/serialization differences.
+
+One 20K smoke is allowed only if DWQ becomes DEFAULT and 16K remains healthy.
+
+---
+
+# Phase 7 — Reverse-Engineer Qwen3.8 MTP Architecture
+
+Target: 60-120 minutes.
+
+This is the second P0 research branch.
+
+Stage 6 confirmed:
+
+    15 mtp.* source tensors
+    ~0.791 GiB BF16 total
+
+Now determine exactly how they are used.
+
+## Inspect
+
+- source config;
+- tensor names;
+- tensor shapes;
+- original/reference implementation;
+- related Qwen3.x MTP model code;
+- current mlx-lm code;
+- current upstream branches/issues/PRs if useful.
+
+Record exact source/revisions inspected.
+
+Do not rely on memory or previous chat summaries.
+
+## Produce architecture note
+
+Create:
+
+    research/stage7/mtp/ARCHITECTURE.md
+
+It should map:
+
+    each MTP tensor
+    -> module
+    -> input
+    -> output
+    -> base-model hidden state dependency
+    -> position/token dependency
+
+Derive:
+
+    proposal generation procedure
+    number of future tokens predicted
+    normalization
+    embedding sharing
+    logits head behavior
+    cache/state requirements
+
+If architecture is ambiguous:
+
+    explicitly document ambiguity.
+
+## Gate
+
+Only implement MTP if the computation graph and acceptance semantics are
+sufficiently supported.
+
+If not:
+
+    stop implementation branch
+    preserve architecture findings
+    spend remaining time on DWQ/agent quality.
+
+Commit architecture research.
+
+---
+
+# Phase 8 — Minimal Exact MTP Prototype
+
+Target: 90-150 minutes.
+
+Only if Phase 7 passes.
+
+Do NOT begin with optimized production code.
+
+Build the smallest correct prototype.
+
+Preferred base:
+
+    g128
+
+MTP tensors may initially be loaded separately.
+
+## Correctness oracle
+
+Use short prompts.
+
+Compare:
+
+    baseline greedy token sequence
+    MTP speculative token sequence
+
+If the algorithm is supposed to be exact:
+
+    require token-for-token equality.
+
+Record:
+
+    draft tokens proposed
+    accepted
+    rejected
+    fallback tokens
+    acceptance rate
+
+Test multiple short prompts:
+
+    coding
+    reasoning
+    prose
+    structured response
+
+Do not benchmark speed until correctness passes.
+
+## Cache correctness
+
+Qwen3.8 is hybrid recurrent + attention.
+
+MTP rejection/rollback must preserve:
+
+    full-attention KV cache
+    recurrent ArraysCache/GatedDelta state
+
+Do not assume ordinary transformer KV rollback is enough.
+
+If rollback semantics are unsafe or unclear:
+
+    use state checkpoint/copy for the prototype
+    even if slow
+
+Correctness first.
+
+## Gate
+
+Proceed to optimization only if:
+
+    baseline output equivalence passes
+    cache/state survives rejected proposals
+    repeated generation remains coherent
+
+Commit.
+
+Suggested:
+
+    experiment: implement exact Qwen3.8 MTP prototype
+
+---
+
+# Phase 9 — Quantized MTP Weights
+
+Target: 45-75 minutes.
+
+Only if exact MTP prototype works.
+
+Raw BF16 MTP payload:
+
+    ~0.791 GiB
+
+This is likely too expensive for 16K general use.
+
+Create at most:
+
+    one 4-bit MTP candidate
+
+Optionally:
+
+    one 3-bit MTP candidate
+
+only if 4-bit is clearly promising.
+
+Do not create a quant zoo.
+
+Use source-backed conversion.
+
+Evaluate MTP-head proposal quality:
+
+    acceptance rate
+    exact final output
+    added payload
+    added residency
+
+The final base-model output must remain correct under exact speculative
+acceptance.
+
+Select the smallest MTP precision with acceptable acceptance.
+
+Do not overwrite the base model.
+
+---
+
+# Phase 10 — MTP Performance Study
 
 Target: 60-90 minutes.
 
-Use:
+Compare:
 
-    research/runtime/qwen38_agent_server.py
+    baseline
+    best MTP mode
 
-or current equivalent.
+At:
 
-Run with the final DEFAULT model.
+    short
+    ~4K
+    ~8K
+    ~16K
 
-Keep one inference at a time.
+Use fresh processes for headline comparisons.
 
-## Real integration smoke
+Record:
 
-Create a scripted client that behaves like a coding agent.
+    decode tok/s
+    speedup ratio
+    acceptance rate
+    proposed tokens/step
+    accepted tokens/step
+    peak
+    active+cache
+    RSS
+    TTFT
+    output identity
 
-Use:
+If possible separate:
 
-    realistic system/tool prompt
-    repository-like supplied context
-    tool calls/results
-    user/assistant/tool sequencing
-    10-20 exchanges
-    context growing toward ~8K-12K
+    proposal cost
+    verification cost
+    rollback/rejection cost
 
-The exact tool-call format must match what the server/model actually supports.
+## Classification
 
-Do not invent a fake structured protocol and call it production-ready.
+### PRACTICAL DEFAULT
 
-Check:
+    substantial sustained speedup at 8K/16K
+    exact correctness
+    acceptable memory
 
-    session persistence
-    exact-suffix token reuse
-    no full reprefill
-    tool-result retention
-    role sequencing
-    reset/session change
-    warm TTFT
-    decode
-    no stale replay
-    graceful error recovery
+### OPTIONAL SHORT-CONTEXT
 
-Measure:
+    good 4K/8K
+    but long-context residency cliff
 
-    first request TTFT
-    median warm TTFT
-    max warm TTFT
-    decode
-    total logical context
-    suffix tokens
+### EXPERIMENTAL
 
-If native structured tool calls are not reliable:
+    small gain
+    complexity/high rejection
+    incomplete integration
 
-    document that limitation
-    validate generic chat/tool-role transport separately.
+### REJECTED
 
-## Optional client compatibility
+    no useful speedup
+    unsafe memory
+    correctness problems
 
-If easy, test one OpenAI-compatible client library.
-
-Do not spend hours adapting third-party frameworks.
-
-Commit.
-
-Suggested:
-
-    test: validate Qwen3.8 serialized agent backend
+Do not promote based on one short benchmark.
 
 ---
 
-# Phase 11 — Production Runtime Cleanup
+# Phase 11 — Real Coding-Agent Benchmark
 
-Target: 30-60 minutes.
+Target: 90-120 minutes.
 
-Based on all findings:
+Use the serialized agent backend.
 
-Update:
+Final candidate set:
 
-    qwen38_chat.py
-    qwen38_agent_server.py
+    g128 baseline
+    DWQ candidate if it survived
+    MTP mode if it survived
 
-as needed.
+Do not benchmark every combination unnecessarily.
+
+## Build deterministic local fixtures
+
+Create several small isolated repositories/tasks.
+
+Suggested tasks:
+
+### Task A — bug diagnosis
+
+Repository contains:
+
+    bug
+    tests
+    misleading nearby code
+
+Agent must:
+
+    inspect files
+    identify root cause
+    propose correct fix
+
+### Task B — failed patch recovery
+
+Agent receives:
+
+    initial task
+    tool output
+    test failure
+
+Must:
+
+    revise hypothesis
+    produce corrected patch/plan
+
+### Task C — multi-file change
+
+Requires:
+
+    inspect multiple files
+    maintain an invariant
+    reference earlier tool output
+
+### Task D — structured/tool interaction
+
+Requires:
+
+    valid tool-role sequence
+    parse tool result
+    continue without replay
+
+Use deterministic scripts/tools.
+
+Do not let the benchmark alter the actual research repo.
+
+## Metrics
+
+Per task:
+
+    success/fail
+    partial success
+    tool calls
+    invalid tool calls
+    turns
+    total logical context
+    processed suffix tokens
+    median warm TTFT
+    max warm TTFT
+    decode
+    final correctness
+    recovery from wrong hypothesis
+
+If native model-generated structured tool calls are not reliable:
+
+    distinguish:
+        transport/protocol correctness
+        model tool-choice quality
+
+Do not conflate them.
+
+## Quality comparison
+
+If DWQ candidate exists:
+
+    compare task outcomes against g128.
+
+Do not tune DWQ after seeing final agent benchmark.
+
+This is final held-out practical evidence.
+
+Commit fixtures and results.
+
+Suggested:
+
+    benchmark: evaluate Qwen3.8 on serialized coding-agent tasks
+
+---
+
+# Phase 12 — Production Integration
+
+Target: 45-60 minutes.
+
+Based on final Stage 7 decisions, clean up:
+
+    research/runtime/qwen38_chat.py
+    research/runtime/qwen38_agent_server.py
+
+Integrate only validated modes.
+
+Possible options:
+
+    --model
+    --kv-bits 8
+    --mtp
+    --mtp-model/path
+    --greedy
+    sampling controls
+
+Do NOT expose an MTP flag as production-ready if it is experimental.
 
 Document:
 
-    default model path
-    recommended context
-    optional KV8
-    optional MTP mode if validated
-    quality mode if one exists
-    reset behavior
-    known limitations
+    DEFAULT model
+    DEFAULT context
+    16K mode
+    20K caveat
+    DWQ role
+    MTP role
+    tool-use limitations
 
-Add regression tests for any new Stage 6 bug discovered.
+Regression tests must cover any new MTP/DWQ/runtime bug.
 
 Do not add concurrency.
 
@@ -836,30 +897,32 @@ Commit.
 
 Suggested:
 
-    feat: finalize Qwen3.8 local runtime configuration
+    feat: integrate Stage 7 Qwen3.8 runtime modes
 
 ---
 
-# Phase 12 — Final Report
+# Phase 13 — Final Report
 
 Create:
 
-    research/stage6/FINAL_REPORT.md
+    research/stage7/FINAL_REPORT.md
 
 Update:
 
-    research/stage6/STATUS.md
-    research/stage6/RESULTS.md
+    research/stage7/STATUS.md
+    research/stage7/RESULTS.md
 
-Inspect:
+Before finalizing:
 
-    raw artifacts
-    results.jsonl
+    inspect results.jsonl
+    inspect raw DWQ curves
+    inspect raw MTP correctness logs
+    inspect agent benchmark outputs
     git status
     git log
-    model paths
+    final model paths
 
-The final report must distinguish:
+Distinguish:
 
     MEASURED FACT
     INFERENCE
@@ -867,54 +930,102 @@ The final report must distinguish:
 
 ---
 
+# Time Allocation Guidance
+
+Approximate target:
+
+    Phase 0    0.5h
+    Phase 1    0.75h
+    Phase 2    1.0h
+    Phase 3    2.0-3.0h
+    Phase 4    1.0h
+    Phase 5-6  1.5h
+    Phase 7    1.0-2.0h
+    Phase 8    1.5-2.5h
+    Phase 9-10 1.0-2.0h
+    Phase 11   1.5h
+    Phase 12-13 1.0h
+
+This is a guide, not a mandate.
+
+Use gates.
+
+If MTP architecture is blocked, spend that time on deeper DWQ validation and
+agent evaluation.
+
+If DWQ clearly fails validation early, stop refining it and prioritize MTP.
+
+---
+
 # Explicitly Out of Scope
 
-Do not spend Stage 6 on:
+Do NOT spend Stage 7 on:
 
-    uniform 2-bit
+    new generic static quant frontier
+    g64/g128 group-size sweep
     mixed_2_6
-    random new quant recipes
-    full new fixed-budget frontier unless Q1/Q2/Q3 are lost
-    generic uniform 4-bit
+    Q1/Q2/Q3 resurrection
+    uniform 2-bit
+    generic 4-bit
+    MXFP4/NVFP4 sweep
+    AWQ/GPTQ comparison campaign
     DSpark
-    32K
-    multi-user batching
-    concurrent inference
-    system wired-memory tuning
+    24K/32K context chasing
+    multi-user server
+    batching/concurrency
+    generic prompt-prefix cache trimming
+    wired-memory system tuning
     training a new MTP head
-
-Do not do AWQ/GPTQ unless DWQ fails early AND substantial useful time remains.
 
 ---
 
 # Machine-Readable Results
 
-Append meaningful runs to:
+Append to:
 
-    research/stage6/results.jsonl
+    research/stage7/results.jsonl
 
-Suggested fields:
+Recommended fields:
 
     timestamp
-    phase
     experiment_id
+    phase
     git_commit
 
     model_name
     model_path
-    payload_bytes
-    effective_bpw
-    quant_recipe
+    model_payload_bytes
+
+    calibration_train_hash
+    calibration_validation_hash
+    final_eval_hash
+
+    dwq_enabled
+    dwq_checkpoint
+    dwq_module_count
+    dwq_modules
+    dwq_lr
+    dwq_steps
+    dwq_train_loss_before
+    dwq_train_loss_after
+    dwq_validation_loss_before
+    dwq_validation_loss_after
+
+    mtp_enabled
+    mtp_precision
+    mtp_payload_bytes
+    mtp_draft_width
+    mtp_proposed_tokens
+    mtp_accepted_tokens
+    mtp_acceptance_rate
+    mtp_exact_match
 
     suite_name
-    suite_hash
     case_id
     category
     objective_pass
-    finish_reason
-    early_eos
-    repetition
     structured_valid
+    finish_reason
 
     nll
     kl
@@ -923,172 +1034,207 @@ Suggested fields:
     context_tokens
     suffix_tokens
     generated_tokens
-
     prompt_tps
     ttft_seconds
     decode_tps
 
     active_memory_bytes
     cache_memory_bytes
-    active_plus_cache_bytes
     peak_memory_bytes
     rss_bytes
     swap_used_bytes
 
-    mtp_enabled
-    mtp_payload_bytes
-    mtp_acceptance_rate
-
-    dwq_enabled
-    dwq_layers_refined
-    dwq_loss_before
-    dwq_loss_after
+    agent_task_id
+    agent_task_success
+    agent_partial_score
+    agent_turns
+    agent_tool_calls
+    agent_invalid_tool_calls
 
     classification
     exception
     safety_stop_reason
 
-Use null if unavailable.
+Use null for unavailable fields.
 
-Never invent measurements.
+Never invent data.
 
 ---
 
-# Final Report Must Answer
+# Suggested Commits
 
-1. Were Q1/Q2/Q3 successfully recovered/preserved?
+Prefer logical commits:
 
-2. What truncation/scoring defects were corrected in heldout_v2?
+    benchmark: define diversity-aware Qwen3.8 DWQ calibration
+    feat: productionize bounded Qwen3.8 DWQ harness
+    experiment: scale bounded DWQ across sensitive modules
+    experiment: measure DWQ calibration robustness
+    benchmark: evaluate bounded-DWQ Qwen3.8 quality
+    benchmark: validate DWQ Qwen3.8 runtime
+    research: map Qwen3.8 MTP architecture
+    experiment: implement exact Qwen3.8 MTP prototype
+    experiment: quantize Qwen3.8 MTP weights
+    benchmark: measure Qwen3.8 MTP decode
+    benchmark: evaluate Qwen3.8 coding-agent tasks
+    feat: integrate Stage 7 Qwen3.8 runtime modes
+    docs: summarize Qwen3.8 Stage 7
 
-3. What is the corrected held-out suite hash?
+Do not commit model weights.
 
-4. How does Q1 compare with g128 on:
-       V2 quality
-       heldout_v2
-       NLL/KL
-       8K
-       12K
-       16K
+---
 
-5. Was Q2 tested?
-   Why or why not?
+# FINAL_REPORT.md Must Answer
 
-6. Was Q3 tested?
-   Why or why not?
+1. What Stage 7 calibration train/validation sets were created?
 
-7. What is the final fixed-weight Pareto frontier?
+2. Are they materially more diverse than Stage 5 calibration?
 
-8. Is KL ranking numerically reproducible on identical calibration data?
+3. What teacher/student baseline gap exists on train vs validation?
 
-9. How robust is the ranking across calibration subsets?
+4. Was the Stage 6 bounded DWQ result reproduced?
 
-10. Was bounded DWQ implemented?
+5. What learning rate/steps were stable?
 
-11. What memory did DWQ require?
+6. How many modules were successfully refined?
 
-12. Did DWQ reduce teacher/loss divergence?
+7. How did train loss change?
 
-13. Did DWQ improve actual held-out quality?
+8. How did validation loss change?
 
-14. What is the final DEFAULT model?
+9. Where did DWQ returns saturate?
 
-15. Is there a separate QUALITY MODE?
+10. Did diversity-aware calibration outperform narrow-domain calibration?
 
-16. Is there a separate PERFORMANCE/LONG-CONTEXT MODE?
+11. What is the best DWQ checkpoint?
 
-17. What are final 8K/12K/16K numbers?
+12. Did DWQ improve corrected heldout_v2?
 
-18. Is 20K practical?
+13. Did DWQ improve Quality Suite V2?
 
-19. Was 24K tested?
+14. Did DWQ improve NLL/KL/top-1?
 
-20. What context should the user actually use daily?
+15. Did DWQ improve real coding-agent task success?
 
-21. Was Qwen3.8 MTP implemented?
+16. Did DWQ change model payload or runtime materially?
 
-22. What MTP tensor precision/payload was used?
+17. What exact architecture do the 15 mtp.* tensors implement?
 
-23. What was MTP acceptance rate?
+18. Was a correct Qwen3.8 MTP decode prototype implemented?
+
+19. Was baseline greedy output preserved exactly?
+
+20. How was hybrid recurrent state handled during rejection/rollback?
+
+21. What MTP precision was tested?
+
+22. What was MTP payload overhead?
+
+23. What was MTP acceptance at short/4K/8K/16K?
 
 24. What was MTP decode speedup at 4K/8K/16K?
 
-25. Did MTP introduce a memory/residency cliff?
+25. Did MTP cause a long-context memory cliff?
 
-26. Did the real serialized agent smoke pass?
+26. Is MTP DEFAULT, optional, experimental, or rejected?
 
-27. What warm TTFT/decode did the agent backend show?
+27. How many real coding-agent tasks were tested?
 
-28. Are structured tool calls reliable?
+28. What was task success by model/mode?
 
-29. What exact CLI command should the user run TODAY?
+29. Were tool-role sequences valid?
 
-30. What exact server command should the user run TODAY?
+30. Are native structured tool calls reliable, or only serialized transport?
 
-31. What are the three best remaining Stage 7 ideas?
+31. What is the final DEFAULT checkpoint?
 
-Include tables:
+32. Is there a separate QUALITY MODE?
 
-### Final Weight Pareto
+33. Is there a separate ACCELERATED MODE?
 
-    model
-    size GiB
-    BPW
-    V2
-    heldout_v2
+34. What context is recommended daily?
+
+35. What exact CLI command should be used TODAY?
+
+36. What exact server command should be used TODAY?
+
+37. What are the highest-value remaining Stage 8 ideas?
+
+Include:
+
+### DWQ Table
+
+    checkpoint
+    modules refined
+    train loss
+    validation loss
+    held-out quality
     NLL/KL
+    payload
+    verdict
+
+### MTP Table
+
+    mode
+    MTP precision
+    extra GiB
+    acceptance
+    4K decode
     8K decode
     16K decode
-    role
+    exactness
+    verdict
 
-### Context Envelope
+### Agent Table
 
+    model/mode
+    tasks passed
+    tool errors
+    median warm TTFT
+    decode
+    verdict
+
+### Final Runtime Table
+
+    mode
+    model
     context
-    KV mode
+    decode
     warm TTFT
-    decode
     peak
-    verdict
-
-### Acceleration
-
-    baseline
-    MTP
-    payload overhead
-    acceptance
-    decode
-    correctness
-    verdict
+    role
 
 ---
 
 # Completion Condition
 
-Stage 6 is complete when:
+Stage 7 is complete when:
 
-- Q1 is fully evaluated;
-- Q2/Q3 are evaluated only as justified;
-- held-out truncation artifacts are corrected;
-- KL ranking repeatability is measured correctly;
-- bounded DWQ produces useful evidence or is safely rejected;
-- final weight-model roles are chosen;
-- 20K is evaluated if safe;
-- MTP is investigated if time permits;
-- real agent backend smoke is attempted;
+- a diverse DWQ train/validation protocol exists;
+- bounded DWQ has been scaled beyond the Stage 6 one-module proof or has been
+  safely rejected;
+- final DWQ held-out quality is known;
+- Qwen3.8 MTP architecture has been documented;
+- an MTP correctness prototype has been attempted if architecture support is
+  sufficient;
+- MTP performance has been measured if correctness passes;
+- real serialized coding-agent tasks have been run;
+- final runtime/model roles are selected;
 - FINAL_REPORT.md exists;
 - STATUS.md is current;
-- useful changes are committed.
+- useful work is committed.
 
-Do not start Stage 7 automatically.
+Do not start Stage 8 automatically.
 
-At the end return a concise summary with:
+At completion return a concise summary with:
 
     default model
-    Q1/Q2/Q3 verdicts
-    quality result
-    8K/12K/16K/20K result
     DWQ verdict
+    DWQ quality gain/loss
     MTP verdict
-    agent backend verdict
+    MTP 4K/8K/16K speedup
+    MTP memory overhead
+    coding-agent benchmark verdict
+    recommended context
     recommended CLI command
     recommended server command
     FINAL_REPORT path

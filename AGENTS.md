@@ -1,33 +1,38 @@
-# Qwen3.8 MLX Investigation — Stage 6 Project Instructions
+# Qwen3.8 MLX Investigation — Stage 7 Project Instructions
 
 This repository is an empirical engineering project for making Qwen3.8-27B
-a practical local model on an 18 GB Apple Silicon Mac.
+a strong practical local model on an 18 GB Apple Silicon Mac.
 
-Stage 6 starts from an unusual position:
+Stage 7 is no longer a broad quantization search.
 
-- the persistent runtime is already validated;
-- g128 is already a strong practical default;
-- Stage 5 produced a much better end-to-end KL-guided quantization ranking;
-- three fixed-budget candidate checkpoints (Q1/Q2/Q3) were physically created;
-- Stage 5 then stopped because macOS swap pressure became too high to continue
-  trustworthy heavy benchmarking.
+Stages 3-6 established a stable practical baseline:
 
-Stage 6 must therefore NOT begin by inventing new candidates.
+- exact-suffix persistent chat is correct;
+- g128 is the best static-weight Pareto point found so far;
+- adding more static precision through g64, mixed34, RMS-guided, and KL-guided
+  Q1 did not beat g128 overall;
+- 16K is a practical long-context mode on g128;
+- 20K works as an upper clean-host envelope;
+- bounded DWQ produced a real local and end-to-end improvement on one sensitive
+  module;
+- Qwen3.8 source contains real MTP tensors, but there is no validated Qwen3.8
+  MTP decode path in the pinned runtime;
+- a serialized single-user agent backend exists and has passed a real multi-turn
+  27B smoke.
 
-Its first job is to exploit and evaluate the expensive Stage 5 artifacts under
-a clean post-reboot memory state.
+Stage 7 should therefore spend its time on the two remaining high-upside
+directions:
 
-The main engineering questions are:
+1. bounded, diversity-aware DWQ / teacher-guided refinement WITHOUT increasing
+   the static model payload;
+2. a correct Qwen3.8 MTP decode path that may improve decode throughput.
 
-1. Does Q1 actually beat g128 on the practical Pareto frontier?
-2. If not, does Q2 or Q3?
-3. Is the Stage 5 KL-guided ranking genuinely predictive and reproducible?
-4. Can bounded DWQ materially improve the winning low-bit model?
-5. Can MTP materially improve decode without destroying the memory advantage?
-6. Is the serialized agent backend ready for real use?
-7. What is the final recommended context/runtime configuration?
+A third practical objective is:
 
-Do not treat Stage 6 as another open-ended quantization search.
+3. validate the final runtime in real coding-agent/tool-use workloads rather
+   than only synthetic chat prompts.
+
+Do not reopen solved questions without contradictory evidence.
 
 ---
 
@@ -38,32 +43,33 @@ Primary machine:
 - MacBook Pro
 - Apple M3 Pro
 - 18 GB unified memory
-- macOS 15.7.8
+
+The project is constrained by unified-memory residency, not disk size alone.
 
 Priority order:
 
 1. correctness;
 2. system stability;
-3. practical quality;
-4. sustained decode throughput;
-5. useful context;
-6. warm TTFT;
-7. model size.
+3. practical task quality;
+4. sustained 8K-16K decode throughput;
+5. persistent warm-turn latency;
+6. model/runtime memory;
+7. cold-prefill performance.
 
-Stage 5 demonstrated that a model can look good at 8K and still hit a serious
-decode cliff at ~16K.
+A speed optimization that makes 16K unusable is not a general win.
 
-Therefore long-context decode is a first-class selection criterion.
+A quality optimization that only improves calibration loss but not held-out
+behavior is not a production win.
 
 ---
 
 ## Canonical Environment
 
-Use ONLY:
+Use:
 
     envs/mlx-0.32.1
 
-Canonical prefix:
+Canonical command prefix:
 
     uv run --project envs/mlx-0.32.1 --no-sync ...
 
@@ -83,12 +89,15 @@ Do NOT:
     uv update
     uvx
 
-Do not silently upgrade canonical MLX/mlx-lm.
+Do not silently mutate or upgrade the canonical runtime.
 
-Current upstream may be inspected for algorithm/reference purposes.
+Current upstream source may be inspected for algorithms and architecture.
 
-If a newer implementation must be experimentally compared, isolate it outside
-the canonical environment.
+If a newer upstream implementation must be executed experimentally, use an
+isolated checkout/environment and keep the canonical baseline unchanged.
+
+Any Stage 7 production recommendation must still be reproducible from a clearly
+identified environment/revision.
 
 ---
 
@@ -104,7 +113,9 @@ Never call:
 
 in the canonical runtime.
 
-Do not change any equivalent GPU/wired-memory system setting.
+Do not change equivalent system GPU/wired-memory limits.
+
+Never run two large Qwen/MLX jobs concurrently.
 
 Hard stop conditions:
 
@@ -112,674 +123,825 @@ Hard stop conditions:
 - GPU timeout;
 - WindowServer/UI instability;
 - major machine unresponsiveness;
-- repeated allocation failure;
-- clearly exhausted swap/residency state;
-- uncontrolled memory growth.
+- repeated failed allocation;
+- severe unexplained memory growth;
+- near-exhausted swap where benchmark results are no longer trustworthy.
 
-Never run two large Qwen/MLX jobs concurrently.
+Do not deliberately reproduce a known unsafe state repeatedly.
 
----
-
-## Clean-Boot Requirement
-
-Stage 5 ended under severe swap pressure.
-
-Observed near the stop:
-
-    encrypted swap used ~12.2 GiB
-    swap free ~1.1 GiB
-
-Stage 6 benchmark conclusions are only trustworthy if the machine starts from a
-clean memory state.
-
-At Stage 6 start:
-
-1. inspect memory_pressure / vm_stat / swap usage;
-2. confirm no stale heavy MLX/Qwen processes;
-3. if the user has rebooted, record the clean baseline;
-4. if the machine is still in a badly polluted swap state, do not perform
-   headline benchmark comparisons until the state is clean.
-
-Do not try to "fix swap" with unsafe sysctls.
+Record a memory baseline before major benchmark phases.
 
 ---
 
-## Existing Canonical Models
+## Current Static-Weight Winner
 
-### g128 — current production default
+### g128
 
 Path:
 
     /Users/artem/models/Qwen3.8-27B-3bit-g128-MLX
 
+Quantization:
+
+    affine
+    3-bit
+    group_size = 128
+
 Payload:
 
     ~10.180 GiB
 
-Quant:
+Current role:
 
-    affine 3-bit
-    group_size 128
+    DEFAULT
 
-Validated approximate runtime:
+Representative validated runtime:
 
-    8K:
+    ~8K:
         warm TTFT ~1.1 s
         decode ~11.1 tok/s
         peak ~13.98 GiB
 
-    12K:
+    ~12K:
         warm TTFT ~1.1 s
         decode ~10.8 tok/s
         peak ~14.61 GiB
 
-    16K:
+    ~16K:
         warm TTFT ~1.2 s
         decode ~10.4-10.6 tok/s
         peak ~15.24 GiB
 
-Quality evidence entering Stage 6:
+    ~20K clean-host probe:
+        decode ~10.37 tok/s
+        warm follow-up TTFT ~0.72 s in that specific run
+        peak ~15.86 GiB
+        usable but not the recommended everyday context
 
-    approximately equal to g64 on corrected Stage 4/5 evidence
+Recommended practical context entering Stage 7:
 
-Current role:
+    12K-16K
 
-    DEFAULT unless Stage 6 proves a better candidate.
-
-### g64 — reference
-
-Path:
-
-    /Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7
-
-Payload:
-
-    ~10.963 GiB
-
-Role:
-
-    reference only unless new evidence unexpectedly shows a practical advantage.
-
-### mixed34 — long-context cautionary control
-
-Exact Stage 4/5 path must be recovered from artifacts.
-
-Payload:
-
-    ~10.665 GiB
-
-Stage 5 revalidated approximately:
-
-    16.7K decode ~4.9 tok/s
-
-while:
-
-    g128 ~10.6 tok/s
-
-with similar prefill throughput.
-
-Therefore mixed34 is NOT the current default.
-
-Keep it as a control for:
-
-    quality
-    memory-cliff behavior
-    bit-allocation comparisons
-
-Do not spend Stage 6 trying to rescue mixed34 unless a new mechanism directly
-explains the cliff.
+20K is an upper envelope, not the default daily setting.
 
 ---
 
-## Stage 5 Q1/Q2/Q3 Candidates
+## Static Quantization Search Is Considered Saturated
 
-Stage 5 physically created three KL-guided candidates.
+Previous serious static weight variants include:
 
-Expected temporary paths were:
+### g64
+- ~10.963 GiB
+- no convincing practical quality advantage over g128
+- worse memory headroom
 
-    /private/tmp/qwen38-stage5-Q1-kl-g128
-    /private/tmp/qwen38-stage5-Q2-kl-g128
-    /private/tmp/qwen38-stage5-Q3-kl-g128
+### mixed34
+- ~10.665 GiB
+- no convincing held-out quality advantage
+- reproducible severe ~16K decode cliff
 
-The user may have moved them to persistent storage before Stage 6.
+### Stage 4 RMS-guided mixed quant
+- local module distortion ranking did not predict end-to-end model quality well
+- rejected
 
-Recover exact paths from:
+### Stage 5 KL-guided Q1
+- ~10.327 GiB
+- coherent and operational
+- worse corrected quality evidence than g128
+- worse teacher-forced NLL/top-1
+- slightly heavier and slightly slower
+- rejected as default
 
-    research/stage5/STATUS.md
-    research/stage5/RESULTS.md
-    research/stage5/results.jsonl
-    research/stage5/FINAL_REPORT.md
-    filesystem inspection
+### Q2/Q3
+- larger KL-guided candidates existed
+- Stage 6 correctly did not spend heavy evaluation time on them after Q1 failed
+  to improve the Pareto frontier
 
-Approximate properties:
+Therefore Stage 7 must NOT create another generic mixed-bit frontier.
 
-### Q1
-
-    +150 MiB vs g128
-    payload ~10.327 GiB
-    effective BPW ~3.298
-    ~112 promoted 4-bit modules
-
-Stage 5 short smoke:
-
-    coherent
-    decode ~11.7 tok/s in that specific short test
-    peak ~10.64 GiB
-
-This was NOT a complete performance/quality validation.
-
-### Q2
-
-    +300 MiB
-    payload ~10.473 GiB
-    effective BPW ~3.345
-    ~137 promoted modules
-
-Created but not properly evaluated.
-
-### Q3
-
-    +450 MiB
-    payload ~10.619 GiB
-    effective BPW ~3.392
-    ~161 promoted modules
-
-Created but not properly evaluated.
-
-These candidates are the highest-priority Stage 6 artifacts.
-
-Do not recreate them if intact.
+New static weight quantization is allowed only if a DWQ/MTP experiment requires
+a specific support artifact.
 
 ---
 
-## Candidate Preservation Rule
+## Corrected Quality Evidence
 
-Before any heavy benchmark:
+Stage 6 repaired Stage 5 held-out truncation/scoring defects.
 
-- verify Q1/Q2/Q3 directories exist;
-- verify config/tokenizer/weights are complete;
-- calculate payload size;
-- optionally hash manifests/recipes;
-- if candidates still live under /private/tmp and persistent disk space is
-  available, move/copy them to a stable user model directory before proceeding.
+The corrected suite increased generation budget for cases where a correct answer
+had been cut before an obligatory final sentinel.
 
-Preferred stable form:
+Important lesson:
 
-    /Users/artem/models/stage5-frontier/...
+> max-token truncation is not a clean semantic failure.
 
-Do not delete or overwrite them until Stage 6 final conclusions are written.
+Always record:
 
-Do not commit weights to git.
+    finish reason
+    generated token count
+
+Manually inspect surprising failures.
+
+Entering Stage 7, g128 had the strongest combined practical evidence among the
+tested static checkpoints.
+
+Do not rewrite expected answers based on a candidate's output.
 
 ---
 
-## Stage 5 KL-Guided Sensitivity Result
+## KL Sensitivity Result
 
-Stage 5 performed an expensive end-to-end sensitivity sweep:
+Stage 5 performed an expensive end-to-end 3-bit -> 4-bit module-promotion
+sensitivity sweep over all 498 quantizable modules.
 
-    498 / 498 quantizable modules
-    12 calibration cases
-    ~477 target tokens
-    ~4579 seconds wall
-    peak ~14.48 GiB
+The Stage 6 reproducibility study separated two concepts correctly.
 
-The method evaluated the end-to-end logit/KL effect of temporarily promoting a
-module from 3-bit to 4-bit relative to the g64/reference teacher.
+### Same-data numerical reproducibility
 
-This was substantially different from Stage 4 RMS sensitivity.
+On the same calibration set:
 
-Observed Stage 4-vs-Stage 5 ranking relation:
+    Spearman = 1.0
+    Pearson = 1.0
+    top-10 overlap = 10/10
+    top-25 overlap = 25/25
+    sign agreement = 100%
+    score deltas = zero in the reported repeat
 
-    top-25 overlap ~1 / 25
-    Spearman around -0.12
+Conclusion:
 
-This strongly suggests Stage 4 local-RMS sensitivity was optimizing the wrong
-proxy.
+    the implemented ranking is deterministic/reproducible on the same data.
 
-Stage 5 aggregate evidence suggested linear-attention modules were especially
-important.
+### Cross-calibration robustness
 
-Approximate mean KL recovery by family:
+On a different calibration subset:
 
-    linear_attn > self_attn > MLP
+    ranking correlation was much lower
+    overlap degraded
+    sign agreement degraded
 
-with several high-ranked:
+Conclusion:
 
+> calibration composition, not numerical nondeterminism, is now the major
+> sensitivity issue.
+
+This is central to Stage 7 DWQ work.
+
+---
+
+## Diversity-Aware Calibration Philosophy
+
+Stage 7 must not train/refine against a narrow set of only arithmetic or only
+coding prompts.
+
+Build a compact but diverse CALIBRATION corpus separate from final held-out
+evaluation.
+
+Calibration should cover representative daily usage:
+
+- code reasoning/debugging;
+- code modification/patch planning;
+- structured output;
+- factual/context retrieval from supplied text;
+- general reasoning;
+- instruction following;
+- tool/agent transcripts;
+- prose/continuity.
+
+Use deterministic local inputs.
+
+Do not use live web text during optimization.
+
+Do not use the final held-out evaluation set as DWQ training/calibration data.
+
+Maintain explicit hashes.
+
+A useful objective is not merely mean calibration loss. Track per-domain
+improvement and detect regressions.
+
+---
+
+## DWQ Stage 6 Proof
+
+Stage 6 implemented a bounded real refinement on one highly sensitive module.
+
+Representative result:
+
+    layer 60
     linear_attn.in_proj_a
-    linear_attn.in_proj_b
 
-especially in selected mid/late layers.
+With a small stable learning rate:
 
-Treat exact rankings as artifact-derived facts; inspect the saved JSON rather
-than relying on this summary.
+    local MSE:
+        ~0.253556 -> ~0.218637
+        ~13.8% reduction
 
----
+    end-to-end teacher KL:
+        ~0.091406 -> ~0.090705
+        positive improvement
 
-## Sensitivity Reproducibility Caveat
+Memory:
 
-Stage 5 reported a low/modest ranking correlation from a second smaller run, but
-that run used a DIFFERENT calibration subset.
+    peak MLX ~10.68 GiB
 
-Therefore it did NOT prove numerical nondeterminism.
+The full teacher model was NOT resident simultaneously.
 
-It mostly measured calibration-set dependence.
+This proves:
 
-Stage 6 should separately test:
+> bounded teacher-guided refinement can work on this 18 GB machine.
 
-1. same calibration set, same modules, repeated measurement;
-2. different calibration subset robustness.
+It does NOT yet prove:
 
-Do not conflate these.
+- whole-model DWQ quality improvement;
+- optimal optimizer hyperparameters;
+- how many modules should be refined;
+- whether local MSE improvement reliably predicts held-out end-to-end gains.
 
----
-
-## Stage 5 Held-Out Quality Caveat
-
-The Stage 5 held-out suite was useful but still contained some max-token
-truncation artifacts.
-
-Examples found in raw inspection:
-
-- a model computed the correct arithmetic result but failed because generation
-  stopped before an obligatory `Final: ...` sentinel;
-- multiple models reached the correct version/state but were truncated before
-  printing the exact final marker.
-
-Therefore raw formal scores such as:
-
-    17/21
-    18/21
-
-must NOT be treated as unquestionable quality differences.
-
-Stage 6 must repair the affected scoring/generation budgets BEFORE using this
-suite to decide Q1/Q2/Q3.
-
-Do not rebuild the entire held-out set unnecessarily.
-
-Correct the known truncation defects symmetrically for ALL models.
+Stage 7 must scale this carefully.
 
 ---
 
-## Persistent Runtime
+## DWQ Objective
 
-Exact-suffix persistent chat is validated.
+The ideal Stage 7 quality result is:
 
-Do not re-investigate cache correctness.
+> improve g128 quality while keeping the same static weight payload class.
 
-Use existing:
+Do not increase the model from ~10.18 GiB merely to call DWQ successful.
 
-    research/runtime/qwen38_chat.py
+Primary student:
 
-or the current renamed/equivalent runtime.
+    g128
 
-The runtime must:
+A DWQ-refined checkpoint may have tiny metadata differences but should remain
+essentially in the same payload class.
 
-- preserve canonical chat template;
-- use exact suffix;
-- never force wired-limit settings;
-- keep one conversation/cache;
-- support reset.
+Primary teacher target:
 
----
+    whichever reference gives the most meaningful and memory-safe quality
+    target, likely g64 or bounded high-precision source behavior
 
-## Agent Backend
-
-Stage 5 created:
-
-    research/runtime/qwen38_agent_server.py
-
-or an equivalent final path.
-
-It includes a serialized OpenAI-compatible API and protocol/runtime tests.
-
-Expected functionality:
-
-    /v1/chat/completions
-    /v1/models
-    /health
-    /metrics
-    session reset
-    system/user/assistant/tool roles
-    single active inference
-
-Stage 5 had protocol/unit tests but did NOT complete a full real 27B multi-turn
-agent integration smoke because of the swap safety gate.
-
-Stage 6 should validate it for real.
-
-Do not add concurrency/batching.
+Use evidence, not assumption.
 
 ---
 
-## Stage 5 DWQ Status
+## DWQ Optimization Rules
 
-Naive whole-model DWQ is not memory-safe.
+Do not optimize every module immediately.
 
-Approximate impossible/simple residency examples:
+Use a staged set:
 
-    BF16 teacher + g128 student ~61.9 GiB weights alone
+    top-N sensitive modules first
 
-    g64 teacher + g128 student ~21.1 GiB weights alone
+Potential progression:
 
-before activations/optimizer state.
+    4 modules
+    8 modules
+    16 modules
+    32 modules
 
-However a synthetic bounded/local DWQ test showed actual improvement:
+Exact counts should be driven by results and time.
 
-    MSE ~0.8813 -> ~0.7180
-    ~18.5% reduction
+At each step evaluate:
 
-Therefore bounded/layer-streamed DWQ remains plausible.
+    calibration teacher loss
+    validation teacher loss
+    small held-out task subset
+    runtime/model integrity
 
-Stage 6 may invest substantially in it, but only after Q1/Q2/Q3 evaluation.
+Stop adding modules if:
+
+    held-out metrics stop improving
+    calibration improves but validation worsens
+    optimizer becomes unstable
+    runtime time exceeds useful remaining window
+
+Do not assume monotonic gains.
 
 ---
 
-## MTP Status
+## DWQ Overfitting Protection
 
-Stage 5 statically found real MTP tensors in the original Qwen3.8 source:
+Split optimization data:
+
+    DWQ train calibration
+    DWQ validation calibration
+    final held-out evaluation
+
+Do not use final held-out cases to tune:
+
+    learning rate
+    module count
+    step count
+    ranking selection
+
+For each refinement stage record:
+
+    train loss before/after
+    validation loss before/after
+    per-domain metrics
+    final held-out only when a candidate passes internal gates
+
+If train improves and validation degrades:
+
+    classify overfit.
+
+---
+
+## DWQ Stability
+
+Stage 6 observed that a much larger learning rate could diverge to infinity.
+
+Therefore use conservative optimization.
+
+Always:
+
+- dry-run one module;
+- watch finite loss/gradients;
+- save intermediate artifacts safely;
+- have a rollback path;
+- validate output after each refinement group.
+
+Do not overwrite the canonical g128 checkpoint.
+
+Create a separate refined model path.
+
+Do not continue training after NaN/Inf.
+
+---
+
+## MTP Source Status
+
+Stage 6 confirmed real MTP tensors exist in the original Qwen3.8 source.
+
+Observed:
 
     15 mtp.* tensors
     BF16
     ~849,398,784 bytes
     ~0.791 GiB
 
-The current text-only conversion/runtime excludes or does not use them.
+They represent substantial model structure, not merely a trivial small output
+head.
 
-Pinned runtime has no proven native Qwen3.8 MTP decode path.
+The current text-only MLX conversion/runtime does not provide a validated
+Qwen3.8 MTP decode path.
 
-This means:
-
-    MTP is physically present in the source
-    but implementation compatibility is still unresolved.
-
-Stage 6 may investigate/implement it after the main quant frontier is settled.
-
-Do not train a new MTP head.
+Stage 7 may invest serious effort in implementing one.
 
 ---
 
-## Quantization Philosophy for Stage 6
+## MTP Rules
 
-Do NOT create another broad fixed-budget frontier unless Q1/Q2/Q3 evidence
-clearly demands it.
+Do not guess the architecture from tensor names alone.
 
-Stage 6 selection order is:
+Before runtime implementation:
 
-    Q1 first
+1. inspect original Qwen3.8 config;
+2. inspect tensor names and shapes;
+3. inspect official/reference model code if locally available or current
+   upstream source;
+4. inspect related Qwen3.x MTP implementations;
+5. derive the exact computation graph;
+6. derive acceptance/cache semantics.
 
-If Q1 is clearly better than g128:
+Document the derivation.
 
-    validate thoroughly
-    then test Q2 only if it can plausibly improve quality without crossing the
-    long-context cliff
+If no trustworthy architecture/reference can be established:
 
-If Q1 is clearly worse:
-
-    test Q2 only if the failure mode plausibly improves with more promoted
-    modules
-
-If Q1 is equal quality but slower/larger:
-
-    g128 remains winner; Q2/Q3 require a strong reason.
-
-Do not automatically benchmark all three merely because they exist.
+    do not invent one.
 
 ---
 
-## Decision Standard
+## MTP Correctness
 
-A candidate must improve the Pareto frontier, not one metric.
+MTP/speculative decoding is only useful if the base model distribution is
+preserved according to the chosen algorithm.
 
-A meaningful win could be:
+For greedy baseline:
 
-### Quality win
+If the implementation is intended to be exact speculative decoding:
 
-Same practical runtime as g128 but measurably better held-out quality.
+    output tokens must match baseline greedy token-for-token.
 
-### Runtime win
+If a different approximation is implemented:
 
-Same quality but faster or safer at useful context.
+    label it clearly;
+    do not call it exact MTP acceleration.
 
-### Context win
+Measure:
 
-Same quality and speed class but more long-context headroom.
+    proposal tokens
+    accepted tokens
+    acceptance rate
+    fallback/rejection behavior
 
-A candidate that is only:
-
-    +150 MiB
-    same quality
-    same speed
-
-is not a meaningful default improvement.
+Always test token identity before speed.
 
 ---
 
-## Performance Evaluation
+## MTP Memory
 
-For candidate selection, emphasize:
+Raw BF16 MTP payload ~0.791 GiB is large on an 18 GB machine.
 
-    4K smoke
-    8K practical
-    12K useful long context
-    16K decisive long context
+Therefore investigate quantized MTP weights.
 
-At 16K use fresh-process repeats where needed.
+Estimate/test where supported:
 
-Record:
+    8-bit
+    4-bit
+    3-bit
 
-    prompt throughput
-    TTFT
-    decode tok/s
-    active
-    cache
-    active+cache
+The main base model should remain g128 unless DWQ winner replaces it.
+
+Do not automatically keep BF16 MTP resident at 16K.
+
+A good Stage 7 MTP result could be:
+
+    4-bit MTP
+    ~0.2 GiB-class payload
+    substantial acceptance/speedup
+    no 16K memory cliff
+
+The exact numbers must be measured.
+
+---
+
+## MTP Evaluation Contexts
+
+Order:
+
+    tiny correctness prompt
+    4K
+    8K
+    16K
+
+Do not jump to 16K first.
+
+At each context record:
+
+    baseline decode
+    MTP decode
+    speedup
+    acceptance
+    active/cache
     peak
     RSS
-    memory_pressure
+    correctness
 
-A repeatable decode cliff is disqualifying for default long-context use unless
-quality gains are large enough to justify a separate role.
+A 4K-only speedup is not enough for general DEFAULT.
 
----
+Classify:
 
-## Quality Evaluation
-
-Use:
-
-1. corrected Stage 4 Quality Suite V2;
-2. corrected Stage 5 held-out suite;
-3. teacher-forced NLL/KL subset;
-4. selected coding/retrieval cases;
-5. objective checks;
-6. supplementary blind subjective comparison where useful.
-
-Avoid:
-
-    magic-keyword scoring
-    insufficient generation caps
-    evaluation leakage
-
-Always record finish reason.
-
-A max-token-truncated answer must not be counted as a clean semantic failure
-without inspection.
+    PRACTICAL DEFAULT
+    OPTIONAL SHORT-CONTEXT MODE
+    EXPERIMENTAL
+    UNSUPPORTED
 
 ---
 
-## DWQ Philosophy
+## Agent Backend Status
 
-If a final Q1/Q2/g128 winner emerges, Stage 6 may attempt bounded refinement.
+A serialized single-user OpenAI-compatible backend exists.
 
-Primary objective:
+Expected path:
 
-> improve teacher/logit/loss agreement without increasing weight payload.
+    research/runtime/qwen38_agent_server.py
 
-Preferred targets:
+It has passed:
 
-    g128
-    OR
-    best KL-guided candidate
+- protocol/runtime tests;
+- a real 27B multi-turn serialized smoke;
+- system/user/assistant/tool-role transport;
+- persistent exact-suffix reuse;
+- reset/session behavior.
 
-Do not refine multiple weak candidates.
+Ordinary warm-turn TTFT was around sub-second to ~1 second in that specific
+smoke, with longer tool-result suffixes taking somewhat longer.
 
-At most TWO serious refined 27B artifacts.
+Do not claim that native autonomous structured tool calling is validated unless
+the model actually emitted/consumed the structured format correctly.
 
-Do not spend the whole stage implementing a theoretically perfect DWQ system.
-
-A bounded partial-layer or scale/bias refinement with measurable held-out
-benefit is a valid research result.
-
----
-
-## MTP Philosophy
-
-MTP is potentially one of the highest-impact remaining performance ideas.
-
-But it is gated because +0.791 GiB BF16 raw MTP weights are non-trivial on an
-18 GB machine.
-
-Required questions:
-
-1. what exactly are the 15 tensors?
-2. how are they used in Qwen3.8 reference inference?
-3. can they be quantized?
-4. what is the minimal runtime implementation?
-5. what acceptance rate is achieved?
-6. does the added residency destroy 16K performance?
-
-Do not call MTP a win based only on short-context speed.
+Stage 7 should test real task utility.
 
 ---
 
-## Context Expansion
+## Real Agent Evaluation
 
-After winner selection, Stage 6 may test:
+Synthetic "remember this token" chat is no longer sufficient.
 
-    20K
+Create a local coding-agent benchmark using small deterministic local fixtures.
 
-and, only if clearly safe:
+Useful tasks:
 
-    one 24K smoke
+- inspect a small repository;
+- identify a bug;
+- request a file;
+- receive tool output;
+- propose a patch;
+- receive test failure;
+- correct the patch;
+- summarize final changes.
 
-Never 32K.
+The model does NOT need permission to mutate the actual research repository for
+the benchmark.
 
-Use:
+Prefer isolated toy/snapshot repositories.
 
-    normal KV
-    optional KV8
+Measure:
 
-Activation quantization may be revisited only if Stage 5 did not already settle
-it and there is a concrete reason.
+    task success
+    tool-turn validity
+    number of exchanges
+    context growth
+    warm TTFT
+    decode
+    tool payload handling
+    recovery after incorrect hypothesis
+
+Compare final g128/DWQ winner where useful.
+
+Do not optimize DWQ directly against the final agent benchmark.
 
 ---
 
-## Research Memory
+## Context Recommendation
+
+Entering Stage 7:
+
+    12K-16K = practical daily range
+    20K = validated upper clean-host envelope
+
+Stage 7 does not need another context-length campaign.
+
+Re-test 16K only when a new DWQ or MTP mode changes residency/performance.
+
+20K may be retested only for the final selected mode if it materially differs
+from baseline.
+
+Do not test 24K/32K merely for novelty.
+
+---
+
+## Existing Runtime Correctness
+
+Exact-suffix persistent chat is solved infrastructure.
+
+Do not re-open cache correctness without contradictory evidence.
+
+Do not switch to generic server prefix caching or arbitrary cache trimming.
+
+Keep:
+
+    one serialized session
+    exact canonical transcript
+    exact suffix
+    direct generation path
+    default wired state
+
+---
+
+## Results and Project Memory
 
 Maintain:
 
-    research/stage6/PLAN.md
-    research/stage6/STATUS.md
-    research/stage6/RESULTS.md
-    research/stage6/results.jsonl
-    research/stage6/FINAL_REPORT.md
+    research/stage7/PLAN.md
+    research/stage7/STATUS.md
+    research/stage7/RESULTS.md
+    research/stage7/results.jsonl
+    research/stage7/FINAL_REPORT.md
 
-Before every major phase re-read:
+Before each major phase re-read:
 
     AGENTS.md
     TASK.md
-    research/stage6/STATUS.md
+    research/stage7/STATUS.md
 
 STATUS.md must include:
 
     current phase
-    current memory/swap baseline
-    Q1/Q2/Q3 preservation status
-    current candidate frontier
-    quality-suite corrections
-    current default
-    DWQ status
-    MTP status
-    agent-backend status
+    system memory baseline
+    current default checkpoint
+    DWQ train/validation corpus hashes
+    DWQ refined checkpoint status
+    MTP architecture status
+    MTP weight precision/status
+    current runtime Pareto
+    agent benchmark status
+    rejected hypotheses
     next action
+
+---
+
+## Experiment Discipline
+
+Each experiment must have:
+
+1. question;
+2. baseline;
+3. controlled variables;
+4. expected decision gate;
+5. raw artifacts;
+6. measured result;
+7. conclusion.
+
+Separate:
+
+    MEASURED FACT
+    INFERENCE
+    HYPOTHESIS
+
+Do not hide negative results.
+
+Do not silently retune after seeing final held-out results.
+
+---
+
+## Machine-Readable Logging
+
+Append meaningful runs to:
+
+    research/stage7/results.jsonl
+
+Useful fields include:
+
+    timestamp
+    phase
+    experiment_id
+    git_commit
+
+    model_name
+    model_path
+    model_payload_bytes
+    quant_recipe
+
+    dwq_enabled
+    dwq_module_paths
+    dwq_steps
+    dwq_lr
+    dwq_train_loss_before
+    dwq_train_loss_after
+    dwq_validation_loss_before
+    dwq_validation_loss_after
+
+    mtp_enabled
+    mtp_precision
+    mtp_payload_bytes
+    mtp_draft_tokens
+    mtp_accepted_tokens
+    mtp_acceptance_rate
+    mtp_exact_match
+
+    suite_name
+    suite_hash
+    case_id
+    category
+    objective_pass
+    structured_valid
+    finish_reason
+
+    nll
+    kl
+    top1_agreement
+
+    context_tokens
+    suffix_tokens
+    generated_tokens
+    prompt_tps
+    ttft_seconds
+    decode_tps
+
+    active_memory_bytes
+    cache_memory_bytes
+    active_plus_cache_bytes
+    peak_memory_bytes
+    rss_bytes
+    swap_used_bytes
+
+    agent_task_id
+    agent_turns
+    agent_tool_calls
+    agent_task_success
+
+    classification
+    exception
+    safety_stop_reason
+
+Use null when unavailable.
+
+Never invent values.
 
 ---
 
 ## Git Discipline
 
-Start with:
+Start:
 
     git status
     git log --oneline -30
 
-Preserve unrelated changes.
+Preserve unrelated modifications.
 
 Never:
 
     git reset --hard
     git clean -fd
+    discard unrelated work
 
 Do not commit:
 
     model weights
-    model cache
-    venvs
-    giant transient traces
+    HF cache
+    virtualenvs
+    giant temporary tensors
+    large activation caches
 
 Commit:
 
-    harness changes
-    corrected evaluation data
-    manifests
-    rankings
-    recipes
-    results
-    runtime/backend code
+    DWQ implementation
+    MTP implementation
+    calibration manifests/hashes
+    small evaluation fixtures
+    runtime changes
     tests
+    JSON/JSONL summaries
     reports
+
+Use focused logical commits.
 
 ---
 
 ## Autonomy
 
-Expected runtime:
+Expected Stage 7 window:
 
-    ~15 hours
+    approximately 10-15 hours
 
 Do not ask routine clarification questions.
 
-If a branch fails:
+If a branch is blocked:
 
-    record why
-    preserve evidence
-    move on if another independent high-value branch exists
+    record the reason
+    preserve useful evidence
+    continue with another independent high-value phase
 
-Do not burn hours reproducing the same failure.
+Do not spend the whole stage forcing MTP if architecture compatibility is not
+established.
 
-Do not automatically create Stage 7.
+Do not spend the whole stage training DWQ if validation stops improving.
+
+---
+
+## Explicitly Out of Scope
+
+Do NOT spend Stage 7 on:
+
+- uniform 2-bit;
+- mixed_2_6;
+- another static mixed-bit frontier;
+- Q1/Q2/Q3 resurrection;
+- generic uniform 4-bit;
+- MXFP4/NVFP4 sweep;
+- DSpark;
+- 24K/32K context records;
+- generic prefix-cache trimming;
+- multi-user batching;
+- parallel model serving;
+- system wired-memory tuning;
+- training a new MTP head from scratch.
+
+AWQ/GPTQ are also not priorities.
+
+Only inspect them if both primary Stage 7 branches finish early and evidence
+shows a concrete reason.
 
 ---
 
 ## Final Standard
 
-Stage 6 should answer:
+Stage 7 should answer:
 
-1. Is Q1 a better practical model than g128?
+1. Can bounded DWQ improve g128 on validation and final held-out evidence
+   without increasing model payload?
 
-2. If not, does Q2 or Q3 improve the Pareto frontier?
+2. How many sensitive modules should be refined before returns saturate?
 
-3. How reproducible is the KL-guided ranking on the SAME calibration data?
+3. Does diversity-aware calibration improve robustness over the narrow Stage 5
+   sensitivity setup?
 
-4. How robust is it across calibration subsets?
+4. Is the DWQ improvement real on coding/agent-style tasks?
 
-5. Does bounded DWQ improve the selected model?
+5. What exact Qwen3.8 MTP architecture is represented by the 15 source tensors?
 
-6. Does MTP work for Qwen3.8 and is it practical at 8K/16K?
+6. Can a correct MTP decode path be implemented?
 
-7. What is the recommended practical context?
+7. Can MTP weights be quantized safely?
 
-8. Does 20K work?
+8. What is MTP acceptance and speedup at 4K/8K/16K?
 
-9. Is the serialized agent backend validated with a real multi-turn 27B run?
+9. Does MTP trigger a long-context residency cliff?
 
-10. What exact model/runtime command should the user use TODAY?
+10. Does the real serialized coding-agent benchmark pass reliably?
+
+11. What exact model/runtime should be used TODAY?
+
+12. Is any future static-weight quant research still justified?
