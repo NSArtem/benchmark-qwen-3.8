@@ -1,12 +1,13 @@
 # Stage 7 Status
 
-Last updated: 2026-08-29 (Phase 1 teacher baseline complete)
+Last updated: 2026-08-29 (Phase 2 bounded DWQ reproduction complete)
 
 ## Current phase
 
-Phase 1 — diversity-aware calibration freeze and teacher/student baseline
-capture is complete. Stage 0 recovery is complete. The two teacher captures and
-one g128 metrics process completed safely; no DWQ optimization has started.
+Phase 2 — bounded DWQ primitive productionization and Stage 6 reproduction is
+complete. The reproduction loaded one source tensor at a time, stayed below
+10.887 GiB MLX peak, and finished with finite losses. Multi-module scaling has
+not yet started.
 
 ## System memory baseline
 
@@ -67,9 +68,16 @@ uses disjoint content for validation.
 
 ## DWQ refined checkpoint status
 
-None. The Stage 6 partial scales/biases artifact is retained only as recovery
-evidence; the canonical g128 model is untouched. No Stage 7 candidate has been
-selected.
+The resumable one-module patch
+`research/stage7/artifacts/dwq/reproduce-layer60.safetensors` is a research
+checkpoint for `language_model.model.layers.60.linear_attn.in_proj_a`; it is
+not yet a complete model directory or production candidate. The canonical
+g128 model is untouched. On the Stage 7 train split, local MSE was
+0.265708 -> 0.231171 (12.998% reduction), end-to-end KL was
+0.156752 -> 0.155615, and top-1 was 0.917526 -> 0.918814. On validation, KL
+was 0.142997 -> 0.142217 while top-1 was 0.918317 -> 0.915842. This is a
+positive reproduction direction with a small validation top-1 tradeoff, not a
+promotion decision.
 
 ## Teacher/student baseline on frozen Stage 7 calibration
 
@@ -119,6 +127,6 @@ deterministic coding-agent fixture/benchmark is pending.
 
 ## Next action
 
-Re-read the governing instructions and this status, then refactor/recover the
-bounded DWQ primitive. Reproduce the known layer-60 `in_proj_a` result on the
-Stage 7 train/validation split before any multi-module scaling.
+Re-read the governing instructions and this status, then pass the layer-60
+patch as the resume checkpoint into the top-4 gate. Stop before top-8 if
+validation or practical sanity worsens.

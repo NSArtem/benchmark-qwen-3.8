@@ -92,3 +92,46 @@ generalization claim.
 
 Productionize the Stage 6 streamed module optimizer and reproduce layer 60 on
 the new split before considering top-4 or broader refinement.
+
+## Phase 2 — reusable bounded DWQ and reproduction
+
+### MEASURED FACT
+
+- The reusable harness is `research/stage7/harness/run_bounded_dwq.py`. It
+  supports explicit module lists/ranking top-N, cumulative safetensor patch
+  checkpoints, resume from an earlier patch, deterministic case order,
+  bounded source loading, finite-gradient checks, conservative parameter
+  clipping, and train/validation metrics split by domain.
+- The known Stage 6 sensitive module was rerun on all 16 frozen Stage 7 train
+  cases (792 captured activation rows) with LR `1e-6`, 40 steps, and clip
+  fraction `0.25`. Local MSE reduced from 0.2657081783 to 0.2311711609
+  (12.998%). The run was finite and peaked at 10.886557 GiB MLX memory in
+  59.22 seconds.
+- Stage 7 train end-to-end KL changed from 0.1567515774 to 0.1556147865;
+  teacher-argmax NLL from 0.2851869464 to 0.2841425212; top-1 from
+  0.9175257732 to 0.9188144329.
+- Stage 7 validation KL changed from 0.1429969692 to 0.1422168810;
+  teacher-argmax NLL from 0.2775873937 to 0.2776506384; top-1 from
+  0.9183168317 to 0.9158415842. The validation KL improvement and top-1
+  decrease are both retained; neither is hidden by a mean-only score.
+- The cumulative one-module patch and raw result are under
+  `research/stage7/artifacts/dwq/reproduce-layer60.*`.
+
+### INFERENCE
+
+The Stage 6 local-refinement direction reproduced under a broader,
+eight-domain corpus and improved validation KL, supporting a cautious top-4
+continuation. The validation top-1 tradeoff means the module-count gate must
+remain multi-metric and can reject further scaling.
+
+### HYPOTHESIS
+
+The Stage 5 ranking may still identify useful modules, but independent
+module-local improvements may interfere when composed. A cumulative resume
+checkpoint is therefore safer than assuming additive gains.
+
+### Next gate
+
+Refine only ranks 2–4 on top of the saved layer-60 patch. Measure the complete
+top-4 state on train/validation and inspect domain deltas before attempting
+top-8.
