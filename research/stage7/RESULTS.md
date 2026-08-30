@@ -539,3 +539,33 @@ the explicit text protocol.
 The g128 serialized agent path passes the deterministic practical benchmark
 and remains the recommended agent model. The MTP and top-4 DWQ candidates are
 not included because they failed earlier correctness/quality/runtime gates.
+
+## Phases 12–13 — integration and final decision
+
+### MEASURED FACT
+
+- The canonical chat CLI and serialized agent server both expose the validated
+  g128 model path and ordinary greedy/exact-suffix runtime. No rejected DWQ
+  overlay, MTP weights, or unproven accelerated verifier was wired into either
+  production entry point.
+- Canonical py-compile checks, the three existing agent-server protocol tests,
+  the server protocol self-test, JSONL parsing, and `git diff --check` passed.
+- The final machine-readable decision was appended to
+  `research/stage7/results.jsonl`; the full report is
+  `research/stage7/FINAL_REPORT.md`.
+
+### INFERENCE
+
+Stage 7 has answered the required DWQ, MTP, and serialized-agent gates without
+justifying a new default mode. The practical recommendation remains g128 at
+12K–16K daily context.
+
+### HYPOTHESIS
+
+Future work should focus on fused, exact hybrid-state MTP verification and
+bounded agent continuation handling. These are hypotheses for a later stage,
+not Stage 7 integrations.
+
+### Gate decision
+
+Stage 7 is complete. No Stage 8 work was started automatically.

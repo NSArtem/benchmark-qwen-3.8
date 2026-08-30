@@ -1,10 +1,10 @@
 # Stage 7 Status
 
-Last updated: 2026-08-30 (Phase 11 coding-agent gate complete)
+Last updated: 2026-08-30 (Phase 13 final evidence inspection complete)
 
 ## Current phase
 
-Phase 5 is complete and rejected top-4 for production. Incremental DWQ scaling
+Stage 7 is complete. Phase 5 rejected top-4 for production. Incremental DWQ scaling
 stopped at top-8; top-4 remains the best internal validation checkpoint, but
 it loses one additional final heldout coding case and slightly worsens
 teacher-forced NLL. The fixed top-4 subset was also refined from two narrow
@@ -14,9 +14,9 @@ MTP prototype. Phase 9's single source-backed 4-bit MTP candidate passed the
 exactness gate. Phase 10 measured the sequential prototype at short/4K/8K,
 stopped its 16K run for safety, and rejected MTP for production. Phase 11 ran
 the final g128 serialized coding-agent benchmark: all four deterministic tasks
-passed with valid text-protocol tool calls and no protocol errors. Phase 12–13
-are documentation, regression, and final evidence inspection; Stage 8 will not
-start automatically.
+passed with valid text-protocol tool calls and no protocol errors. Phases 12–13
+completed the production exposure check, regression checks, raw evidence
+inspection, and final report. Stage 8 was not started.
 
 ## System memory baseline
 
@@ -230,8 +230,9 @@ retained as a protocol-length caveat, not a passing benchmark result.
   state and is not a safe optimization shortcut.
 - Sequential 4-bit MTP is slower than g128 at short/4K/8K and unsafe at 16K.
 
-## Next action
+## Final report and next action
 
-Complete Phase 12–13 regression checks and final evidence inspection, write
-`research/stage7/FINAL_REPORT.md`, append the final machine-readable summary,
-and stop. Do not integrate rejected DWQ/MTP modes or start Stage 8.
+Final report: `research/stage7/FINAL_REPORT.md`. The only production exposure
+is the canonical g128 chat/agent runtime. No DWQ overlay, MTP weights, or
+experimental verifier was integrated. Stage 7 is complete; stop here and do
+not start Stage 8 automatically.

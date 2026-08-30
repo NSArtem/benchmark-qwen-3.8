@@ -101,3 +101,11 @@ Stage 8.
 Every experiment must state its question, baseline, controlled variables,
 decision gate, raw artifact paths, measured result, and conclusion. Reports
 label `MEASURED FACT`, `INFERENCE`, and `HYPOTHESIS` explicitly.
+
+## Completion
+
+Stage 7 completed all gated branches. g128 remains DEFAULT; top-4 DWQ is
+rejected after final practical regression; 4-bit MTP is an exact short/4K/8K
+research prototype rejected for speed/residency; and the serialized g128
+coding-agent benchmark passed 4/4 deterministic tasks. Phase 12–13 report and
+regression work is complete. Stage 8 was not started.
