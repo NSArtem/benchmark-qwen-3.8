@@ -20,9 +20,12 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[3]
 SCALE_DIR = ROOT / "research/stage3/persistent-scaling/harness"
-if str(SCALE_DIR) not in sys.path:
-    sys.path.insert(0, str(SCALE_DIR))
+STAGE7_DIR = ROOT / "research/stage7/harness"
+for path in (SCALE_DIR, STAGE7_DIR):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 import run_scale as scale_utils  # noqa: E402
+from dwq_patch import apply_dwq_patch  # noqa: E402
 
 
 SUITE_ROOT = ROOT / "research/stage4"
@@ -112,6 +115,7 @@ def main() -> int:
     parser.add_argument("--split", choices=("calibration", "evaluation"), default="evaluation")
     parser.add_argument("--chunk-size", type=int, default=512)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--dwq-patch", default=None)
     args = parser.parse_args()
     started = time.perf_counter()
     suite_path = SUITE_ROOT / ("calibration/calibration_v2.jsonl" if args.split == "calibration" else "evaluation/evaluation_v2.jsonl")
@@ -129,6 +133,8 @@ def main() -> int:
         "case_ids": [item["case_id"] for item in specs],
         "chunk_size": args.chunk_size,
         "model": None,
+        "dwq_patch": str(Path(args.dwq_patch).resolve()) if args.dwq_patch else None,
+        "dwq_patched_modules": [],
         "cases": [],
         "exception": None,
     }
@@ -136,6 +142,7 @@ def main() -> int:
         mx, load, _generate_step, _make_prompt_cache, _make_sampler, _metadata = scale_utils.oracle_utils.load_runtime()
         model, tokenizer = load(args.model)
         result["model"] = scale_utils.oracle_utils.model_metadata(args.model)
+        result["dwq_patched_modules"] = apply_dwq_patch(model, args.dwq_patch)
         result["memory_after_model_load"] = scale_utils.oracle_utils.memory_snapshot(mx, "stage4_teacher_forced_after_model_load", started)
         for spec in specs:
             case_started = time.perf_counter()

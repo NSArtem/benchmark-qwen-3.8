@@ -22,9 +22,12 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[3]
 SCALE_DIR = ROOT / "research/stage3/persistent-scaling/harness"
-if str(SCALE_DIR) not in sys.path:
-    sys.path.insert(0, str(SCALE_DIR))
+STAGE7_DIR = ROOT / "research/stage7/harness"
+for path in (SCALE_DIR, STAGE7_DIR):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 import run_scale as scale_utils  # noqa: E402
+from dwq_patch import apply_dwq_patch  # noqa: E402
 
 
 G64_MODEL = "/Users/artem/.cache/huggingface/hub/models--lukaskremla--Qwen3.8-27B-3bit-MLX-TextOnly/snapshots/c98bba5926f51fec1c8d8737e577221673f524d7"
@@ -182,6 +185,8 @@ def run_model(args: argparse.Namespace) -> int:
         "case_count": len(specs),
         "selected_case_ids": [spec["case_id"] for spec in specs],
         "model": None,
+        "dwq_patch": str(Path(args.dwq_patch).resolve()) if args.dwq_patch else None,
+        "dwq_patched_modules": [],
         "cases": [],
         "exception": None,
         "overall_classification": None,
@@ -191,6 +196,7 @@ def run_model(args: argparse.Namespace) -> int:
         result["model"] = scale_utils.oracle_utils.model_metadata(args.model)
         result["os_memory_before"] = scale_utils.oracle_utils.os_snapshot()
         model, tokenizer = load(args.model)
+        result["dwq_patched_modules"] = apply_dwq_patch(model, args.dwq_patch)
         result["memory_after_model_load"] = scale_utils.oracle_utils.memory_snapshot(mx, f"stage4_{args.split}_{args.label}_after_model_load", started)
         for spec in specs:
             case_started = time.perf_counter()
@@ -293,6 +299,7 @@ def main() -> int:
     parser.add_argument("--split", choices=("calibration", "evaluation"), default="evaluation")
     parser.add_argument("--output-root", required=True)
     parser.add_argument("--case-ids", nargs="*", default=None)
+    parser.add_argument("--dwq-patch", default=None)
     args = parser.parse_args()
     return run_model(args)
 
