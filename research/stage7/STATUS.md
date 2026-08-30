@@ -1,6 +1,6 @@
 # Stage 7 Status
 
-Last updated: 2026-08-30 (Phase 7 MTP architecture gate complete)
+Last updated: 2026-08-30 (Phase 8 exact MTP correctness gate complete)
 
 ## Current phase
 
@@ -9,9 +9,8 @@ stopped at top-8; top-4 remains the best internal validation checkpoint, but
 it loses one additional final heldout coding case and slightly worsens
 teacher-forced NLL. The fixed top-4 subset was also refined from two narrow
 eight-case training selections; the diverse 16-case selection remains
-preferred internally. Phase 7 has now passed the MTP architecture gate using
-the source tensors and a local executable reference. Phase 8 correctness is
-the active branch.
+preferred internally. Phases 7–8 established and implemented a guarded exact
+MTP prototype. Phase 9's single 4-bit weight gate is now active.
 
 ## System memory baseline
 
@@ -170,10 +169,14 @@ must roll back both full-attention KV caches and linear/GatedDelta
 
 ## MTP weight precision/status
 
-No standalone artifact or runtime path yet. BF16 source payload is
-849,398,784 bytes / 0.791 GiB. Phase 8 will load it separately for correctness;
-4-bit conversion is gated on exactness and useful acceptance. No quantized MTP
-number has been claimed.
+The BF16 prototype loads the 15 source tensors separately; source and live
+payload are 849,398,784 bytes / 0.791 GiB. There is no standalone production
+artifact. On four short prompts, exact greedy token identity passed for every
+case and every explicit rejection rollback check passed. Per-case acceptance
+was coding 53.33%, reasoning 79.17%, prose 46.15%, and structured 86.36%.
+The BF16 MTP load raised active MLX memory from 10.1806 to 10.9717 GiB before
+decode caches. Phase 9 may create at most one source-backed 4-bit candidate;
+no quantized MTP precision has yet been measured.
 
 ## Current runtime Pareto
 
@@ -198,8 +201,7 @@ deterministic coding-agent fixture/benchmark is pending.
 
 ## Next action
 
-Implement the smallest exact-greedy MTP prototype against g128, beginning with
-short prompts and explicit rejection/rollback tests. Do not use final heldout
-or agent outputs to retune DWQ. If exactness fails, record the failure and
-move to the serialized agent benchmark without exposing MTP as a production
-mode.
+Create one 4-bit source-backed MTP candidate only if the exact BF16 gate remains
+the oracle. Re-run the same exactness/rollback prompts, measure payload and
+acceptance, and stop the MTP branch if 4-bit loses correctness or useful
+acceptance. Do not use final heldout or agent outputs to retune DWQ.

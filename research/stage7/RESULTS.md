@@ -351,3 +351,41 @@ rejection rollback are demonstrated.
 The source-trained MTP layer may propose enough matching tokens to amortize
 its extra full-attention forward on this g128 base. Acceptance and speed are
 unknown; no performance claim is made here.
+
+## Phase 8 — exact greedy MTP prototype
+
+### MEASURED FACT
+
+- The prototype is `research/stage7/harness/run_mtp_correctness.py`. It uses
+  g128 as the target, the separately loaded 15-tensor BF16 source MTP block,
+  and the pinned generator's split prefill schedule. It does not modify the
+  base model directory.
+- A first attempt that verified a hybrid recurrent batch in one call failed
+  identity and exposed a recurrent transition mismatch. The corrected
+  sequential target verification/replay path is retained in the source and
+  makes the baseline one-token transition explicit.
+- On coding, reasoning, prose, and structured short prompts, baseline and MTP
+  greedy token sequences matched exactly. All four cases passed every observed
+  explicit rejection rollback check, covering both KV and ArraysCache-backed
+  target state. There were zero harness exceptions.
+- The BF16 live payload is 849,398,784 bytes / 0.791 GiB. Active MLX memory was
+  10.1806 GiB after base load and 10.9717 GiB after MTP load, before decode
+  cache growth.
+- Per-case results were: coding 30 proposed / 16 accepted (53.33%), reasoning
+  24 / 19 (79.17%), prose 26 / 12 (46.15%), structured 22 / 19 (86.36%). The
+  raw correctness artifact is
+  `research/stage7/artifacts/mtp/correctness-bf16-v3/correctness.json`.
+
+### INFERENCE
+
+The corrected prototype establishes that the derived graph and source norm
+conversion can preserve exact greedy output on short prompts, including
+rejected speculative suffixes. This passes the Phase 8 correctness gate and
+justifies the one-candidate 4-bit precision experiment.
+
+### HYPOTHESIS
+
+The high variation in acceptance by domain may make the extra BF16 MTP
+residency and sequential prototype cost unattractive at long context. A
+4-bit MTP block may retain enough proposal quality to be useful, but this must
+be measured and exactness rechecked.
