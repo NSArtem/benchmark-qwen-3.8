@@ -169,16 +169,27 @@ def target_forward_sequential(
 
 
 def target_prefill_baseline_schedule(
-    mx: Any, target_inner: Any, input_ids: Any, cache: list[Any]
+    mx: Any,
+    target_inner: Any,
+    input_ids: Any,
+    cache: list[Any],
+    prefill_step_size: int = 2048,
 ) -> Any:
-    """Match pinned ``generate_step``: all-but-last prompt, then last token."""
+    """Match pinned ``generate_step``'s chunked prefill and final decode step."""
     if int(input_ids.shape[1]) == 0:
         return mx.zeros((1, 0, 5120), dtype=mx.bfloat16)
     hidden_parts = []
-    if int(input_ids.shape[1]) > 1:
-        prefix_hidden = target_inner(input_ids[:, :-1], cache=cache)
+    total = int(input_ids.shape[1])
+    processed = 0
+    while total - processed > 1:
+        remaining = total - processed - 1
+        n_to_process = min(int(prefill_step_size), remaining)
+        prefix_hidden = target_inner(
+            input_ids[:, processed : processed + n_to_process], cache=cache
+        )
         eval_cache(mx, cache, prefix_hidden)
         hidden_parts.append(prefix_hidden)
+        processed += n_to_process
     last_hidden = target_inner(input_ids[:, -1:], cache=cache)
     eval_cache(mx, cache, last_hidden)
     hidden_parts.append(last_hidden)
@@ -302,21 +313,28 @@ def mtp_greedy(
     draft: Any,
     prompt_ids: list[int],
     max_tokens: int,
+    batch_verify: bool = False,
 ) -> dict[str, Any]:
     """Run one exact-greedy MTP stream with explicit hybrid rollback."""
+    mtp_started = time.perf_counter()
     language_model = model.language_model
     target_inner = language_model.model
     target_head = language_model.lm_head
     target_cache = model.make_cache()
     prompt = mx.array(prompt_ids, dtype=mx.int32)[None, :]
+    target_prefill_started = time.perf_counter()
     hidden = target_prefill_baseline_schedule(mx, target_inner, prompt, target_cache)
+    target_prefill_seconds = time.perf_counter() - target_prefill_started
+    first_logits_started = time.perf_counter()
     first_logits = target_head(hidden[:, -1:, :])
     first_bonus = scalar(mx.argmax(first_logits, axis=-1).reshape(-1)[0])
+    first_logits_seconds = time.perf_counter() - first_logits_started
 
     eos_ids = {int(item) for item in (tokenizer.eos_token_ids or [])}
     generated = [first_bonus]
     draft.reset(model)
     if first_bonus in eos_ids or max_tokens <= 1:
+        decode_seconds = time.perf_counter() - mtp_started
         return {
             "token_ids": generated[:max_tokens],
             "token_hash": exact_hash(generated[:max_tokens]),
@@ -330,9 +348,23 @@ def mtp_greedy(
             "rollback_checks": 0,
             "rollback_exact": 0,
             "rollback_failures": [],
+            "timing": {
+                "total_seconds": decode_seconds,
+                "ttft_seconds": decode_seconds,
+                "target_prefill_seconds": target_prefill_seconds,
+                "first_logits_seconds": first_logits_seconds,
+                "draft_prefill_seconds": 0.0,
+                "proposal_seconds": 0.0,
+                "verify_seconds": 0.0,
+                "replay_seconds": 0.0,
+                "draft_update_seconds": 0.0,
+                "decode_seconds": 0.0,
+                "verification_mode": "batch" if batch_verify else "sequential",
+            },
         }
 
     hidden_for_bonus = hidden[:, -1:, :]
+    draft_prefill_started = time.perf_counter()
     draft.prefill_from_target_hidden(
         prompt,
         hidden,
@@ -341,6 +373,8 @@ def mtp_greedy(
         token_dtype=mx.int32,
         greedy=True,
     )
+    mx.synchronize()
+    draft_prefill_seconds = time.perf_counter() - draft_prefill_started
     draft.set_shared_kv({}, len(prompt_ids), position=max(len(prompt_ids) - 1, 0), kv_valid_len=len(prompt_ids))
 
     proposed_total = 0
@@ -354,8 +388,14 @@ def mtp_greedy(
     round_trace: list[dict[str, Any]] = []
     finish_reason = "length"
     bonus = first_bonus
+    proposal_seconds = 0.0
+    verify_seconds = 0.0
+    replay_seconds = 0.0
+    draft_update_seconds = 0.0
+    decode_started = time.perf_counter()
 
     while len(generated) < max_tokens:
+        proposal_started = time.perf_counter()
         draft_tokens = draft.draft_block(
             bonus,
             hidden_for_bonus,
@@ -366,6 +406,7 @@ def mtp_greedy(
             greedy=True,
         )
         draft_list = ids(draft_tokens)
+        proposal_seconds += time.perf_counter() - proposal_started
         if not draft_list:
             raise RuntimeError("MTP draft produced zero tokens")
         proposed_total += len(draft_list)
@@ -375,10 +416,16 @@ def mtp_greedy(
         verify_input = mx.concatenate(
             [mx.array([[bonus]], dtype=mx.int32), draft_tokens.astype(mx.int32)], axis=1
         )
-        verify_hidden = target_forward_sequential(mx, target_inner, verify_input, verify_cache)
+        verify_started = time.perf_counter()
+        if batch_verify:
+            verify_hidden = target_inner(verify_input, cache=verify_cache)
+            eval_cache(mx, verify_cache, verify_hidden)
+        else:
+            verify_hidden = target_forward_sequential(mx, target_inner, verify_input, verify_cache)
         verify_logits = target_head(verify_hidden)
         target_tokens = ids(mx.argmax(verify_logits, axis=-1))
         eval_cache(mx, verify_cache, verify_hidden)
+        verify_seconds += time.perf_counter() - verify_started
 
         accepted = 0
         while accepted < len(draft_list) and target_tokens[accepted] == draft_list[accepted]:
@@ -415,6 +462,7 @@ def mtp_greedy(
         # after the output budget/eos terminates the stream.
         if finish_reason == "eos" or len(generated) >= max_tokens:
             break
+        draft_update_started = time.perf_counter()
         draft.accept_verified_tokens(
             verify_hidden,
             draft_tokens,
@@ -424,20 +472,27 @@ def mtp_greedy(
             token_dtype=mx.int32,
             greedy=True,
         )
+        mx.synchronize()
+        draft_update_seconds += time.perf_counter() - draft_update_started
 
         hidden_for_bonus = verify_hidden[:, accepted : accepted + 1, :]
         if rejected:
             # The target verification cache contains bonus plus all drafts.
             # Recompute only bonus plus the accepted draft prefix from the
-            # pre-round snapshot.  This restores both KV and recurrent state;
-            # trimming only KV would be incorrect for Qwen3.8.
-            replay_cache = copy_cache(mx, before_verify)
+            # untouched pre-round cache.  ``verify_cache`` is a deep copy, so
+            # ``before_verify`` itself is already the rollback snapshot. This
+            # avoids a second full cache copy while restoring both KV and
+            # recurrent state; trimming only KV would be incorrect for Qwen3.8.
+            replay_started = time.perf_counter()
+            replay_cache = before_verify
+            del verify_cache
             replay_input = mx.array([[bonus] + draft_list[:accepted]], dtype=mx.int32)
             replay_hidden = target_forward_sequential(mx, target_inner, replay_input, replay_cache)
             eval_cache(mx, replay_cache, replay_hidden)
             target_cache = replay_cache
             rollback_checks += 1
             replay_next = scalar(mx.argmax(target_head(replay_hidden[:, -1:, :]), axis=-1).reshape(-1)[0])
+            replay_seconds += time.perf_counter() - replay_started
             if replay_next == next_bonus:
                 rollback_exact += 1
             else:
@@ -456,6 +511,7 @@ def mtp_greedy(
 
         bonus = next_bonus
 
+    decode_seconds = time.perf_counter() - decode_started
     return {
         "token_ids": generated[:max_tokens],
         "token_hash": exact_hash(generated[:max_tokens]),
@@ -471,6 +527,19 @@ def mtp_greedy(
         "rollback_exact": rollback_exact,
         "rollback_failures": rollback_failures,
         "round_trace": round_trace,
+        "timing": {
+            "total_seconds": time.perf_counter() - mtp_started,
+            "ttft_seconds": decode_started - mtp_started,
+            "target_prefill_seconds": target_prefill_seconds,
+            "first_logits_seconds": first_logits_seconds,
+            "draft_prefill_seconds": draft_prefill_seconds,
+            "proposal_seconds": proposal_seconds,
+            "verify_seconds": verify_seconds,
+            "replay_seconds": replay_seconds,
+            "draft_update_seconds": draft_update_seconds,
+            "decode_seconds": decode_seconds,
+            "verification_mode": "batch" if batch_verify else "sequential",
+        },
     }
 
 
@@ -489,6 +558,7 @@ def run(args: argparse.Namespace) -> int:
         "mtp_enabled": True,
         "mtp_precision": "bf16",
         "mtp_source_path": str(Path(args.source).resolve()),
+        "verification_mode": "batch" if args.batch_verify else "sequential",
         "cases": [],
         "exact_match": False,
         "rollback_exact": False,
@@ -514,7 +584,15 @@ def run(args: argparse.Namespace) -> int:
                 mx, generate_step, make_sampler, make_prompt_cache, model, tokenizer,
                 canonical["token_ids"], args.max_tokens,
             )
-            mtp = mtp_greedy(mx, model, tokenizer, draft, canonical["token_ids"], args.max_tokens)
+            mtp = mtp_greedy(
+                mx,
+                model,
+                tokenizer,
+                draft,
+                canonical["token_ids"],
+                args.max_tokens,
+                batch_verify=args.batch_verify,
+            )
             exact = baseline["token_ids"] == mtp["token_ids"]
             rollback_ok = not mtp["rollback_failures"] and mtp["rollback_checks"] == mtp["rollback_exact"]
             all_exact = all_exact and exact
@@ -567,6 +645,7 @@ def main() -> int:
     parser.add_argument("--max-tokens", type=int, default=DEFAULT_MAX_TOKENS)
     parser.add_argument("--experiment-id", default=None)
     parser.add_argument("--mtp-weights", default=None, help="Optional standalone quantized MTP model.safetensors")
+    parser.add_argument("--batch-verify", action="store_true", help="Use one target forward for each verified proposal block")
     return run(parser.parse_args())
 
 

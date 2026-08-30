@@ -1,6 +1,6 @@
 # Stage 7 Status
 
-Last updated: 2026-08-30 (Phase 9 4-bit MTP precision gate complete)
+Last updated: 2026-08-30 (Phase 10 MTP performance gate complete)
 
 ## Current phase
 
@@ -11,7 +11,9 @@ teacher-forced NLL. The fixed top-4 subset was also refined from two narrow
 eight-case training selections; the diverse 16-case selection remains
 preferred internally. Phases 7–8 established and implemented a guarded exact
 MTP prototype. Phase 9's single source-backed 4-bit MTP candidate passed the
-exactness gate; Phase 10 performance measurement is next.
+exactness gate. Phase 10 measured the sequential prototype at short/4K/8K,
+stopped its 16K run for safety, and rejected MTP for production. Phase 11 is
+next.
 
 ## System memory baseline
 
@@ -178,8 +180,10 @@ active overhead. On the same four short prompts, 4-bit exact greedy identity
 and every explicit rejection rollback check passed. Per-case acceptance was
 coding 69.23%, reasoning 76.92%, prose 39.29%, and structured 95.00%; total
 acceptance was 68/100 = 68.00%. Active MLX memory rose from 10.1806 GiB after
-base load to 10.3908 GiB after 4-bit MTP load. It is not a production mode
-until Phase 10 measures useful decode speed and long-context residency.
+base load to 10.3908 GiB after 4-bit MTP load. Phase 10 found exactness at
+short/4K/8K but decode ratios of 0.529x, 0.349x, and 0.238x versus fresh g128
+baselines. The 16K MTP attempt was safety-stopped during memory pressure
+before producing a result. MTP is research-only and rejected for production.
 
 ## Current runtime Pareto
 
@@ -190,10 +194,16 @@ until Phase 10 measures useful decode speed and long-context residency.
 | g128 normal KV | 16K | 10.4–10.6 tok/s | ~1.2 s warm reference | 15.236 GiB | practical upper daily |
 | g128 normal KV | 20K | 10.367 tok/s | 0.72 s follow-up in one run | 15.859 GiB | clean-host upper envelope |
 
+Phase 10 MTP performance (64-token budget, fresh processes): short 6.289
+tok/s at 12.287 GiB peak, 4K 4.070 tok/s at 13.621 GiB peak, and 8K 2.651
+tok/s at 15.456 GiB peak; all three were exact. The 16K MTP run was stopped
+at 28% free memory with rapidly rising swapouts and no completed output.
+
 ## Agent benchmark status
 
-Only the Stage 6 serialized transport smoke is recovered. The Stage 7
-deterministic coding-agent fixture/benchmark is pending.
+Phase 11 deterministic coding-agent fixture/benchmark is pending. The MTP
+branch is not in the candidate set because it failed the Phase 10 production
+gate; the agent run will use the final g128 default.
 
 ## Rejected hypotheses
 
@@ -201,10 +211,12 @@ deterministic coding-agent fixture/benchmark is pending.
 - Q1 did not beat g128; Q2/Q3 were correctly skipped by the Stage 6 gate.
 - Whole-model teacher/student DWQ residency is unsafe on this 18 GB host.
 - MTP cannot be implemented from tensor names alone.
+- The pinned-runtime batched MTP verifier is not exact on hybrid recurrent
+  state and is not a safe optimization shortcut.
+- Sequential 4-bit MTP is slower than g128 at short/4K/8K and unsafe at 16K.
 
 ## Next action
 
-Run Phase 10 fresh-process MTP performance at short context, 4K, 8K, and 16K
-using the validated 4-bit candidate. Record baseline/MTP speed, acceptance,
-exactness, cache/active/peak memory, and any safety stop. Do not use final
-heldout or agent outputs to retune DWQ.
+Run Phase 11's deterministic serialized coding-agent benchmark against g128.
+Measure task success, tool-turn validity, context growth, warm TTFT, decode,
+and recovery after a wrong hypothesis. Do not use agent outputs to retune DWQ.

@@ -421,3 +421,64 @@ performance/residency gate, not sufficient to promote MTP.
 Quantization may reduce proposal quality on some domains, but the short-gate
 acceptance increase relative to the BF16 sample is not evidence of a general
 speed advantage. Long-context verification and rollback cost remain unknown.
+
+## Phase 10 — MTP performance and residency gate
+
+### MEASURED FACT
+
+- Headline comparisons used separate fresh canonical-runtime processes, the
+  same g128 target, the same source-backed affine 4-bit/group-128 MTP model,
+  64 generated-token budgets, and baseline token files for exactness checks.
+  The MTP implementation was the sequential target-verification plus explicit
+  snapshot/replay path; the batched target shortcut was excluded after its
+  separate exactness probe failed.
+- The short prompt was 1,023 tokens, the 4K prompt 4,096, the 8K prompt 8,191,
+  and the 16K coding prompt 16,727 tokens. Results:
+
+| context | baseline TTFT | baseline decode | MTP TTFT | MTP decode | MTP/base ratio | accepted/proposed | exact | MTP peak |
+|---|---:|---:|---:|---:|---:|---:|---|---:|
+| short | 13.463 s | 11.898 tok/s | 13.580 s | 6.289 tok/s | 0.529x | 39/52 (75.00%) | yes | 12.287 GiB |
+| 4K | 53.098 s | 11.647 tok/s | 54.638 s | 4.070 tok/s | 0.349x | 29/68 (42.65%) | yes | 13.621 GiB |
+| 8K | 106.831 s | 11.147 tok/s | 112.819 s | 2.651 tok/s | 0.238x | 34/60 (56.67%) | yes | 15.456 GiB |
+| 16K | 241.185 s | 10.628 tok/s | safety stop | — | — | — | not reached | — |
+
+- Baseline peaks were 12.077 GiB, 13.360 GiB, 13.983 GiB, and 15.236 GiB at
+  short/4K/8K/16K. MTP peaks were 12.287 GiB, 13.621 GiB, and 15.456 GiB at
+  short/4K/8K; the 16K attempt did not complete. MTP active-plus-cache after
+  generation was 11.398 GiB, 11.394 GiB, and 12.481 GiB at the first three
+  contexts, versus 10.517 GiB, 10.645 GiB, and 11.390 GiB for baseline.
+- The 16K MTP process was stopped after a host snapshot showed 28% free
+  memory, 909 free pages, 544,794 pages occupied by the compressor, and
+  swapouts rising from 28,056,329 to 29,694,221 between checks. The host
+  recovered to 89% free after termination. No 16K output, acceptance, or
+  exactness claim is made. The raw safety record is
+  `research/stage7/artifacts/performance/mtp-4bit-g128-v1/16k-mtp-safety-stop.json`.
+- The raw per-process logs, including stage-separated proposal, verification,
+  replay, and target-prefill timings, are under
+  `research/stage7/artifacts/performance/mtp-4bit-g128-v1/`. The separate
+  batched-verification failure is under
+  `research/stage7/artifacts/mtp/correctness-4bit-g128-batch/`.
+
+### INFERENCE
+
+The exact sequential MTP prototype is slower than direct g128 decoding at
+short, 4K, and 8K contexts, with the deficit widening as context grows. Its
+snapshot/replay implementation also adds substantial cache pressure, and the
+16K attempt crossed the project safety gate. MTP is therefore rejected as a
+production DEFAULT, OPTIONAL SHORT-CONTEXT mode, or ACCELERATED MODE in this
+pinned runtime.
+
+### HYPOTHESIS
+
+The dominant loss is implementation cost rather than only proposal quality:
+the sequential verifier performs multiple one-token target transitions per
+round, and rejected rounds require recurrent plus attention state replay. A
+future fused verifier/rollback implementation could change this conclusion,
+but the failed batched exactness probe means that it cannot be assumed for
+Qwen3.8 today.
+
+### Gate decision
+
+MTP is retained as an exact research prototype and rejected for production.
+No MTP flag or MTP weights are integrated into the default chat or agent
+runtime.
