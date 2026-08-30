@@ -1,13 +1,14 @@
 # Stage 7 Status
 
-Last updated: 2026-08-30 (Phase 3 top-8 gate stopped)
+Last updated: 2026-08-30 (Phase 4 calibration-robustness gate complete)
 
 ## Current phase
 
-Phase 3 — incremental DWQ scaling is stopped at top-8. Top-4 is the best
-internal validation checkpoint. Adding ranks 5–8 caused a clear train and
-validation KL/NLL regression despite top-1 recovery, so top-16/top-32 are not
-being executed under the phase gate.
+Phase 4 is complete. Incremental DWQ scaling stopped at top-8; top-4 remains
+the best internal validation checkpoint. The fixed top-4 subset was also
+refined from two narrow eight-case training selections. The diverse 16-case
+selection remains preferred because it produced the lowest validation KL and
+teacher-argmax NLL. Final heldout evaluation is now the gate for promotion.
 
 ## System memory baseline
 
@@ -97,6 +98,28 @@ validation teacher-argmax NLL regressed 0.275873 -> 0.278951. Validation top-1
 recovered to 0.918317, which is not sufficient to override the KL/NLL
 regression. No top-16 or top-32 run was launched.
 
+The top-8 validation generation sanity artifact completed separately on all
+eight validation prompts with zero exceptions. Finish reasons and generated
+token counts were recorded; the length finishes were the same expected
+bounded-generation cases seen in the baseline/top-4 sanity checks.
+
+Phase 4 fixed-subset calibration robustness ablation:
+
+- Diverse top-4 used all 16 train cases (2 per domain): validation KL
+  `0.1368660092`, teacher-argmax NLL `0.2758729293`, top-1 `0.9133663366`.
+- Coding-heavy used coding, patch-reasoning, tool-agent, and structured cases
+  (8 train cases): validation KL `0.1409067689`, teacher-argmax NLL
+  `0.2775192461`, top-1 `0.9183168317`.
+- Reasoning-heavy used reasoning, retrieval, prose-continuity, and
+  instruction-following cases (8 train cases): validation KL `0.1420198095`,
+  teacher-argmax NLL `0.2791354904`, top-1 `0.9183168317`.
+
+All three ablations used the same eight-case validation split and the same
+four ranked modules, with no final heldout data. Both narrow selections
+improved their selected training subsets, but both validation teacher losses
+were worse than the diverse top-4 result. The narrow runs are retained as
+calibration-composition controls, not model candidates.
+
 Best internal DWQ candidate remains top-4; final heldout evaluation is still
 pending and no production promotion has been made.
 
@@ -148,6 +171,7 @@ deterministic coding-agent fixture/benchmark is pending.
 
 ## Next action
 
-Do not scale beyond top-8. Finish the rejected top-8 sanity artifact, then run
-the fixed small diverse-vs-coding-heavy-vs-reasoning-heavy calibration ablation
-on the top-4-sized subset without using final heldout cases.
+Run the internal-gated final quality evaluation for baseline g128 and the
+diverse top-4 patch, then derive the exact Qwen3.8 MTP graph from the source
+config/tensors/reference implementation before attempting any MTP generation
+code. Do not use final heldout outputs to retune DWQ.

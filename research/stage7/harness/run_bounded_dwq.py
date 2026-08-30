@@ -72,6 +72,20 @@ def read_teacher_manifest(path: Path) -> tuple[dict[str, Any], list[dict[str, An
     return manifest, cases
 
 
+def select_cases(
+    cases: list[dict[str, Any]], requested: list[str] | None, label: str
+) -> list[dict[str, Any]]:
+    if requested is None:
+        return cases
+    by_id = {str(case["case_id"]): case for case in cases}
+    missing = [case_id for case_id in requested if case_id not in by_id]
+    if missing:
+        raise KeyError(f"unknown {label} case IDs: {missing}")
+    if not requested:
+        raise ValueError(f"{label} case selection is empty")
+    return [by_id[case_id] for case_id in requested]
+
+
 def load_patch(path: Path | None, modules: dict[str, Any]) -> set[str]:
     if path is None:
         return set()
@@ -377,6 +391,8 @@ def main() -> int:
     parser.add_argument("--top-n", type=int, default=None)
     parser.add_argument("--module-paths", nargs="*", default=None)
     parser.add_argument("--initial-patch", default=None)
+    parser.add_argument("--train-case-ids", nargs="*", default=None)
+    parser.add_argument("--validation-case-ids", nargs="*", default=None)
     parser.add_argument("--output-root", required=True)
     parser.add_argument("--run-name", required=True)
     parser.add_argument("--steps", type=int, default=40)
@@ -397,6 +413,8 @@ def main() -> int:
     valid_manifest_path = Path(args.validation_teacher_manifest).resolve()
     train_manifest, train_cases = read_teacher_manifest(train_manifest_path)
     valid_manifest, valid_cases = read_teacher_manifest(valid_manifest_path)
+    train_cases = select_cases(train_cases, args.train_case_ids, "train")
+    valid_cases = select_cases(valid_cases, args.validation_case_ids, "validation")
     if args.module_paths:
         selected_paths = list(args.module_paths)
     else:
@@ -413,6 +431,8 @@ def main() -> int:
         "train_calibration_sha256": train_manifest["calibration_sha256"],
         "validation_calibration_sha256": valid_manifest["calibration_sha256"],
         "selected_paths": selected_paths,
+        "train_case_ids": [case["case_id"] for case in train_cases],
+        "validation_case_ids": [case["case_id"] for case in valid_cases],
         "initial_patch": str(Path(args.initial_patch).resolve()) if args.initial_patch else None,
         "learning_rate": args.learning_rate,
         "steps": args.steps,

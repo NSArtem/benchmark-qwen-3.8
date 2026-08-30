@@ -211,3 +211,68 @@ mechanism.
 
 Run the small non-heldout top-8 generation sanity check, then perform Phase 4
 calibration robustness ablation only on the fixed top-4-sized module subset.
+
+## Phase 3 — top-8 generation sanity
+
+### MEASURED FACT
+
+- The rejected top-8 patch was exercised on all eight frozen validation
+  prompts. There were zero exceptions, and each case recorded a finish reason
+  and generated-token count. Structured, retrieval, instruction, and prose
+  cases terminated with EOS; the bounded coding, patch, reasoning, and tool
+  cases reached the same 96-token generation cap used by the sanity harness.
+
+### INFERENCE
+
+The top-8 regression is not a runtime-integrity failure. Its rejection is due
+to the measured validation KL/NLL regression under composition, not a crash or
+obvious generation corruption.
+
+## Phase 4 — diversity-aware calibration robustness
+
+### MEASURED FACT
+
+- The fixed top-4 module set was refined three ways, always starting from the
+  unpatched g128 model and validating on all eight disjoint validation cases:
+  the diverse 16-case corpus, a coding/tool-heavy eight-case subset, and a
+  reasoning/retrieval/prose/instruction-heavy eight-case subset.
+- Diverse top-4 validation metrics were KL `0.1368660092`,
+  teacher-argmax NLL `0.2758729293`, actual-token NLL `7.0465717882`, and
+  top-1 `0.9133663366`.
+- Coding-heavy validation metrics were KL `0.1409067689`,
+  teacher-argmax NLL `0.2775192461`, actual-token NLL `7.0662236733`, and
+  top-1 `0.9183168317`.
+- Reasoning-heavy validation metrics were KL `0.1420198095`,
+  teacher-argmax NLL `0.2791354904`, actual-token NLL `7.0699190952`, and
+  top-1 `0.9183168317`.
+- The diverse, coding-heavy, and reasoning-heavy train selections had 776,
+  417, and 359 target positions respectively. Each narrow run improved its
+  own selected training loss, but neither matched the diverse run on
+  validation teacher loss. All optimizers remained finite and the peak MLX
+  memory stayed at about 10.887 GiB.
+- The raw ablation records are
+  `artifacts/dwq/ablation-coding-heavy.json` and
+  `artifacts/dwq/ablation-reasoning-heavy.json`; the cumulative patches are
+  ignored research artifacts and do not modify the canonical g128 directory.
+
+### INFERENCE
+
+On this fixed module subset, diversity-aware calibration is more robust than
+either narrow domain mixture for the validation KL/NLL objective. The top-1
+metric favors the narrow controls because it recovered the baseline value,
+while the diverse candidate gives the stronger distributional match. This is
+why final selection must retain both metrics and cannot be decided by top-1
+alone.
+
+### HYPOTHESIS
+
+Including tool/agent, structured, coding, reasoning, retrieval, instruction,
+and prose examples together may reduce calibration-composition bias in the
+module updates. The evidence is limited to eight validation examples and does
+not yet establish a final heldout or task-level gain.
+
+### Gate decision
+
+Phase 4 is complete. Keep the diverse top-4 patch as the sole DWQ candidate
+for final heldout evaluation; do not promote either narrow ablation and do not
+launch top-16/top-32.
