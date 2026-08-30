@@ -1,13 +1,13 @@
 # Stage 7 Status
 
-Last updated: 2026-08-29 (Phase 3 top-4 DWQ gate passed)
+Last updated: 2026-08-30 (Phase 3 top-8 gate stopped)
 
 ## Current phase
 
-Phase 3 — incremental DWQ scaling. Top-4 completed by resuming the layer-60
-patch and refining three additional ranked modules. Train/validation KL and
-argmax-NLL improved, generation sanity remained coherent, and the process
-stayed below 10.887 GiB MLX peak. The top-8 gate is next.
+Phase 3 — incremental DWQ scaling is stopped at top-8. Top-4 is the best
+internal validation checkpoint. Adding ranks 5–8 caused a clear train and
+validation KL/NLL regression despite top-1 recovery, so top-16/top-32 are not
+being executed under the phase gate.
 
 ## System memory baseline
 
@@ -89,6 +89,17 @@ validation-prompt sanity generations completed without exceptions; structured,
 retrieval, reasoning, instruction, and prose outputs remained coherent and
 matching in semantic content.
 
+Top-8 cumulative checkpoint:
+`research/stage7/artifacts/dwq/top8.safetensors`, eight modules. It is retained
+as a rejected interference control. Relative to top-4, train KL regressed
+0.150978 -> 0.156082 and validation KL regressed 0.136866 -> 0.142290;
+validation teacher-argmax NLL regressed 0.275873 -> 0.278951. Validation top-1
+recovered to 0.918317, which is not sufficient to override the KL/NLL
+regression. No top-16 or top-32 run was launched.
+
+Best internal DWQ candidate remains top-4; final heldout evaluation is still
+pending and no production promotion has been made.
+
 ## Teacher/student baseline on frozen Stage 7 calibration
 
 Reference teacher: g64 logits captured in separate train and validation
@@ -137,6 +148,6 @@ deterministic coding-agent fixture/benchmark is pending.
 
 ## Next action
 
-Re-read the governing instructions and this status, then pass the top-4 patch
-as the resume checkpoint into the top-8 gate. Stop if validation KL/NLL
-worsens, top-1 degradation grows, or generation sanity regresses.
+Do not scale beyond top-8. Finish the rejected top-8 sanity artifact, then run
+the fixed small diverse-vs-coding-heavy-vs-reasoning-heavy calibration ablation
+on the top-4-sized subset without using final heldout cases.

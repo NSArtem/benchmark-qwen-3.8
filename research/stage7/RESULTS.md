@@ -171,3 +171,43 @@ gain, not strong enough for heldout evaluation or production promotion.
 
 Resume from top-4 and refine ranks 5–8. Compare against the original baseline
 and top-4 state; do not inspect final heldout outputs yet.
+
+## Phase 3 — top-8 gate and DWQ saturation
+
+### MEASURED FACT
+
+- Top-8 resumed from top-4 and refined ranks 5–8:
+  `layers.17.linear_attn.in_proj_b`, `layers.2.linear_attn.in_proj_b`,
+  `layers.42.linear_attn.in_proj_a`, and `layers.18.linear_attn.in_proj_a`.
+  Local MSE reductions were 10.32%, 3.50%, 13.77%, and 7.86%; all optimizer
+  traces were finite.
+- Relative to top-4, train KL regressed 0.1509779404 -> 0.1560821364 and
+  validation KL regressed 0.1368660092 -> 0.1422903157. Train
+  teacher-argmax NLL regressed 0.2839706270 -> 0.2847247253 and validation
+  NLL 0.2758729293 -> 0.2789507018. Validation top-1 recovered from
+  0.9133663366 to 0.9183168317, but this did not prevent the KL/NLL
+  regression.
+- The top-8 process stayed finite, peaked at 10.886598 GiB, and took 101.08
+  seconds. Its cumulative patch is retained as a rejected control; g128 and
+  top-4 patches are unchanged.
+- Because the continuation gate requires validation improvement or a
+  plausibly flat result, no top-16 or top-32 refinement was launched.
+
+### INFERENCE
+
+The top-4 state is the current DWQ candidate and top-8 demonstrates non-
+monotonic module interference under a sequential local objective. The
+calibration gain cannot be treated as additive by rank, and top-1 alone is not
+an adequate selection metric.
+
+### HYPOTHESIS
+
+The early ranked linear-attention projections may share recurrent-state
+interactions that make independently optimized updates conflict when composed.
+The rejected top-8 result is evidence for this hypothesis, not proof of the
+mechanism.
+
+### Next gate
+
+Run the small non-heldout top-8 generation sanity check, then perform Phase 4
+calibration robustness ablation only on the fixed top-4-sized module subset.
