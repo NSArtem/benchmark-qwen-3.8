@@ -2,3 +2,7 @@
 artifacts/**/*.safetensors
 artifacts/**/*.bin
 artifacts/**/*.pt
+artifacts/final/
+artifacts/mtp/
+artifacts/agent/
+artifacts/performance/

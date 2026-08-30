@@ -1,6 +1,6 @@
 # Stage 7 Status
 
-Last updated: 2026-08-30 (Phase 8 exact MTP correctness gate complete)
+Last updated: 2026-08-30 (Phase 9 4-bit MTP precision gate complete)
 
 ## Current phase
 
@@ -10,7 +10,8 @@ it loses one additional final heldout coding case and slightly worsens
 teacher-forced NLL. The fixed top-4 subset was also refined from two narrow
 eight-case training selections; the diverse 16-case selection remains
 preferred internally. Phases 7–8 established and implemented a guarded exact
-MTP prototype. Phase 9's single 4-bit weight gate is now active.
+MTP prototype. Phase 9's single source-backed 4-bit MTP candidate passed the
+exactness gate; Phase 10 performance measurement is next.
 
 ## System memory baseline
 
@@ -163,20 +164,22 @@ size of 3 and at most two draft tokens per target verification round.
 
 The current Transformers source still ignores `mtp.*`; the local MLX-VLM
 Qwen3.5 MTP implementation is the executable reference used for the graph and
-norm conversion. Exact greedy output identity remains untested. The prototype
-must roll back both full-attention KV caches and linear/GatedDelta
-`ArraysCache` state after rejection.
+norm conversion. The canonical prototype now passes greedy token identity and
+explicit rejection rollback on four short prompts. The implementation rolls
+back both full-attention KV caches and linear/GatedDelta `ArraysCache` state
+after rejection.
 
 ## MTP weight precision/status
 
 The BF16 prototype loads the 15 source tensors separately; source and live
-payload are 849,398,784 bytes / 0.791 GiB. There is no standalone production
-artifact. On four short prompts, exact greedy token identity passed for every
-case and every explicit rejection rollback check passed. Per-case acceptance
-was coding 53.33%, reasoning 79.17%, prose 46.15%, and structured 86.36%.
-The BF16 MTP load raised active MLX memory from 10.1806 to 10.9717 GiB before
-decode caches. Phase 9 may create at most one source-backed 4-bit candidate;
-no quantized MTP precision has yet been measured.
+payload are 849,398,784 bytes / 0.791 GiB. The source-backed affine 4-bit,
+group-128 candidate has 225,659,904 quantized parameter bytes / 0.210 GiB
+active overhead. On the same four short prompts, 4-bit exact greedy identity
+and every explicit rejection rollback check passed. Per-case acceptance was
+coding 69.23%, reasoning 76.92%, prose 39.29%, and structured 95.00%; total
+acceptance was 68/100 = 68.00%. Active MLX memory rose from 10.1806 GiB after
+base load to 10.3908 GiB after 4-bit MTP load. It is not a production mode
+until Phase 10 measures useful decode speed and long-context residency.
 
 ## Current runtime Pareto
 
@@ -201,7 +204,7 @@ deterministic coding-agent fixture/benchmark is pending.
 
 ## Next action
 
-Create one 4-bit source-backed MTP candidate only if the exact BF16 gate remains
-the oracle. Re-run the same exactness/rollback prompts, measure payload and
-acceptance, and stop the MTP branch if 4-bit loses correctness or useful
-acceptance. Do not use final heldout or agent outputs to retune DWQ.
+Run Phase 10 fresh-process MTP performance at short context, 4K, 8K, and 16K
+using the validated 4-bit candidate. Record baseline/MTP speed, acceptance,
+exactness, cache/active/peak memory, and any safety stop. Do not use final
+heldout or agent outputs to retune DWQ.

@@ -389,3 +389,35 @@ The high variation in acceptance by domain may make the extra BF16 MTP
 residency and sequential prototype cost unattractive at long context. A
 4-bit MTP block may retain enough proposal quality to be useful, but this must
 be measured and exactness rechecked.
+
+## Phase 9 — source-backed 4-bit MTP precision gate
+
+### MEASURED FACT
+
+- One and only one quantized MTP candidate was created from the source-backed
+  architecture: affine 4-bit linear layers with group size 128. The candidate
+  has 225,659,904 quantized parameter bytes (225,663,093 bytes on disk), versus
+  849,398,784 BF16 source parameter bytes.
+- The candidate was loaded into the same guarded prototype and passed exact
+  greedy token identity on all four short prompts. All observed explicit
+  rejection rollback checks also passed, with zero harness exceptions.
+- Per-case proposal/acceptance was coding 26/18 (69.23%), reasoning 26/20
+  (76.92%), prose 28/11 (39.29%), and structured 20/19 (95.00%). The total was
+  68/100 accepted (68.00%).
+- Active MLX memory was 10.1806 GiB after g128 load and 10.3908 GiB after the
+  4-bit MTP load, an active overhead of 225,661,184 bytes / approximately
+  0.210 GiB before decode-cache growth. The raw candidate, manifest, and
+  correctness log are under `research/stage7/artifacts/mtp/`.
+
+### INFERENCE
+
+The source-backed 4-bit MTP weights preserve the prototype's exact greedy and
+rollback behavior on the short gate while reducing live MTP overhead by about
+0.58 GiB relative to BF16. This is sufficient to proceed to the required
+performance/residency gate, not sufficient to promote MTP.
+
+### HYPOTHESIS
+
+Quantization may reduce proposal quality on some domains, but the short-gate
+acceptance increase relative to the BF16 sample is not evidence of a general
+speed advantage. Long-context verification and rollback cost remain unknown.

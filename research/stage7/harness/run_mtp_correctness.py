@@ -185,7 +185,9 @@ def target_prefill_baseline_schedule(
     return mx.concatenate(hidden_parts, axis=1)
 
 
-def load_mtp_draft(mx: Any, source_path: Path, model: Any) -> tuple[Any, dict[str, Any]]:
+def load_mtp_draft(
+    mx: Any, source_path: Path, model: Any, weights_path: Path | None = None
+) -> tuple[Any, dict[str, Any]]:
     """Load only the source MTP tensors through the local executable reference."""
     from mlx_vlm.speculative.drafters.qwen3_5_mtp import Qwen3_5MTPDraftModel
     from mlx_vlm.speculative.drafters.qwen3_5_mtp.config import Qwen3_5MTPConfig
@@ -197,19 +199,39 @@ def load_mtp_draft(mx: Any, source_path: Path, model: Any) -> tuple[Any, dict[st
     )
     draft = Qwen3_5MTPDraftModel(draft_config)
 
-    shard_path = source_path / "model-00018-of-00018.safetensors"
-    shard = mx.load(str(shard_path))
-    mtp_weights = {key: value for key, value in shard.items() if key.startswith("mtp.")}
-    if len(mtp_weights) != 15:
-        raise RuntimeError(f"expected 15 source MTP tensors, found {len(mtp_weights)}")
-    source_payload = sum(int(value.nbytes) for value in mtp_weights.values())
-    # The source HF/Qwen RMSNorm parameter is centered at zero and the MLX
-    # RMSNorm parameter is the direct multiplier.  The local reference's
-    # sanitizer performs this exact conversion.
-    mtp_weights = Qwen3_5MTPDraftModel.sanitize(None, mtp_weights)
-    draft.load_weights(list(mtp_weights.items()))
+    if weights_path is None:
+        shard_path = source_path / "model-00018-of-00018.safetensors"
+        shard = mx.load(str(shard_path))
+        mtp_weights = {key: value for key, value in shard.items() if key.startswith("mtp.")}
+        if len(mtp_weights) != 15:
+            raise RuntimeError(f"expected 15 source MTP tensors, found {len(mtp_weights)}")
+        source_payload = sum(int(value.nbytes) for value in mtp_weights.values())
+        # The source HF/Qwen RMSNorm parameter is centered at zero and the MLX
+        # RMSNorm parameter is the direct multiplier.  The local reference's
+        # sanitizer performs this exact conversion.
+        mtp_weights = Qwen3_5MTPDraftModel.sanitize(None, mtp_weights)
+        draft.load_weights(list(mtp_weights.items()))
+        del shard, mtp_weights
+        precision = "bf16"
+        reference = "mlx_vlm 0.6.13 qwen3_5_mtp"
+    else:
+        import mlx.nn as nn
+
+        quantization = json.loads((weights_path.parent / "config.json").read_text(encoding="utf-8")).get("quantization", {})
+        nn.quantize(
+            draft,
+            group_size=int(quantization.get("group_size", 128)),
+            bits=int(quantization.get("bits", 4)),
+            mode=quantization.get("mode", "affine"),
+            class_predicate=lambda _path, module: isinstance(module, nn.Linear),
+        )
+        candidate_weights = mx.load(str(weights_path))
+        draft.load_weights(list(candidate_weights.items()))
+        source_payload = int(json.loads((weights_path.parent / "manifest.json").read_text(encoding="utf-8")).get("source_mtp_payload_bytes", 0))
+        del candidate_weights
+        precision = f"{int(quantization.get('bits', 4))}-bit"
+        reference = "stage7 source-backed affine MTP artifact"
     mx.eval(draft.parameters())
-    del shard, mtp_weights
     gc.collect()
     mx.clear_cache()
     draft.reset(model)
@@ -217,8 +239,9 @@ def load_mtp_draft(mx: Any, source_path: Path, model: Any) -> tuple[Any, dict[st
         "source_tensor_count": 15,
         "source_payload_bytes": source_payload,
         "source_precision": "bf16",
+        "loaded_precision": precision,
         "block_size": int(draft_config.block_size),
-        "reference": "mlx_vlm 0.6.13 qwen3_5_mtp",
+        "reference": reference,
         "norm_conversion": "raw HF centered RMSNorm vectors shifted by +1.0",
     }
 
@@ -479,7 +502,7 @@ def run(args: argparse.Namespace) -> int:
         result["os_memory_before"] = scale_utils.oracle_utils.os_snapshot()
         model, tokenizer = load(args.model)
         result["memory_after_model_load"] = scale_utils.oracle_utils.memory_snapshot(mx, "stage8_mtp_after_model_load", started)
-        draft, draft_meta = load_mtp_draft(mx, Path(args.source), model)
+        draft, draft_meta = load_mtp_draft(mx, Path(args.source), model, Path(args.mtp_weights).resolve() if args.mtp_weights else None)
         result["mtp"] = draft_meta
         result["memory_after_mtp_load"] = scale_utils.oracle_utils.memory_snapshot(mx, "stage8_mtp_after_mtp_load", started)
 
@@ -543,6 +566,7 @@ def main() -> int:
     parser.add_argument("--output-root", required=True)
     parser.add_argument("--max-tokens", type=int, default=DEFAULT_MAX_TOKENS)
     parser.add_argument("--experiment-id", default=None)
+    parser.add_argument("--mtp-weights", default=None, help="Optional standalone quantized MTP model.safetensors")
     return run(parser.parse_args())
 
 
