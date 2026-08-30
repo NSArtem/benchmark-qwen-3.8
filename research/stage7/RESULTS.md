@@ -276,3 +276,78 @@ not yet establish a final heldout or task-level gain.
 Phase 4 is complete. Keep the diverse top-4 patch as the sole DWQ candidate
 for final heldout evaluation; do not promote either narrow ablation and do not
 launch top-16/top-32.
+
+## Phase 5 — final DWQ selection gate
+
+### MEASURED FACT
+
+- Fresh final heldout_v2 evaluation used separate processes and no tuning after
+  inspecting outputs. g128 scored 20/21 objective and 3/3 semi-objective;
+  diverse top-4 scored 19/21 and 3/3. Both had zero harness exceptions.
+- The top-4 loss was `h5-coding-06`. Manual inspection found a materially
+  different, overlong reconciliation discussion that did not state the exact
+  required client-side discard rule. The shared `h5-reasoning-04` repetition
+  flag is a mechanical false positive: both outputs end with the correct
+  answer `4`.
+- Fresh Quality Suite V2 evaluation scored g128 at 23/24 objective and 4/4
+  semi-objective, versus top-4 at 22/24 and 4/4. The additional top-4 loss was
+  `coding-07`, whose output omitted the required idempotent retry condition.
+- Teacher-forced evaluation on 167 reference tokens gave g128 weighted NLL
+  `1.3690119760`, top-1 `0.6946107784`; top-4 gave NLL `1.3720059880`, top-1
+  `0.6946107784`. Both processes completed without exceptions.
+- Model-load active memory was 10.1806 GiB for both. The four-module patch
+  changed live patch metadata/arrays by only about 3.5 KiB and did not change
+  the static model directory or payload class.
+- Raw evidence is under `research/stage7/artifacts/final/` and includes both
+  token IDs and decoded outputs. These final suites were not used to retune
+  learning rate, module count, or ranking.
+
+### INFERENCE
+
+Top-4's calibration KL/NLL improvement does not survive the final practical
+quality gates. The correct production decision is to retain g128 as DEFAULT
+and keep top-4 only as a research artifact. The same-payload constraint was
+met, but no quality gain was measured.
+
+### HYPOTHESIS
+
+The top-4 local objective improves teacher distributional match on the small
+calibration split while perturbing generation-critical recurrent dynamics in
+specific coding contexts. This is consistent with the heldout coding loss but
+does not establish a causal mechanism.
+
+### Gate decision
+
+DWQ scaling and promotion are stopped at four modules. No further DWQ tuning
+or final-suite retuning is allowed in Stage 7.
+
+## Phase 7 — MTP architecture gate
+
+### MEASURED FACT
+
+- The original source config has `mtp_num_hidden_layers=1` and
+  `mtp_use_dedicated_embeddings=false`; all 15 `mtp.*` tensors are in source
+  shard 18 and total 849,398,784 BF16 bytes.
+- The tensors map exactly to `fc`, two pre-FC RMSNorms, one full-attention
+  decoder layer, its q/k norms and projections, MLP, and final norm. No
+  dedicated MTP embedding or LM head is present.
+- A local `mlx_vlm==0.6.13` Qwen3.5 MTP reference was instantiated and loaded
+  with all 15 source tensors after source-to-MLX norm conversion. The loaded
+  MTP payload was exactly 849,398,784 bytes.
+- The architecture derivation, position/bonus-token semantics, two-token
+  proposal width, shared embedding/LM-head behavior, and hybrid KV plus
+  recurrent rollback requirement are recorded in
+  `research/stage7/mtp/ARCHITECTURE.md`.
+
+### INFERENCE
+
+The local reference plus source/config agreement is sufficient support for a
+guarded canonical-runtime correctness prototype. A prototype may proceed,
+but MTP remains experimental until exact greedy output identity and explicit
+rejection rollback are demonstrated.
+
+### HYPOTHESIS
+
+The source-trained MTP layer may propose enough matching tokens to amortize
+its extra full-attention forward on this g128 base. Acceptance and speed are
+unknown; no performance claim is made here.

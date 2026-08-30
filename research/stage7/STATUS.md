@@ -1,14 +1,17 @@
 # Stage 7 Status
 
-Last updated: 2026-08-30 (Phase 4 calibration-robustness gate complete)
+Last updated: 2026-08-30 (Phase 7 MTP architecture gate complete)
 
 ## Current phase
 
-Phase 4 is complete. Incremental DWQ scaling stopped at top-8; top-4 remains
-the best internal validation checkpoint. The fixed top-4 subset was also
-refined from two narrow eight-case training selections. The diverse 16-case
-selection remains preferred because it produced the lowest validation KL and
-teacher-argmax NLL. Final heldout evaluation is now the gate for promotion.
+Phase 5 is complete and rejected top-4 for production. Incremental DWQ scaling
+stopped at top-8; top-4 remains the best internal validation checkpoint, but
+it loses one additional final heldout coding case and slightly worsens
+teacher-forced NLL. The fixed top-4 subset was also refined from two narrow
+eight-case training selections; the diverse 16-case selection remains
+preferred internally. Phase 7 has now passed the MTP architecture gate using
+the source tensors and a local executable reference. Phase 8 correctness is
+the active branch.
 
 ## System memory baseline
 
@@ -121,7 +124,22 @@ were worse than the diverse top-4 result. The narrow runs are retained as
 calibration-composition controls, not model candidates.
 
 Best internal DWQ candidate remains top-4; final heldout evaluation is still
-pending and no production promotion has been made.
+retained as research evidence only. The fresh final heldout gate rejected it:
+g128 scored 20/21 objective and 3/3 semi-objective, while top-4 scored 19/21
+and 3/3. The lost coding case was `h5-coding-06`; manual inspection found the
+top-4 answer did not state the required exact client-side discard rule and
+ran to the generation limit. Both runs had zero harness exceptions. The
+shared `h5-reasoning-04` repetition flag is a mechanical false positive after
+manual inspection: both answers ended with the correct `4`.
+
+Fresh Quality Suite V2 evaluation likewise favored g128: 23/24 objective and
+4/4 semi-objective versus top-4 at 22/24 and 4/4. The additional top-4 loss
+was `coding-07`; its output omitted the required idempotent retry condition.
+Teacher-forced evaluation on 167 reference tokens was g128 weighted NLL
+1.3690119760 and top-1 0.6946107784, versus top-4 NLL 1.3720059880 and the
+same top-1. Model-load active memory was 10.1806 GiB for both; patch metadata
+added only about 3.5 KiB of live arrays. These are final-selection facts, not
+DWQ tuning data.
 
 ## Teacher/student baseline on frozen Stage 7 calibration
 
@@ -138,15 +156,24 @@ Raw teacher manifests and baseline metrics are under
 
 ## MTP architecture status
 
-Initial Stage 6 evidence says the tensors form one `mtp.layers.0` attention/MLP
-block plus `mtp.fc` and three normalization groups, but this is not yet a
-Stage 7 architecture derivation. Exact graph, proposal width, and hybrid
-attention/recurrent rollback semantics remain pending Phase 7.
+Phase 7 passed. `research/stage7/mtp/ARCHITECTURE.md` maps all 15 source
+tensors. The supported graph is one full-attention MTP decoder layer preceded
+by `fc(concat(RMSNorm(token_embedding), RMSNorm(target_hidden)))`, followed by
+the shared target LM head. `mtp_num_hidden_layers=1` gives a reference block
+size of 3 and at most two draft tokens per target verification round.
+
+The current Transformers source still ignores `mtp.*`; the local MLX-VLM
+Qwen3.5 MTP implementation is the executable reference used for the graph and
+norm conversion. Exact greedy output identity remains untested. The prototype
+must roll back both full-attention KV caches and linear/GatedDelta
+`ArraysCache` state after rejection.
 
 ## MTP weight precision/status
 
-No MTP artifact. BF16 source payload is 849,398,784 bytes; 4-bit and 3-bit
-figures in Stage 6 were arithmetic estimates only.
+No standalone artifact or runtime path yet. BF16 source payload is
+849,398,784 bytes / 0.791 GiB. Phase 8 will load it separately for correctness;
+4-bit conversion is gated on exactness and useful acceptance. No quantized MTP
+number has been claimed.
 
 ## Current runtime Pareto
 
@@ -171,7 +198,8 @@ deterministic coding-agent fixture/benchmark is pending.
 
 ## Next action
 
-Run the internal-gated final quality evaluation for baseline g128 and the
-diverse top-4 patch, then derive the exact Qwen3.8 MTP graph from the source
-config/tensors/reference implementation before attempting any MTP generation
-code. Do not use final heldout outputs to retune DWQ.
+Implement the smallest exact-greedy MTP prototype against g128, beginning with
+short prompts and explicit rejection/rollback tests. Do not use final heldout
+or agent outputs to retune DWQ. If exactness fails, record the failure and
+move to the serialized agent benchmark without exposing MTP as a production
+mode.
