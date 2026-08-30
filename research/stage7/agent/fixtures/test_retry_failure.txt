@@ -1,0 +1,3 @@
+test_repeated_delivery_is_idempotent FAILED
+same event id ev-7 was applied twice after the worker retried delivery
+expected: the second delivery returns the original result and does not mutate state again

@@ -482,3 +482,60 @@ Qwen3.8 today.
 MTP is retained as an exact research prototype and rejected for production.
 No MTP flag or MTP weights are integrated into the default chat or agent
 runtime.
+
+## Phase 11 — serialized coding-agent benchmark
+
+### MEASURED FACT
+
+- The benchmark is `research/stage7/harness/run_agent_benchmark.py` and uses
+  four deterministic, isolated, read-only fixtures under
+  `research/stage7/agent/fixtures/`: mutable-default diagnosis,
+  idempotent retry recovery, multi-file terminal-event ordering, and a
+  structured formatter result. The fixture files and README are hashed in the
+  raw artifact `research/stage7/artifacts/agent/g128-coding-agent-final.json`.
+- The final run used the canonical serialized
+  `research/runtime/qwen38_agent_server.py`, the g128 greedy model, a 192-token
+  generation cap, and the fixed text tool protocol `TOOL_CALL read_file
+  <path>`. It completed 4/4 tasks with partial score 1.0 on every task.
+- The run produced 14 assistant completions, 5 valid tool requests, 0 invalid
+  tool requests, 0 HTTP/protocol request errors, 4/4 successful resets, and
+  server metrics reporting `serialized=true`. All four task checks passed;
+  the structured formatter task also produced valid JSON with the required
+  `action`, `path`, and `reason` fields.
+- Median warm TTFT was 1.367139 s, maximum warm TTFT was 1.892843 s, and
+  median decode throughput was 11.879811 tok/s. Final logical contexts were
+  551, 660, 983, and 356 tokens for tasks A–D respectively. Tasks B and C
+  ended their final response at the 192-token length cap, but their declared
+  task checks still passed; this is recorded as a workload-length caveat.
+- The successful tool calls were the server's normalized text protocol. The
+  benchmark did not establish reliable provider-native structured
+  `tool_calls`; that capability remains unvalidated.
+- An earlier max-256 stress run is retained as
+  `research/stage7/artifacts/agent/g128-coding-agent-v5.json`. It encountered
+  a real HTTP 409 exact-prefix failure after a truncated assistant response,
+  so it is excluded from the pass result and treated as an operational
+  generation-length caveat.
+
+### INFERENCE
+
+The final g128 runtime is practically usable for serialized single-user
+coding-agent interactions on small local repositories: it diagnosed each
+fixture, recovered after an intentionally wrong hypothesis, requested the
+needed files, and returned the required structured result without transport
+errors. The measured throughput and warm latency are consistent with the
+existing g128 runtime baseline. The safe production harness should retain a
+bounded response budget and exact-suffix session handling.
+
+### HYPOTHESIS
+
+A production agent wrapper that budgets responses below the model's hard
+generation cap and automatically handles continuation could reduce the
+length-related 409 risk. This was not implemented or measured as part of the
+final benchmark, and no claim is made about autonomous tool selection outside
+the explicit text protocol.
+
+### Gate decision
+
+The g128 serialized agent path passes the deterministic practical benchmark
+and remains the recommended agent model. The MTP and top-4 DWQ candidates are
+not included because they failed earlier correctness/quality/runtime gates.

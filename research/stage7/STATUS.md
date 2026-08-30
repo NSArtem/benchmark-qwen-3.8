@@ -1,6 +1,6 @@
 # Stage 7 Status
 
-Last updated: 2026-08-30 (Phase 10 MTP performance gate complete)
+Last updated: 2026-08-30 (Phase 11 coding-agent gate complete)
 
 ## Current phase
 
@@ -12,8 +12,11 @@ eight-case training selections; the diverse 16-case selection remains
 preferred internally. Phases 7–8 established and implemented a guarded exact
 MTP prototype. Phase 9's single source-backed 4-bit MTP candidate passed the
 exactness gate. Phase 10 measured the sequential prototype at short/4K/8K,
-stopped its 16K run for safety, and rejected MTP for production. Phase 11 is
-next.
+stopped its 16K run for safety, and rejected MTP for production. Phase 11 ran
+the final g128 serialized coding-agent benchmark: all four deterministic tasks
+passed with valid text-protocol tool calls and no protocol errors. Phase 12–13
+are documentation, regression, and final evidence inspection; Stage 8 will not
+start automatically.
 
 ## System memory baseline
 
@@ -201,9 +204,21 @@ at 28% free memory with rapidly rising swapouts and no completed output.
 
 ## Agent benchmark status
 
-Phase 11 deterministic coding-agent fixture/benchmark is pending. The MTP
-branch is not in the candidate set because it failed the Phase 10 production
-gate; the agent run will use the final g128 default.
+Phase 11 final artifact:
+`research/stage7/artifacts/agent/g128-coding-agent-final.json`. It used the
+canonical serialized `qwen38_agent_server.py`, g128 greedy mode, four isolated
+read-only fixtures, a 192-token generation cap, and a concise system budget
+instruction to keep each response under 120 tokens. All four tasks passed
+(partial score 1.0 each), with 14 assistant completions, 5 valid text-protocol
+`TOOL_CALL` requests, 0 invalid tool calls, 0 HTTP/protocol request errors, 4/4
+session resets, and server-reported `serialized=true`. Median warm TTFT was
+1.367139 s (maximum 1.892843 s) and median decode was 11.879811 tok/s. The
+structured-result task returned valid JSON. This validates practical
+serialized transport plus useful model diagnosis on the fixtures; it does not
+validate provider-native structured `tool_calls`, since the successful calls
+used the server's normalized text protocol. A separate max-256 stress run
+exposed an HTTP 409 exact-prefix failure after a truncated response and is
+retained as a protocol-length caveat, not a passing benchmark result.
 
 ## Rejected hypotheses
 
@@ -217,6 +232,6 @@ gate; the agent run will use the final g128 default.
 
 ## Next action
 
-Run Phase 11's deterministic serialized coding-agent benchmark against g128.
-Measure task success, tool-turn validity, context growth, warm TTFT, decode,
-and recovery after a wrong hypothesis. Do not use agent outputs to retune DWQ.
+Complete Phase 12–13 regression checks and final evidence inspection, write
+`research/stage7/FINAL_REPORT.md`, append the final machine-readable summary,
+and stop. Do not integrate rejected DWQ/MTP modes or start Stage 8.

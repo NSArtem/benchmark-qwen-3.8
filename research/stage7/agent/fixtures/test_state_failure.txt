@@ -1,0 +1,4 @@
+test_terminal_job_ignores_late_running FAILED
+job state was succeeded at sequence 8
+late event was running at sequence 9
+expected: a terminal job must not become active again
