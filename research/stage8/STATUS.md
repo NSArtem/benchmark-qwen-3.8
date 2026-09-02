@@ -129,6 +129,6 @@ unknown paths or malformed tool prefixes.
 
 ## Next action
 
-No further Stage 8 experiment is authorized or needed. Commit the closeout
-artifacts, verify the final report and clean git state, then stop without
-starting Stage 9.
+Stage 8 is complete. The closeout artifacts are committed, the final report
+and machine-readable ledger validate, the worktree is clean, and no Stage 9
+work has been started. Stop here.
