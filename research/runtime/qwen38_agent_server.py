@@ -38,7 +38,9 @@ from qwen38_chat import (  # noqa: E402
     _require_mlx,
     canonical_prompt,
     exact_suffix,
+    eos_token_ids,
     normalize_cache_boundary,
+    reconcile_canonical_history,
     response_replay_detected,
 )
 
@@ -147,6 +149,7 @@ class GenerationRecord:
     prompt_tokens: int
     generated_ids: list[int]
     text: str
+    finish_reason: str = "length"
 
 
 @dataclass
@@ -160,6 +163,10 @@ class AgentSession:
     messages: list[dict[str, str]] = field(default_factory=list)
     cached_token_ids: list[int] = field(default_factory=list)
     records: list[GenerationRecord] = field(default_factory=list)
+    cache_exact_reuse: int = 0
+    cache_fresh_fallback: int = 0
+    cache_conflict_error: int = 0
+    truncation_continuations: int = 0
 
     def __post_init__(self) -> None:
         _, _, _, make_prompt_cache, _ = _require_mlx()
@@ -168,10 +175,7 @@ class AgentSession:
 
     def reset(self) -> None:
         _, _, _, make_prompt_cache, _ = _require_mlx()
-        self.messages.clear()
-        self.cached_token_ids.clear()
-        self.records.clear()
-        self.prompt_cache = make_prompt_cache(self.model, self._max_kv_size)
+        self._clear_runtime_state()
 
     def stats(self) -> dict[str, Any]:
         return {
@@ -181,7 +185,20 @@ class AgentSession:
             "logical_context_tokens": len(self.cached_token_ids),
             "cached_prefix_tokens": len(self.cached_token_ids),
             "cache_layers": len(self.prompt_cache),
+            "cache_exact_reuse": self.cache_exact_reuse,
+            "cache_fresh_fallback": self.cache_fresh_fallback,
+            "cache_conflict_error": self.cache_conflict_error,
+            "truncation_continuations": self.truncation_continuations,
         }
+
+    def _clear_runtime_state(self) -> None:
+        """Discard transcript/cache state while retaining cumulative counters."""
+
+        _, _, _, make_prompt_cache, _ = _require_mlx()
+        self.messages.clear()
+        self.cached_token_ids.clear()
+        self.records.clear()
+        self.prompt_cache = make_prompt_cache(self.model, self._max_kv_size)
 
     def _with_server_system(self, incoming: list[dict[str, str]]) -> list[dict[str, str]]:
         if self.system_prompt is None or incoming[0]["role"] == "system":
@@ -203,18 +220,50 @@ class AgentSession:
         mlx_core, _, generate_step, _, make_sampler = _require_mlx()
         if max_tokens <= 0:
             raise ValueError("max_tokens must be positive")
+        if not incoming:
+            raise ValueError("request must contain at least one message")
+        if incoming[-1]["role"] not in {"user", "tool"}:
+            raise ValueError("request must end with a user or tool message")
         if not incoming[-1]["content"].strip():
             raise ValueError("last message content is empty")
         # Apply the configured system message before prefix validation on every
         # request.  This lets an OpenAI client omit the server-owned system
         # message while still preserving the exact cached transcript.
         messages = self._with_server_system(incoming)
-        messages = appended_messages(self.messages, messages)
-        actual_before = _cache_offset(self.prompt_cache)
+        cache_mode = "fresh_prefill"
+        if self.messages:
+            try:
+                messages = appended_messages(self.messages, messages)
+                cache_mode = "exact_reuse"
+                if self.records and self.records[-1].finish_reason == "length":
+                    self.truncation_continuations += 1
+            except RuntimeError:
+                # The transcript is syntactically valid but no longer extends
+                # the authoritative session.  It is safe to rebuild; it is
+                # not safe to feed a guessed suffix into the old cache.
+                self._clear_runtime_state()
+                self.cache_fresh_fallback += 1
+                cache_mode = "fresh_fallback"
+
+        def fresh_fallback() -> int:
+            nonlocal cache_mode
+            self._clear_runtime_state()
+            self.cache_fresh_fallback += 1
+            cache_mode = "fresh_fallback"
+            return _cache_offset(self.prompt_cache)
+
+        try:
+            actual_before = _cache_offset(self.prompt_cache)
+        except RuntimeError:
+            actual_before = fresh_fallback()
         if actual_before != len(self.cached_token_ids):
-            raise RuntimeError(
-                f"cache offset {actual_before} != logical prefix {len(self.cached_token_ids)}"
-            )
+            if cache_mode == "exact_reuse":
+                actual_before = fresh_fallback()
+            else:
+                raise RuntimeError(
+                    f"cache offset {actual_before} != logical prefix {len(self.cached_token_ids)}"
+                )
+
         canonical = canonical_prompt(
             self.tokenizer,
             messages,
@@ -224,10 +273,39 @@ class AgentSession:
             HistoryTurn("", record.prompt_tokens, record.generated_ids, record.text)
             for record in self.records
         ]
-        eos_ids = {int(value) for value in (self.tokenizer.eos_token_ids or [])}
-        canonical = normalize_cache_boundary(canonical, history, eos_ids)
+        eos_ids = eos_token_ids(self.tokenizer)
+        if cache_mode == "exact_reuse":
+            try:
+                canonical = reconcile_canonical_history(canonical, history, eos_ids)
+            except RuntimeError:
+                actual_before = fresh_fallback()
+                canonical = canonical_prompt(
+                    self.tokenizer,
+                    messages,
+                    enable_thinking=self.enable_thinking,
+                )
+        else:
+            canonical = normalize_cache_boundary(canonical, history, eos_ids)
         full_token_ids = canonical["token_ids"]
-        suffix_ids = exact_suffix(full_token_ids, self.cached_token_ids)
+        try:
+            suffix_ids = exact_suffix(full_token_ids, self.cached_token_ids)
+        except RuntimeError:
+            if cache_mode != "exact_reuse":
+                raise
+            actual_before = fresh_fallback()
+            canonical = canonical_prompt(
+                self.tokenizer,
+                messages,
+                enable_thinking=self.enable_thinking,
+            )
+            full_token_ids = canonical["token_ids"]
+            suffix_ids = exact_suffix(full_token_ids, self.cached_token_ids)
+        cached_before = list(self.cached_token_ids)
+        lcp = 0
+        while lcp < min(len(cached_before), len(full_token_ids)) and cached_before[lcp] == full_token_ids[lcp]:
+            lcp += 1
+        if cache_mode == "exact_reuse":
+            self.cache_exact_reuse += 1
         started = time.perf_counter()
         generator = generate_step(
             mlx_core.array(suffix_ids),
@@ -242,7 +320,7 @@ class AgentSession:
         )
         generated_ids: list[int] = []
         first_token_time: float | None = None
-        eos_ids = {int(value) for value in (self.tokenizer.eos_token_ids or [])}
+        eos_ids = eos_token_ids(self.tokenizer)
         finish_reason = "length"
         try:
             while len(generated_ids) < max_tokens:
@@ -290,7 +368,12 @@ class AgentSession:
         self.messages = messages + [{"role": "assistant", "content": text}]
         self.cached_token_ids = list(full_token_ids) + list(generated_ids)
         self.records.append(
-            GenerationRecord(len(full_token_ids), list(generated_ids), text)
+            GenerationRecord(
+                len(full_token_ids),
+                list(generated_ids),
+                text,
+                finish_reason,
+            )
         )
         return {
             "text": text,
@@ -306,6 +389,14 @@ class AgentSession:
             "cache_offset_after": cache_after,
             "logical_context_tokens": len(self.cached_token_ids),
             "replay_detected": replay_detected,
+            "cache_reuse_mode": cache_mode,
+            "cache_exact_reuse": cache_mode == "exact_reuse",
+            "cache_fresh_fallback": cache_mode == "fresh_fallback",
+            "cache_lcp_tokens_before_request": lcp,
+            "cache_cached_prefix_tokens_before_request": len(cached_before),
+            "canonical_cache_boundary_adjustments": canonical.get(
+                "cache_boundary_adjustments", []
+            ),
             **memory,
         }
 
@@ -482,6 +573,7 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
         except (RuntimeError, KeyError) as exc:
             if self.server.session is not None:
                 with self.server.session_lock:
+                    self.server.session.cache_conflict_error += 1
                     self.server.session.reset()
             self._error(409, str(exc), "session_state_error")
         except BaseException as exc:  # keep the local service alive after inference errors

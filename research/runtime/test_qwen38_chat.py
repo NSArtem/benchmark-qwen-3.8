@@ -12,6 +12,7 @@ from research.runtime.qwen38_chat import (
     TokenLedger,
     exact_suffix,
     normalize_cache_boundary,
+    reconcile_canonical_history,
     response_replay_detected,
 )
 
@@ -62,6 +63,35 @@ class TokenLedgerTests(unittest.TestCase):
         adjusted = normalize_cache_boundary(canonical, history, {99})
         self.assertEqual(adjusted["token_ids"], [1, 2, 20, 99, 3])
         self.assertEqual(len(adjusted["cache_boundary_adjustments"]), 1)
+
+    def test_authoritative_ids_repair_rendered_assistant_content(self) -> None:
+        history = [
+            HistoryTurn(
+                user_text="old",
+                prompt_token_count=2,
+                generated_ids=[20, 21, 22],
+                assistant_text="replacement text",
+            )
+        ]
+        # The rendered template lost token 21 and re-encoded token 22 as 23;
+        # the close boundary is still token 99.
+        canonical = {"token_ids": [1, 2, 20, 23, 99, 30]}
+        adjusted = reconcile_canonical_history(canonical, history, {99})
+        self.assertEqual(adjusted["token_ids"], [1, 2, 20, 21, 22, 99, 30])
+        self.assertTrue(adjusted["cache_boundary_adjustments"])
+
+    def test_authoritative_ids_keep_one_eos_boundary(self) -> None:
+        history = [
+            HistoryTurn(
+                user_text="old",
+                prompt_token_count=2,
+                generated_ids=[20, 99],
+                assistant_text="answer",
+            )
+        ]
+        canonical = {"token_ids": [1, 2, 20, 99, 99, 30]}
+        adjusted = reconcile_canonical_history(canonical, history, {99})
+        self.assertEqual(adjusted["token_ids"], [1, 2, 20, 99, 30])
 
 
 if __name__ == "__main__":

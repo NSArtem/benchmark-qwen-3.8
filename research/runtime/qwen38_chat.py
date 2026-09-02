@@ -73,6 +73,19 @@ def normalize_token_ids(value: Any) -> list[int]:
     return [int(item) for item in value]
 
 
+def eos_token_ids(tokenizer: Any) -> set[int]:
+    """Return EOS IDs across HF and mlx-lm tokenizer wrapper variants."""
+
+    value = getattr(tokenizer, "eos_token_ids", None)
+    if value is None:
+        value = getattr(tokenizer, "eos_token_id", None)
+    if value is None:
+        return set()
+    if isinstance(value, int):
+        return {int(value)}
+    return {int(item) for item in value}
+
+
 def canonical_prompt(
     tokenizer: Any,
     messages: list[dict[str, str]],
@@ -164,6 +177,109 @@ def normalize_cache_boundary(
                     "reason": "template_added_EOS_already_in_cached_generation",
                 }
             )
+    adjusted = dict(canonical)
+    adjusted["token_ids"] = token_ids
+    adjusted["token_count"] = len(token_ids)
+    adjusted["cache_boundary_adjustments"] = adjustments
+    return adjusted
+
+
+def reconcile_canonical_history(
+    canonical: dict[str, Any],
+    history: Sequence[HistoryTurn],
+    eos_ids: set[int],
+) -> dict[str, Any]:
+    """Restore authoritative generated IDs inside a rendered transcript.
+
+    The API-facing assistant string is deliberately decoded text.  That text
+    is not always a lossless representation of the generated token stream:
+    the Qwen template trims assistant content, and a byte-pair stream may be
+    decoded with a replacement character when a length boundary cuts through
+    a partial UTF-8 sequence.  The cache, however, already contains the exact
+    IDs.  Each ``HistoryTurn.prompt_token_count`` identifies the beginning of
+    its generated region in that exact stream, so replace the corresponding
+    rendered assistant-content region with the stored IDs before asking for a
+    suffix.
+
+    This function is intentionally token-only.  It does not infer equality
+    from decoded text and it keeps one template EOS boundary when a generated
+    stream itself ended in EOS.  ``cache_boundary_adjustments`` is diagnostic
+    evidence, not a correctness input.
+    """
+
+    token_ids = list(canonical["token_ids"])
+    adjustments: list[dict[str, Any]] = list(
+        canonical.get("cache_boundary_adjustments", [])
+    )
+    cumulative_shift = 0
+    for turn_index, turn in enumerate(history):
+        generated = [int(value) for value in turn.generated_ids]
+        if not generated:
+            continue
+        start = int(turn.prompt_token_count) + cumulative_shift
+        if start < 0 or start > len(token_ids):
+            raise RuntimeError(
+                f"history turn {turn_index} prompt boundary {start} is outside the canonical stream"
+            )
+
+        boundary = next(
+            (index for index in range(start, len(token_ids)) if int(token_ids[index]) in eos_ids),
+            None,
+        )
+        if boundary is None:
+            raise RuntimeError(
+                f"history turn {turn_index} has no assistant template boundary after token {start}"
+            )
+
+        generated_ends_eos = int(generated[-1]) in eos_ids
+        replacement = generated[:-1] if generated_ends_eos else generated
+        old_segment = token_ids[start:boundary]
+        if old_segment != replacement:
+            token_ids[start:boundary] = replacement
+            cumulative_shift += len(replacement) - len(old_segment)
+            adjustments.append(
+                {
+                    "turn_index": turn_index,
+                    "start": start,
+                    "old_length": len(old_segment),
+                    "new_length": len(replacement),
+                    "reason": "authoritative_generated_ids_replace_rendered_assistant_content",
+                }
+            )
+
+        # The template supplies the assistant-close token.  If generation
+        # ended in EOS, that one token is the generated boundary as well.  A
+        # template that emitted an additional identical EOS is normalized to a
+        # single token so the cached stream stays an exact prefix.
+        if generated_ends_eos:
+            if boundary >= len(token_ids):
+                raise RuntimeError(
+                    f"history turn {turn_index} lost its assistant EOS boundary"
+                )
+            if int(token_ids[boundary]) != int(generated[-1]):
+                token_ids[boundary] = int(generated[-1])
+                adjustments.append(
+                    {
+                        "turn_index": turn_index,
+                        "index": boundary,
+                        "reason": "authoritative_generated_EOS_replaced_template_boundary",
+                    }
+                )
+            if (
+                boundary + 1 < len(token_ids)
+                and int(token_ids[boundary + 1]) == int(generated[-1])
+            ):
+                del token_ids[boundary + 1]
+                cumulative_shift -= 1
+                adjustments.append(
+                    {
+                        "turn_index": turn_index,
+                        "removed_index": boundary + 1,
+                        "removed_token_id": int(generated[-1]),
+                        "reason": "duplicate_template_EOS_after_authoritative_generation",
+                    }
+                )
+
     adjusted = dict(canonical)
     adjusted["token_ids"] = token_ids
     adjusted["token_count"] = len(token_ids)
@@ -361,7 +477,7 @@ class ExactSuffixChat:
                 raise RuntimeError("too many assistant token-boundary variants")
             candidates = candidates_list
 
-        eos_ids = {int(value) for value in (self.tokenizer.eos_token_ids or [])}
+        eos_ids = eos_token_ids(self.tokenizer)
         for assistant_texts in candidates:
             messages = self._messages_for_candidate(query, assistant_texts)
             candidate = canonical_prompt(
@@ -369,7 +485,7 @@ class ExactSuffixChat:
                 messages,
                 enable_thinking=self.enable_thinking,
             )
-            candidate = normalize_cache_boundary(candidate, self.history, eos_ids)
+            candidate = reconcile_canonical_history(candidate, self.history, eos_ids)
             token_ids = candidate["token_ids"]
             if token_ids[:actual_before] == self.ledger.cached_token_ids:
                 for history, selected_text in zip(self.history, assistant_texts):
@@ -414,7 +530,7 @@ class ExactSuffixChat:
         )
         generated_ids: list[int] = []
         first_token_time: float | None = None
-        eos_ids = {int(value) for value in (self.tokenizer.eos_token_ids or [])}
+        eos_ids = eos_token_ids(self.tokenizer)
         finish_reason = "length"
         try:
             while len(generated_ids) < max_tokens:

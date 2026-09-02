@@ -1,0 +1,86 @@
+{
+  "experiment_id": "P2-REAL-G128-REPEATED-TRUNCATION-FALLBACK",
+  "history_edit_fallback": {
+    "cache_exact_reuse": false,
+    "cache_fresh_fallback": true,
+    "cache_offset_after": 196,
+    "cache_offset_before": 0,
+    "cache_reuse_mode": "fresh_fallback",
+    "decode_tps": 0.0,
+    "finish_reason": "length",
+    "generated_tokens": 1,
+    "logical_context_tokens": 196,
+    "processed_suffix_tokens": 195,
+    "prompt_tokens": 195,
+    "ttft_seconds": 2.9705752920126542
+  },
+  "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+  "summary": {
+    "continuation_http_errors": 0,
+    "fallback_http_error": false,
+    "fallback_mode": "fresh_fallback",
+    "forced_length_truncations": 2,
+    "max_logical_context_tokens": 209,
+    "session_stats": {
+      "cache_conflict_error": 0,
+      "cache_exact_reuse": 2,
+      "cache_fresh_fallback": 1,
+      "cache_layers": 64,
+      "cached_prefix_tokens": 196,
+      "generation_count": 1,
+      "logical_context_tokens": 196,
+      "message_count": 8,
+      "session_id": "stage8-recovery-1788362947000871000",
+      "truncation_continuations": 2
+    },
+    "successful_exact_recoveries": 1
+  },
+  "timestamp": "2026-09-02T19:29:19+0400",
+  "turns": [
+    {
+      "cache_exact_reuse": false,
+      "cache_fresh_fallback": false,
+      "cache_offset_after": 90,
+      "cache_offset_before": 0,
+      "cache_reuse_mode": "fresh_prefill",
+      "decode_tps": 11.962427212313159,
+      "finish_reason": "length",
+      "generated_tokens": 31,
+      "logical_context_tokens": 90,
+      "processed_suffix_tokens": 59,
+      "prompt_tokens": 59,
+      "ttft_seconds": 1.2668972910032608,
+      "turn": 1
+    },
+    {
+      "cache_exact_reuse": true,
+      "cache_fresh_fallback": false,
+      "cache_offset_after": 151,
+      "cache_offset_before": 90,
+      "cache_reuse_mode": "exact_reuse",
+      "decode_tps": 11.958821391437256,
+      "finish_reason": "length",
+      "generated_tokens": 31,
+      "logical_context_tokens": 151,
+      "processed_suffix_tokens": 30,
+      "prompt_tokens": 120,
+      "ttft_seconds": 0.5961220409953967,
+      "turn": 2
+    },
+    {
+      "cache_exact_reuse": true,
+      "cache_fresh_fallback": false,
+      "cache_offset_after": 209,
+      "cache_offset_before": 151,
+      "cache_reuse_mode": "exact_reuse",
+      "decode_tps": 11.957005483357355,
+      "finish_reason": "stop",
+      "generated_tokens": 28,
+      "logical_context_tokens": 209,
+      "processed_suffix_tokens": 30,
+      "prompt_tokens": 181,
+      "ttft_seconds": 0.5957242909935303,
+      "turn": 3
+    }
+  ]
+}

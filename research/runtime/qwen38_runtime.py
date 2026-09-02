@@ -31,6 +31,17 @@ from mlx_lm.sample_utils import make_sampler
 from mlx_lm.tokenizer_utils import TokenizerWrapper
 
 
+def _eos_ids(tokenizer: Any) -> set[int]:
+    value = getattr(tokenizer, "eos_token_ids", None)
+    if value is None:
+        value = getattr(tokenizer, "eos_token_id", None)
+    if value is None:
+        return set()
+    if isinstance(value, int):
+        return {int(value)}
+    return {int(item) for item in value}
+
+
 PINNED_MLX_LM_REVISION = "254d153fdeb6f150edd4fc5a54f9828638481fa8"
 STARTUP_MESSAGE = (
     "[qwen38-runtime] mlx-lm wired_limit wrapper disabled; "
@@ -86,7 +97,7 @@ def stream_generate_no_wired(
             prompt_time = time.perf_counter() - tic
             prompt_tps = prompt.size / prompt_time
             tic = time.perf_counter()
-        if token in tokenizer.eos_token_ids:
+        if token in _eos_ids(tokenizer):
             break
 
         detokenizer.add_token(token)
@@ -121,7 +132,7 @@ def stream_generate_no_wired(
         generation_tokens=n + 1,
         generation_tps=generation_tps,
         peak_memory=mx.get_peak_memory() / 1e9,
-        finish_reason="stop" if token in tokenizer.eos_token_ids else "length",
+        finish_reason="stop" if token in _eos_ids(tokenizer) else "length",
     )
 
 
