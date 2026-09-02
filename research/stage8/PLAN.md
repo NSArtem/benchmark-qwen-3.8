@@ -80,7 +80,32 @@ quantization or DWQ work is in scope.
   baseline (5.511 vs 11.652 tok/s; 3.563 vs 11.115 tok/s). The guarded 16K
   transactional run was stopped at the memory safety boundary before output.
 - MTP is closed as a production acceleration branch for this stage; baseline
-  g128 remains the default. The remaining gate is long-agent reliability.
+  g128 remains the default. The long-agent reliability gate is recorded below.
+
+## Phase 11 completion record
+
+- The strict serialized server harness ran the final baseline-g128 session in
+  `agent/long-session-final2.json`. It reached 10,589 logical tokens over 29
+  assistant turns, handled the long deterministic tool result, made 12
+  recognized valid (seven explicitly serviced) and zero invalid tool calls,
+  and passed the task checks.
+- Three deliberate max-token truncations all continued with exact cache reuse;
+  the session recorded zero HTTP errors and zero HTTP 409s. The one long
+  payload prefill was retained as a TTFT outlier rather than hidden from the
+  raw transcript.
+- Earlier negative controls (`long-session-r2.json` and `r3.json`) remain as
+  strict harness evidence: unknown tool paths and incomplete model tool
+  prefixes were not supplied with fabricated results and were classified as
+  failures.
+
+## Phases 12–13 completion record
+
+- Production documentation now records the authoritative token-ID session
+  representation, exact-reuse/fresh-fallback policy, and MTP rejection gate.
+- The final report distinguishes measured facts, inferences, and hypotheses
+  and cites compact raw artifacts for every major conclusion.
+- The final validation suite is 14/14 lightweight tests plus the protocol
+  self-test; no heavy process remains running and no Stage 9 work is started.
 
 ## Deliverables
 

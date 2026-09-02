@@ -10,6 +10,13 @@ logical transcript and cache; `/stats` and `/context` report the cached logical
 token count; `/quit` exits. A generation exception or Ctrl-C resets the session
 before accepting another message.
 
+The serialized backend retains each assistant turn's exact generated token IDs
+and finish reason internally. This makes a `finish_reason=length` turn a valid
+continuation boundary even when decoded text is not token-lossless. Exact
+known extensions reuse the cache; a valid transcript that cannot be proven to
+extend it is safely fresh-prefilled. `/metrics` reports exact reuse, fallback,
+conflict, and truncation-continuation counters.
+
 Run it from the repository with the canonical environment:
 
 ```sh
@@ -40,7 +47,10 @@ uv run --project envs/mlx-0.32.1 --no-sync python \
 It is intentionally single-session and serialized; it does not batch or
 provide concurrent inference. Tool-call payloads are normalized as text rather
 than emitted as provider-specific structured tool calls. Reset with
-`POST /v1/sessions/{id}/reset`.
+`POST /v1/sessions/{id}/reset`. Stage 8 profiling found the recovered MTP
+prototype exact but slower and more memory-intensive at useful contexts, so it
+is not enabled by this production command; g128 greedy decoding remains the
+default.
 
 The regression tests are token/state-only and do not load the 27B model:
 

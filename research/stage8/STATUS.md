@@ -1,12 +1,12 @@
 # Stage 8 status
 
-Last updated: 2026-09-02, after Phases 4–10 MTP work.
+Last updated: 2026-09-02, after Phase 13 closeout validation.
 
 ## Current phase
 
-Phase 11 — long serialized coding-agent reliability benchmark. The truncation
-fix is production-integrated; MTP remains experimental/rejected as an
-acceleration mode after the exact transactional result stayed slower.
+Phase 13 — final synthesis and closeout. The truncation fix is production-
+integrated; MTP remains experimental/rejected as an acceleration mode after
+the exact transactional result stayed slower; the long-agent gate passed.
 
 ## Memory/swap baseline and safety
 
@@ -20,8 +20,9 @@ One guarded 16K transactional MTP attempt was stopped by the agent when
 `vm_stat` reached 4,100 free pages (~64 MiB), ~4.46 GiB occupied compressor
 pages, and ~3.67 GiB wired pages. The process was interrupted during prefill;
 there is no 16K MTP correctness or throughput result. The host recovered to
-90% free. No wired-memory setting was changed and no `mx.set_wired_limit()`
-call was made.
+90% free after every completed heavy run, including the final 10.6K-token
+agent session. No wired-memory setting was changed and no
+`mx.set_wired_limit()` call was made.
 
 ## Truncation bug
 
@@ -45,8 +46,9 @@ Implemented and covered by 14/14 lightweight tests plus real g128 tests. The
 real serialized recovery artifact records three forced length truncations,
 three exact-cache follow-ups, one deliberate valid-history edit using fresh
 fallback, zero HTTP errors, three exact reuses, one fallback, and zero
-conflict errors. Remaining 409s are reserved for genuinely invalid or
-ambiguous session semantics.
+conflict errors. The real targeted matrix also covers length budgets 31, 128,
+and 256. Remaining 409s are reserved for genuinely invalid or ambiguous
+session semantics.
 
 ## MTP artifact and profiler findings
 
@@ -102,17 +104,31 @@ The 4K and 8K transactional outputs are token-identical to fresh baseline
 references. The 16K baseline completed at 10.727 tok/s and 16,359,177,270 B
 peak; the MTP attempt was stopped before generation when system free pages
 became unsafe. The sequential transaction is therefore an exact state/memory
-experiment, not a production acceleration.
+experiment, not a production acceleration. The layerwise variant is rejected
+by the short exactness gate and is not used in any headline number.
 
 ## Long-agent benchmark
 
-Not started. The next action is to run the strict serialized backend fixture
-with three forced length truncations, long tool payloads, invalid-tool
-accounting, and at least 8K logical context. Use baseline g128 only; the MTP
-branch did not pass the Phase 10 production gate.
+The principal run is `agent/long-session-final2.json`, using the serialized
+OpenAI-compatible backend and baseline g128. It passed the strict task gate:
+
+- 29 assistant turns; maximum and final logical context 10,589 tokens;
+- 12 recognized valid tool calls (seven explicitly serviced), zero invalid
+  calls, zero missing expected calls;
+- one long deterministic tool result; no result was injected after an invalid
+  request;
+- three forced length truncations, three successful exact-reuse recoveries;
+- zero HTTP errors and zero HTTP 409s;
+- 28 exact-reuse requests, zero fresh fallbacks;
+- median warm TTFT 1.062 s, p95 1.966 s, maximum 92.613 s (the long-tool
+  prefill), median decode 11.811 tok/s;
+- final coding-agent task success: true.
+
+Earlier strict negative controls remain recorded and did not inject results for
+unknown paths or malformed tool prefixes.
 
 ## Next action
 
-Read AGENTS/TASK/STATUS again, inspect the Stage 7 agent harness and current
-server protocol, implement the deterministic long-session harness, then run
-and record the production reliability gate before final synthesis.
+No further Stage 8 experiment is authorized or needed. Commit the closeout
+artifacts, verify the final report and clean git state, then stop without
+starting Stage 9.
