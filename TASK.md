@@ -1,44 +1,45 @@
-# Stage 7 — Bounded DWQ, Qwen3.8 MTP, and Real Agent Validation
+# Stage 8 — Runtime Reliability and Sequential-Equivalent MTP Verification
 
 ## Mission
 
-Run an autonomous Stage 7 for approximately 10-15 hours.
+Run an autonomous Stage 8 for approximately 10-15 hours.
 
-This stage is deliberately narrower than Stages 4-6.
+Stage 8 has exactly three primary engineering missions:
 
-The static quantization frontier is considered largely saturated.
+A. fix the length-truncated completion continuation bug that produced HTTP 409;
 
-Primary objectives:
+B. profile the exact Stage 7 MTP runtime quantitatively, including time and
+   memory overhead by component;
 
-A. scale bounded DWQ from a one-module proof into a real diversity-aware
-   g128 refinement experiment;
+C. build, if technically possible, a sequential-equivalent efficient verifier
+   for Qwen3.8's hybrid attention + GatedDelta target model.
 
-B. reverse-engineer and, if possible, implement a correct Qwen3.8 MTP decode
-   path using the MTP tensors already present in the original source model;
+After those tasks, validate the production server with a genuinely long
+8K-16K coding-agent session.
 
-C. evaluate the final runtime on realistic serialized coding-agent/tool-use
-   workloads.
+Do not reopen model quantization or DWQ research.
 
 Critical path:
 
-    recover state
-    -> freeze Stage 7 calibration/evaluation protocol
-    -> scalable bounded DWQ
-    -> DWQ quality decision
-    -> Qwen3.8 MTP architecture
-    -> MTP correctness prototype
-    -> MTP performance / quantized MTP
-    -> real coding-agent benchmark
-    -> production runtime decision
+    recover Stage 7
+    -> reproduce HTTP 409 at token level
+    -> fix session/truncation semantics
+    -> regression tests
+    -> profile exact MTP
+    -> localize batched-vs-sequential first divergence
+    -> design transactional verifier
+    -> implement sequential-equivalent verifier
+    -> exactness oracle
+    -> 4K/8K/16K performance
+    -> long coding-agent endurance
+    -> production cleanup
     -> final report
 
-Use gates.
-
-Do not begin another broad static quant search.
+Use decision gates.
 
 ---
 
-# Phase 0 — Recover Stage 6 and Establish Clean Baseline
+# Phase 0 — Recover Stage 7 and Establish Baseline
 
 Target: 20-30 minutes.
 
@@ -47,882 +48,1021 @@ Start:
     git status
     git log --oneline -30
 
-Read:
+Read completely:
 
     AGENTS.md
-    research/stage6/FINAL_REPORT.md
-    research/stage6/STATUS.md
-    research/stage6/RESULTS.md
-    research/stage6/results.jsonl
+    research/stage7/FINAL_REPORT.md
+    research/stage7/STATUS.md
+    research/stage7/RESULTS.md
+    research/stage7/results.jsonl
 
-Inspect raw artifacts for:
+Inspect raw Stage 7 code/artifacts for:
 
-    g128 final quality
-    corrected heldout_v2
-    KL ranking reproducibility
-    bounded one-module DWQ
-    20K context
-    MTP tensor inventory
-    serialized agent smoke
+    qwen38_agent_server.py
+    qwen38_chat.py
+    MTP architecture implementation
+    exact MTP verifier
+    4-bit MTP artifact/config
+    MTP performance harness
+    batched-verifier failure
+    agent benchmark
+    truncation/HTTP409 reproduction
 
-Verify canonical g128 path:
+Recover exact paths/revisions.
+
+Verify canonical model:
 
     /Users/artem/models/Qwen3.8-27B-3bit-g128-MLX
 
-Verify high-precision/source path.
-
-Verify current runtime paths:
-
-    qwen38_chat.py
-    qwen38_agent_server.py
-
-Record system baseline:
+Record clean system baseline:
 
     memory_pressure
     vm_stat
     swap
     free disk
-    heavy running processes
+    running heavy processes
 
 Create:
 
-    research/stage7/PLAN.md
-    research/stage7/STATUS.md
-    research/stage7/RESULTS.md
-    research/stage7/results.jsonl
+    research/stage8/PLAN.md
+    research/stage8/STATUS.md
+    research/stage8/RESULTS.md
+    research/stage8/results.jsonl
 
-Do not rerun Stage 6 headline benchmarks.
+Do not rerun Stage 7 quality/DWQ experiments.
 
 ---
 
-# Phase 1 — Build Diversity-Aware DWQ Calibration Protocol
+# Phase 1 — Reproduce the HTTP 409 Bug at Token Level
 
-Target: 45-60 minutes.
+Target: 45-75 minutes.
 
-Stage 6 established that calibration composition materially changes sensitivity
-ranking.
+This is the first P0 task.
 
-Build a fixed Stage 7 optimization protocol.
+Reproduce the exact Stage 7 failure:
 
-## Create three disjoint sets
+    serialized session
+    assistant generation reaches max_tokens
+    finish_reason = length
+    next request continues the conversation
+    HTTP 409 / exact-prefix conflict
 
-### A. DWQ train calibration
+Use a small enough prompt/context to iterate quickly.
 
-Target:
+Do not begin with an 8K model run if a short reproduction works.
 
-    ~16-24 compact examples
+## Capture exact state
 
-Balanced across:
+At the end of the truncated assistant turn save:
 
-    coding/debugging
-    patch reasoning
-    instruction following
-    structured output
-    supplied-context retrieval
-    general reasoning
-    tool/agent transcript
-    prose/continuity
+    generated token IDs
+    decoded response text
+    re-encoded token IDs from that text
+    logical transcript token IDs
+    cache offsets
+    cache represented-prefix length
+    assistant finish reason
+    server session message representation
+    canonical full-transcript tokens expected on next request
 
-### B. DWQ validation calibration
+On the next request, save:
 
-Target:
+    client message list
+    server reconstructed canonical tokens
+    expected cached prefix
+    actual longest common prefix
+    first mismatching token index
+    token IDs around mismatch
+    decoded context around mismatch
 
-    ~8-12 examples
+Also record cache signatures/offsets if relevant.
 
-Same broad domain distribution, different prompts/content.
+## Test the hypotheses
 
-Used for:
+Explicitly determine whether the first mismatch is caused by:
 
-    early stopping
-    module-count selection
-    learning-rate/step validation
+    decode -> encode non-identity
+    chat-template assistant-close boundary
+    cache lookahead/off-by-one
+    server message history
+    client echo/reconstruction
+    another cause
 
-### C. Final evaluation
+Do not patch until the mismatch is understood.
 
-Reuse:
+## Deliverable
 
-    corrected heldout_v2
-    Quality Suite V2
+Create:
 
-and optionally add a very small Stage 7 agent-specific final set.
+    research/stage8/truncation/ROOT_CAUSE.md
+    research/stage8/truncation/repro.json
 
-Do not train/tune against final evaluation.
+State one concrete root cause supported by raw token evidence.
 
-## Requirements
+If multiple independent causes exist, separate them.
 
-All examples:
-
-    local
-    deterministic
-    reproducible
-    hashed
-
-Record:
-
-    train hash
-    validation hash
-    final suite hashes
-
-Do not scrape live web content.
-
-## Teacher target
-
-Run baseline teacher/student metrics on train and validation:
-
-    teacher/reference
-    g128
-
-Record:
-
-    KL
-    NLL where appropriate
-    top-1 agreement
-
-This establishes headroom.
-
-Commit.
+Commit the reproduction/root-cause harness if useful.
 
 Suggested:
 
-    benchmark: define diversity-aware Qwen3.8 DWQ calibration
+    test: reproduce truncated-completion session mismatch
 
 ---
 
-# Phase 2 — Productionize the Bounded DWQ Primitive
+# Phase 2 — Implement Correct Truncated-Completion Continuation
 
 Target: 60-90 minutes.
 
-Recover the Stage 6 one-module bounded DWQ implementation.
+Fix the server/session representation based on Phase 1 evidence.
 
-Do not rewrite it from scratch unless necessary.
+## Required semantics
 
-Refactor into a reusable harness capable of:
+A previous assistant message ending with:
 
-    selected module list
-    configurable learning rate
-    configurable steps
-    train calibration set
-    validation set
-    checkpoint/resume
-    per-module metrics
-    bounded source loading
-    deterministic seeds/order
+    finish_reason = length
 
-## Safety
+is a valid conversation turn.
 
-Before multi-module refinement:
+A later request extending that conversation must not fail solely because EOS was
+not generated.
 
-Run the known sensitive single-module case again.
+## Preferred architecture
+
+Maintain authoritative server-side session state that can include:
+
+    exact generated token IDs
+    decoded assistant text
+    finish reason
+    exact cached logical prefix length
+    canonical turn boundary tokens
+
+If the current bug is re-tokenization, use exact stored generated IDs for cache
+identity rather than reconstructing them from response text.
+
+Do not force this design if Phase 1 disproves that hypothesis.
+
+## Cache reuse policy
+
+### Exact fast path
+
+If the new request extends the authoritative session exactly:
+
+    reuse cache
+    append only canonical missing suffix
+
+### Safe fresh fallback
+
+If the supplied valid message history does not match the reusable cached token
+prefix:
+
+    invalidate session cache
+    fresh-prefill the supplied canonical transcript
+    continue
+
+Do not return HTTP 409 merely because cache reuse is unavailable.
+
+Only return conflict/error for a genuinely invalid/ambiguous session contract.
+
+## OpenAI compatibility
+
+Return correct:
+
+    finish_reason = length
+
+for max-token completion.
+
+Preserve returned response text exactly as API output.
+
+Internal exact token state may contain more information than the API response.
+
+## Unit/regression tests
+
+Create lightweight tests for:
+
+    EOS continuation
+    max_tokens continuation
+    multiple consecutive truncated completions
+    reset after truncated completion
+    client retransmission
+    deliberate history edit
+    fresh-fallback behavior
+
+Budgets should cover a representative boundary set, such as:
+
+    1, 2, 3, 31, 32, 63, 64, 127, 128, 255, 256
+
+Use token-level/mock tests where possible.
+
+Include:
+
+    whitespace
+    code
+    indentation
+    Unicode
+    punctuation
+
+Do not require 27B for the full matrix.
+
+## 27B integration
+
+After lightweight tests pass:
+
+Run a real g128 session with:
+
+    at least 3 intentional length truncations
+    a follow-up after each
 
 Require:
 
-    finite loss
-    safe memory
-    reproducible direction of improvement
+    no 409
+    coherent continuation
+    exact cache accounting or explicit fresh fallback
+    no stale replay
 
-Do not require exact floating-point identity, but results should be consistent.
+Record warm TTFT for:
 
-Record:
-
-    local loss
-    train end-to-end target
-    validation end-to-end target
-    peak memory
-    wall time
-
-## Optimizer exploration
-
-Use a SMALL bounded sweep only if necessary.
-
-Example:
-
-    1e-6
-    3e-7
-    3e-6
-
-Do not run a large hyperparameter search.
-
-Stage 6 showed a much larger LR could diverge.
-
-Choose one stable default.
-
-Commit reusable implementation.
-
-Suggested:
-
-    feat: productionize bounded Qwen3.8 DWQ harness
-
----
-
-# Phase 3 — DWQ Scaling Curve
-
-Target: 120-180 minutes.
-
-Primary student:
-
-    canonical g128
-
-Use the Stage 5/6 end-to-end KL sensitivity ranking as the initial module
-priority.
-
-Do NOT create a new static quant.
-
-Test refinement scales such as:
-
-    top 4 modules
-    top 8 modules
-    top 16 modules
-    top 32 modules
-
-These are suggested gates, not mandatory exact counts.
-
-The preferred procedure is incremental:
-
-    g128
-    -> refine top 4
-    -> validate
-    -> optionally continue to top 8
-    -> validate
-    -> optionally continue to top 16
-    -> validate
-    -> optionally continue to top 32
-
-Do not create full duplicate checkpoint trees if a safe resume/copy-on-write
-workflow exists.
-
-Preserve enough checkpoints to compare best states.
-
-## Per-stage metrics
-
-On DWQ train:
-
-    teacher loss before/after
-
-On DWQ validation:
-
-    teacher loss before/after
-
-Also:
-
-    top-1 agreement
-    selected generation sanity
-    model payload
-    memory
-    wall time
-
-## Gate
-
-Continue module count only if:
-
-    validation improves or remains plausibly flat
-    no practical task regression appears
-    training remains stable
-
-Stop if:
-
-    validation worsens twice
-    train improves while validation clearly worsens
-    generation becomes degraded
-    runtime budget becomes excessive
-
-The best validation checkpoint becomes:
-
-    DWQ-CANDIDATE
-
-Do not use final held-out to choose top4/top8/top16/top32.
-
----
-
-# Phase 4 — Calibration Robustness / Domain Ablation
-
-Target: 60-90 minutes.
-
-Question:
-
-> Is diversity-aware calibration actually more robust than optimizing against a
-> narrow domain?
-
-Do not train many full models.
-
-Use the DWQ harness on a small fixed module subset, e.g. top 4-8 modules.
-
-Compare:
-
-    diverse calibration
-    coding-heavy calibration
-    reasoning-heavy calibration
-
-Evaluate on the DWQ validation set split by domain.
-
-Report:
-
-    in-domain gain
-    cross-domain gain
-    regressions
-
-Primary decision:
-
-    keep diverse calibration
-    OR identify a clearly superior weighting strategy
-
-Do not optimize against final held-out.
-
-If the diverse corpus clearly dominates, stop the ablation early.
+    exact-reuse continuation
+    fresh-fallback continuation
 
 Commit.
 
 Suggested:
 
-    experiment: measure Qwen3.8 DWQ calibration robustness
+    fix: continue sessions after length-truncated completions
 
 ---
 
-# Phase 5 — DWQ Final Quality Evaluation
+# Phase 3 — Harden Session Recovery Semantics
+
+Target: 30-45 minutes.
+
+Test server behavior when the client legitimately cannot use the cached prefix.
+
+Examples:
+
+    client edits an earlier message
+    client omits/changes assistant text
+    session ID reused with a different history
+    tool payload differs
+    conversation resumes from a stored external transcript
+
+Correct production behavior should be explicit.
+
+Preferred:
+
+    valid transcript -> fresh-prefill and continue
+    invalid request -> clear structured error
+
+Do not silently use stale cache.
+
+Add counters/metrics:
+
+    cache_exact_reuse
+    cache_fresh_fallback
+    cache_conflict_error
+    truncation_continuations
+
+Expose them through:
+
+    /metrics
+
+or the current metrics surface.
+
+Commit with Phase 2 if tightly coupled.
+
+---
+
+# Phase 4 — Instrument the Stage 7 Exact MTP Runtime
 
 Target: 60-90 minutes.
 
-Only run on:
+This is the second P0 task.
 
-    g128 baseline
-    best DWQ-CANDIDATE
+Recover the known exact 4-bit MTP implementation.
 
-Optionally include g64 as teacher/reference metrics, not as a production
-candidate.
+Do not optimize it yet.
 
-Run:
+Add a diagnostic profiling mode.
 
-    corrected heldout_v2
-    full Quality Suite V2
-    teacher-forced NLL/KL subset
+## Time components
 
-Record:
+Measure per speculative cycle:
 
-    objective totals
-    category totals
-    coding results
-    reasoning
-    structured output
-    context retrieval
-    instruction following
-    prose/semi-objective
-    early EOS
-    malformed outputs
-    finish reason
+    draft_proposal
+    target_state_snapshot
+    target_verification
+    acceptance_compare
+    rollback_restore
+    target_replay
+    draft_state_sync
+    explicit mx.eval/synchronization
+    mx.clear_cache if material
+    other bookkeeping
+    total cycle
 
-Teacher-forced:
+Count:
 
-    NLL
-    KL
-    top-1 agreement
+    draft calls
+    target calls
+    target tokens processed
+    draft tokens proposed
+    accepted tokens
+    rejected tokens
+    replayed target tokens
 
-Manually inspect every disagreement between g128 and DWQ candidate.
+## Memory components
 
-## Decision
+At useful points record:
 
-Promote DWQ to DEFAULT only if it offers a meaningful quality improvement
-without runtime regression.
-
-Possible outcomes:
-
-### DWQ DEFAULT
-
-    measurable held-out improvement
-    same model-size class
-    runtime essentially unchanged
-
-### DWQ QUALITY MODE
-
-    modest but real quality improvement
-    some operational cost
-
-### REJECTED / RESEARCH ONLY
-
-    calibration improves but held-out does not
-    or practical regressions appear
-
-Do not force a DWQ win.
-
-Commit.
-
-Suggested:
-
-    benchmark: evaluate bounded-DWQ Qwen3.8 quality
-
----
-
-# Phase 6 — DWQ Runtime Validation
-
-Target: 45-60 minutes.
-
-Only if a DWQ candidate survives Phase 5.
-
-Compare:
-
-    g128
-    DWQ candidate
-
-At:
-
-    ~8K
-    ~16K
-
-Use exact-suffix persistent chat.
-
-Record:
-
-    payload
-    prompt t/s
-    decode
-    warm TTFT
-    peak
+    active
+    cache
     active+cache
+    peak
     RSS
-    correctness
 
-DWQ should not materially change payload/residency if implemented as intended.
+Checkpoints:
 
-If it unexpectedly changes runtime behavior:
+    baseline model loaded
+    MTP weights loaded
+    before snapshot
+    after snapshot
+    after verification
+    after rollback/commit
+    end of cycle
 
-    investigate configuration/serialization differences.
+Estimate actual bytes copied for:
 
-One 20K smoke is allowed only if DWQ becomes DEFAULT and 16K remains healthy.
+    16 attention KV cache components
+    48 recurrent state components
 
----
+where possible.
 
-# Phase 7 — Reverse-Engineer Qwen3.8 MTP Architecture
+## Diagnostic vs benchmark modes
 
-Target: 60-120 minutes.
+Diagnostic profiling may synchronize.
 
-This is the second P0 research branch.
+Headline benchmark mode must not inherit artificial synchronization.
 
-Stage 6 confirmed:
+Make this separation explicit in code.
 
-    15 mtp.* source tensors
-    ~0.791 GiB BF16 total
+## Contexts
 
-Now determine exactly how they are used.
+Detailed profile:
 
-## Inspect
+    short / ~1K
+    ~4K
+    ~8K
 
-- source config;
-- tensor names;
-- tensor shapes;
-- original/reference implementation;
-- related Qwen3.x MTP model code;
-- current mlx-lm code;
-- current upstream branches/issues/PRs if useful.
+Do not profile 16K in high-overhead diagnostic mode unless memory is clearly
+safe.
 
-Record exact source/revisions inspected.
-
-Do not rely on memory or previous chat summaries.
-
-## Produce architecture note
+## Deliverable
 
 Create:
 
-    research/stage7/mtp/ARCHITECTURE.md
+    research/stage8/mtp/profile_summary.json
+    research/stage8/mtp/PROFILE.md
 
-It should map:
+The report must quantify:
 
-    each MTP tensor
-    -> module
-    -> input
-    -> output
-    -> base-model hidden state dependency
-    -> position/token dependency
+    percentage of wall time by component
+    percentage/bytes of extra memory by component
+    target-call overhead per emitted token
+    theoretical upper bound if snapshot/replay were free
 
-Derive:
+Commit.
 
-    proposal generation procedure
-    number of future tokens predicted
-    normalization
-    embedding sharing
-    logits head behavior
-    cache/state requirements
+Suggested:
 
-If architecture is ambiguous:
-
-    explicitly document ambiguity.
-
-## Gate
-
-Only implement MTP if the computation graph and acceptance semantics are
-sufficiently supported.
-
-If not:
-
-    stop implementation branch
-    preserve architecture findings
-    spend remaining time on DWQ/agent quality.
-
-Commit architecture research.
+    benchmark: profile exact Qwen3.8 MTP overhead
 
 ---
 
-# Phase 8 — Minimal Exact MTP Prototype
+# Phase 5 — Build the Sequential-vs-Chunk Target Oracle
 
-Target: 90-150 minutes.
+Target: 60-90 minutes.
 
-Only if Phase 7 passes.
+Before designing another verifier, identify the first actual divergence.
 
-Do NOT begin with optimized production code.
-
-Build the smallest correct prototype.
-
-Preferred base:
-
-    g128
-
-MTP tensors may initially be loaded separately.
-
-## Correctness oracle
-
-Use short prompts.
+Use exact predetermined token sequences.
 
 Compare:
 
-    baseline greedy token sequence
-    MTP speculative token sequence
+### S — normal sequential target
 
-If the algorithm is supposed to be exact:
+    token 0
+    token 1
+    token 2
+    ...
 
-    require token-for-token equality.
+one target decode step at a time.
 
-Record:
+### C — current chunk/batched verifier
 
-    draft tokens proposed
-    accepted
-    rejected
-    fallback tokens
-    acceptance rate
+    same exact tokens
+    processed as a short multi-token verification chunk
 
-Test multiple short prompts:
+Do not involve draft-model uncertainty in this oracle.
+
+## Test widths
+
+Use small widths:
+
+    2
+    3
+    4
+
+or the actual Stage 7 candidate widths.
+
+## Per-layer instrumentation
+
+At each layer compare where practical:
+
+    layer input/output signatures
+    cache class
+    cache offsets
+    recurrent state signatures
+    KV state signatures
+
+Find:
+
+    first layer whose output differs
+    first cache state that differs
+    first target-logit position that differs
+
+Separate:
+
+    48 recurrent/GatedDelta layers
+    16 attention layers
+
+## Numeric metrics
+
+For differing tensors/logits record:
+
+    exact equality
+    max abs diff
+    mean abs diff
+    top-1 identity
+    state hash/signature
+
+Do not dump giant tensors.
+
+## Segmentation controls
+
+Useful controls:
+
+    chunk width 1
+    chunk width 2
+    same tokens but layer-specific sequential recurrent mode if easy
+
+Question:
+
+> Is recurrent chunk execution the first source of divergence, attention batch
+> execution, or something else?
+
+## Deliverable
+
+Create:
+
+    research/stage8/mtp/VERIFIER_DIVERGENCE.md
+    research/stage8/mtp/divergence.json
+
+Do not implement the optimized verifier until this evidence exists.
+
+Commit.
+
+Suggested:
+
+    experiment: localize Qwen3.8 verifier segmentation divergence
+
+---
+
+# Phase 6 — Design Transactional Hybrid Cache Verification
+
+Target: 45-60 minutes.
+
+Based on Phase 4 and Phase 5 evidence, write a concrete design before coding.
+
+Create:
+
+    research/stage8/mtp/TRANSACTIONAL_VERIFIER_DESIGN.md
+
+The design should answer:
+
+## Recurrent state
+
+How to obtain sequential-equivalent recurrent state for each candidate token?
+
+Preferred concept if supported:
+
+    state_before
+    state_after_token_1
+    state_after_token_2
+    ...
+
+Then acceptance of k tokens commits:
+
+    state_after_token_k
+
+without replaying the prefix.
+
+## Attention KV
+
+Avoid copying the full historical KV.
+
+Preferred:
+
+    append speculative KV
+    then trim rejected suffix
+
+or:
+
+    short delta/shadow KV
+
+using only cache operations proven safe for that cache type.
+
+## Full-model sequence execution
+
+If recurrent layers can process the candidate sequence sequentially internally,
+determine whether the model can still process a short sequence in one
+high-level forward while remaining sequential-equivalent.
+
+Document operation ordering.
+
+## Rejection
+
+Define exact behavior when:
+
+    first draft token rejected
+    middle token rejected
+    all tokens accepted
+
+## Draft state
+
+Define how the MTP/draft cache is synchronized without unnecessary full replay.
+
+## Memory
+
+Estimate additional state as a function of:
+
+    draft width
+    recurrent checkpoint size
+    attention delta size
+    MTP cache
+
+Compare to Stage 7's ~1.47 GiB extra 8K peak.
+
+## Speed model
+
+Estimate:
+
+    target forwards per emitted token
+    recurrent scan cost
+    attention verification cost
+    draft cost
+
+A design that still requires one full target forward per emitted token should
+not be expected to provide a major speedup.
+
+Gate implementation based on this analysis.
+
+---
+
+# Phase 7 — Implement Sequential-Equivalent Multi-Token Verifier
+
+Target: 120-210 minutes.
+
+This is the core Stage 8 engineering phase.
+
+Implement the smallest version of the Phase 6 design.
+
+Keep it local to the Qwen3.8 runtime/harness initially.
+
+Do not modify the canonical installed mlx-lm package in-place if a local adapter
+or model helper is sufficient.
+
+## Likely implementation direction
+
+If Phase 5 identifies recurrent chunk processing as the divergence:
+
+Implement a verifier-specific sequence mode that forces the recurrent
+GatedDelta computation to advance token-by-token inside each recurrent layer,
+while allowing the short candidate sequence to continue through the model as a
+sequence.
+
+The exact implementation must follow actual model code.
+
+Do not assume this direction if Phase 5 shows a different first divergence.
+
+## Transactional state
+
+Avoid deep-copying the full target historical cache.
+
+For recurrent layers:
+
+    store only the minimal state/checkpoints necessary to select the accepted
+    boundary.
+
+For attention:
+
+    use safe append/trim or delta cache.
+
+## First correctness target
+
+Use a fixed 2-token verification width.
+
+Do not optimize width yet.
+
+Require:
+
+    same target top-1 tokens
+    accepted-prefix cache equivalence
+    correct rollback after first-token rejection
+    correct rollback after partial acceptance
+    correct all-accepted commit
+
+Compare against token-by-token sequential oracle.
+
+## Strong exactness tests
+
+Use:
 
     coding
     reasoning
     prose
-    structured response
+    structured output
+    high-rejection examples
+    high-acceptance examples
 
-Do not benchmark speed until correctness passes.
+Run repeated speculative cycles, not only one cycle.
 
-## Cache correctness
+Test at least one generation long enough to contain many accept/reject events.
 
-Qwen3.8 is hybrid recurrent + attention.
+If state drifts after several cycles:
 
-MTP rejection/rollback must preserve:
+    STOP performance work and localize.
 
-    full-attention KV cache
-    recurrent ArraysCache/GatedDelta state
-
-Do not assume ordinary transformer KV rollback is enough.
-
-If rollback semantics are unsafe or unclear:
-
-    use state checkpoint/copy for the prototype
-    even if slow
-
-Correctness first.
-
-## Gate
-
-Proceed to optimization only if:
-
-    baseline output equivalence passes
-    cache/state survives rejected proposals
-    repeated generation remains coherent
-
-Commit.
+## Commit
 
 Suggested:
 
-    experiment: implement exact Qwen3.8 MTP prototype
+    experiment: implement sequential-equivalent Qwen3.8 verifier
 
 ---
 
-# Phase 9 — Quantized MTP Weights
+# Phase 8 — Verifier Exactness and State Oracle
 
 Target: 45-75 minutes.
 
-Only if exact MTP prototype works.
+Before headline performance:
 
-Raw BF16 MTP payload:
+Run a dedicated oracle suite.
 
-    ~0.791 GiB
+Compare baseline greedy vs optimized MTP:
 
-This is likely too expensive for 16K general use.
+    token IDs
+    full output hash
+    acceptance trace
+    cache offsets
+    recurrent state signatures
+    attention KV signatures
 
-Create at most:
+At several checkpoints.
 
-    one 4-bit MTP candidate
+Use:
 
-Optionally:
+    short contexts
+    ~1K
+    ~4K
 
-    one 3-bit MTP candidate
+One ~8K exactness run if memory is comfortable.
 
-only if 4-bit is clearly promising.
+Required outcome for exact MTP:
 
-Do not create a quant zoo.
+    baseline greedy output token-identical
 
-Use source-backed conversion.
+and committed cache state must remain equivalent to sequential target behavior.
 
-Evaluate MTP-head proposal quality:
+If logits have tiny differences but tokens/states remain exact, document.
 
-    acceptance rate
-    exact final output
-    added payload
-    added residency
+If committed state differs:
 
-The final base-model output must remain correct under exact speculative
-acceptance.
-
-Select the smallest MTP precision with acceptable acceptance.
-
-Do not overwrite the base model.
+    do not call the verifier exact.
 
 ---
 
-# Phase 10 — MTP Performance Study
+# Phase 9 — Optimize Only Proven Bottlenecks
+
+Target: 45-90 minutes.
+
+Only after exactness passes.
+
+Use Phase 4 profile to optimize the largest remaining components.
+
+Potential optimizations may include:
+
+    avoiding redundant mx.eval
+    avoiding full cache copies
+    preallocating recurrent checkpoints
+    reducing Python loops
+    compiling small recurrent verification helpers
+    improving draft-state synchronization
+    using a short cache delta representation
+
+Do not apply speculative micro-optimizations without measurement.
+
+After each meaningful change:
+
+    rerun exactness
+    rerun profile
+
+Do not trade exactness for speed silently.
+
+---
+
+# Phase 10 — MTP Headline Performance
 
 Target: 60-90 minutes.
 
-Compare:
+Compare fresh-process:
 
-    baseline
-    best MTP mode
+    baseline g128
+    optimized 4-bit MTP
 
-At:
+Use the best exact verifier.
 
-    short
+Contexts:
+
     ~4K
     ~8K
     ~16K
 
-Use fresh processes for headline comparisons.
+At least two repeats for surprising results.
 
 Record:
 
-    decode tok/s
-    speedup ratio
-    acceptance rate
-    proposed tokens/step
-    accepted tokens/step
+    decode t/s
+    speedup
+    warm TTFT if relevant
+    acceptance
+    proposed tokens
+    accepted tokens
+    target calls
+    draft calls
     peak
     active+cache
     RSS
-    TTFT
-    output identity
+    swap/system pressure
+    output exactness
 
-If possible separate:
+## Draft width
 
-    proposal cost
-    verification cost
-    rollback/rejection cost
+Only after the width-2/default path is exact and benchmarked:
 
-## Classification
+Test at most a few widths, e.g.:
 
-### PRACTICAL DEFAULT
+    1
+    2
+    3
 
-    substantial sustained speedup at 8K/16K
-    exact correctness
-    acceptable memory
+if the MTP architecture/prototype supports them.
+
+Select by real throughput, not acceptance alone.
+
+## Production gate
+
+Classify:
+
+### DEFAULT ACCELERATION
+
+    exact
+    useful sustained gain at 8K and 16K
+    safe memory
 
 ### OPTIONAL SHORT-CONTEXT
 
-    good 4K/8K
-    but long-context residency cliff
+    exact
+    useful gain at 4K/8K
+    but 16K memory/performance penalty
 
 ### EXPERIMENTAL
 
-    small gain
-    complexity/high rejection
-    incomplete integration
+    exact but marginal/no gain
+    or implementation complexity remains high
 
 ### REJECTED
 
-    no useful speedup
-    unsafe memory
-    correctness problems
+    cannot preserve correctness
+    or clearly slower/unsafe
 
-Do not promote based on one short benchmark.
-
----
-
-# Phase 11 — Real Coding-Agent Benchmark
-
-Target: 90-120 minutes.
-
-Use the serialized agent backend.
-
-Final candidate set:
-
-    g128 baseline
-    DWQ candidate if it survived
-    MTP mode if it survived
-
-Do not benchmark every combination unnecessarily.
-
-## Build deterministic local fixtures
-
-Create several small isolated repositories/tasks.
-
-Suggested tasks:
-
-### Task A — bug diagnosis
-
-Repository contains:
-
-    bug
-    tests
-    misleading nearby code
-
-Agent must:
-
-    inspect files
-    identify root cause
-    propose correct fix
-
-### Task B — failed patch recovery
-
-Agent receives:
-
-    initial task
-    tool output
-    test failure
-
-Must:
-
-    revise hypothesis
-    produce corrected patch/plan
-
-### Task C — multi-file change
-
-Requires:
-
-    inspect multiple files
-    maintain an invariant
-    reference earlier tool output
-
-### Task D — structured/tool interaction
-
-Requires:
-
-    valid tool-role sequence
-    parse tool result
-    continue without replay
-
-Use deterministic scripts/tools.
-
-Do not let the benchmark alter the actual research repo.
-
-## Metrics
-
-Per task:
-
-    success/fail
-    partial success
-    tool calls
-    invalid tool calls
-    turns
-    total logical context
-    processed suffix tokens
-    median warm TTFT
-    max warm TTFT
-    decode
-    final correctness
-    recovery from wrong hypothesis
-
-If native model-generated structured tool calls are not reliable:
-
-    distinguish:
-        transport/protocol correctness
-        model tool-choice quality
-
-Do not conflate them.
-
-## Quality comparison
-
-If DWQ candidate exists:
-
-    compare task outcomes against g128.
-
-Do not tune DWQ after seeing final agent benchmark.
-
-This is final held-out practical evidence.
-
-Commit fixtures and results.
-
-Suggested:
-
-    benchmark: evaluate Qwen3.8 on serialized coding-agent tasks
-
----
-
-# Phase 12 — Production Integration
-
-Target: 45-60 minutes.
-
-Based on final Stage 7 decisions, clean up:
-
-    research/runtime/qwen38_chat.py
-    research/runtime/qwen38_agent_server.py
-
-Integrate only validated modes.
-
-Possible options:
-
-    --model
-    --kv-bits 8
-    --mtp
-    --mtp-model/path
-    --greedy
-    sampling controls
-
-Do NOT expose an MTP flag as production-ready if it is experimental.
-
-Document:
-
-    DEFAULT model
-    DEFAULT context
-    16K mode
-    20K caveat
-    DWQ role
-    MTP role
-    tool-use limitations
-
-Regression tests must cover any new MTP/DWQ/runtime bug.
-
-Do not add concurrency.
+Do not keep optimizing after a well-supported negative result.
 
 Commit.
 
 Suggested:
 
-    feat: integrate Stage 7 Qwen3.8 runtime modes
+    benchmark: measure optimized Qwen3.8 MTP verifier
 
 ---
 
-# Phase 13 — Final Report
+# Phase 11 — Long 8K-16K Coding-Agent Session
 
-Create:
+Target: 90-120 minutes.
 
-    research/stage7/FINAL_REPORT.md
+This is the production reliability gate.
+
+Use:
+
+    qwen38_agent_server.py
+
+with:
+
+    final g128 runtime
+    optimized MTP only if it passed Phase 10
+
+Build one or more deterministic local repository fixtures.
+
+The principal session must grow to:
+
+    >= 8K logical tokens
+
+Preferred:
+
+    8K-12K
+
+One ~16K session or late-session phase is allowed if safe.
+
+## Required interaction pattern
+
+The session should include:
+
+    system instructions
+    repository context
+    multiple file inspections
+    tool requests/results
+    an initial wrong hypothesis
+    a failing test/result
+    model correction
+    multi-file reasoning
+    a long tool result
+    references to early constraints
+    at least one 128-256 token forced truncation
+    continuation after truncation
+    additional turns after that continuation
+    final task summary/solution
+
+Target:
+
+    ~20-30 exchanges
+
+depending on tool payload sizes.
+
+## Strict tool semantics
+
+If the model requests the wrong tool/file:
+
+    do not inject the expected result anyway.
+
+Tool validity must affect task success.
+
+Do not make the harness permissive merely to complete the run.
+
+## Truncation reliability
+
+Intentionally trigger at least:
+
+    3 length-truncated assistant turns
+
+across the long session.
+
+Require:
+
+    0 HTTP 409 from cache-prefix optimization
+    correct continuation
+    metrics show exact reuse or explicit fresh fallback
+    no stale replay
+
+## Metrics
+
+Record per turn:
+
+    role
+    logical context
+    suffix tokens
+    exact cache reuse vs fresh fallback
+    finish reason
+    TTFT
+    decode
+    generated tokens
+    tool validity
+    HTTP status
+    replay flag
+
+Summary:
+
+    task success
+    valid/invalid tools
+    truncation count
+    truncation recovery success
+    fallback count
+    median warm TTFT
+    p95/max warm TTFT
+    decode median
+    final context
+
+## Baseline/MTP comparison
+
+If MTP became a viable mode, compare at least one representative long agent task
+with baseline and MTP.
+
+Do not duplicate the entire 30-turn run unless useful.
+
+Commit.
+
+Suggested:
+
+    benchmark: run long Qwen3.8 coding-agent session
+
+---
+
+# Phase 12 — Production Runtime Cleanup
+
+Target: 30-60 minutes.
+
+Integrate only validated behavior.
 
 Update:
 
-    research/stage7/STATUS.md
-    research/stage7/RESULTS.md
+    research/runtime/qwen38_agent_server.py
+    research/runtime/qwen38_chat.py
 
-Before finalizing:
+as appropriate.
 
-    inspect results.jsonl
-    inspect raw DWQ curves
-    inspect raw MTP correctness logs
-    inspect agent benchmark outputs
+Required production semantics:
+
+    length truncation continuation works
+    cache mismatch can fresh-prefill safely
+    metrics expose reuse/fallback
+    session reset remains correct
+
+If MTP passed production gate:
+
+    expose it behind an explicit option
+
+Example:
+
+    --mtp
+    --mtp-path ...
+
+If MTP is experimental:
+
+    do not make it default.
+
+Document:
+
+    default model
+    recommended 12K-16K context
+    MTP role
+    fallback behavior
+    tool-use limitations
+
+Add regression tests for every Stage 8 production bug fixed.
+
+Do not add concurrency/batching.
+
+Commit.
+
+Suggested:
+
+    feat: harden Qwen3.8 production agent runtime
+
+---
+
+# Phase 13 — Final Synthesis
+
+Create:
+
+    research/stage8/FINAL_REPORT.md
+
+Update:
+
+    research/stage8/STATUS.md
+    research/stage8/RESULTS.md
+
+Before writing conclusions inspect:
+
+    truncation root-cause token dumps
+    server regression tests
+    MTP profile raw results
+    verifier divergence artifacts
+    transactional verifier exactness results
+    MTP performance logs
+    long agent transcripts
+    results.jsonl
     git status
     git log
-    final model paths
 
-Distinguish:
+Clearly distinguish:
 
     MEASURED FACT
     INFERENCE
@@ -930,111 +1070,103 @@ Distinguish:
 
 ---
 
-# Time Allocation Guidance
+# Suggested Time Allocation
 
-Approximate target:
+Approximate:
 
-    Phase 0    0.5h
-    Phase 1    0.75h
-    Phase 2    1.0h
-    Phase 3    2.0-3.0h
-    Phase 4    1.0h
-    Phase 5-6  1.5h
-    Phase 7    1.0-2.0h
-    Phase 8    1.5-2.5h
-    Phase 9-10 1.0-2.0h
-    Phase 11   1.5h
-    Phase 12-13 1.0h
-
-This is a guide, not a mandate.
+    Phase 0        0.5h
+    Phase 1-3      2.0-2.5h
+    Phase 4        1.0-1.5h
+    Phase 5-6      1.5-2.0h
+    Phase 7-9      3.0-5.0h
+    Phase 10       1.0h
+    Phase 11       1.5-2.0h
+    Phase 12-13    1.0h
 
 Use gates.
 
-If MTP architecture is blocked, spend that time on deeper DWQ validation and
-agent evaluation.
-
-If DWQ clearly fails validation early, stop refining it and prioritize MTP.
+If the verifier branch proves impossible within the window, finish the server
+reliability and long-agent work thoroughly rather than forcing an unsafe
+half-solution.
 
 ---
 
 # Explicitly Out of Scope
 
-Do NOT spend Stage 7 on:
+Do NOT spend Stage 8 on:
 
-    new generic static quant frontier
-    g64/g128 group-size sweep
-    mixed_2_6
-    Q1/Q2/Q3 resurrection
-    uniform 2-bit
-    generic 4-bit
-    MXFP4/NVFP4 sweep
-    AWQ/GPTQ comparison campaign
+    new static quants
+    DWQ
+    AWQ/GPTQ
+    Q1/Q2/Q3
+    generic draft-model search
+    training an MTP head
     DSpark
-    24K/32K context chasing
-    multi-user server
-    batching/concurrency
-    generic prompt-prefix cache trimming
-    wired-memory system tuning
-    training a new MTP head
+    20K/24K/32K context records
+    multi-user serving
+    batching
+    generic prefix-cache research
+    system wired-memory changes
 
 ---
 
 # Machine-Readable Results
 
-Append to:
+Append meaningful runs to:
 
-    research/stage7/results.jsonl
+    research/stage8/results.jsonl
 
-Recommended fields:
+Suggested fields:
 
     timestamp
-    experiment_id
     phase
+    experiment_id
     git_commit
 
     model_name
     model_path
-    model_payload_bytes
 
-    calibration_train_hash
-    calibration_validation_hash
-    final_eval_hash
-
-    dwq_enabled
-    dwq_checkpoint
-    dwq_module_count
-    dwq_modules
-    dwq_lr
-    dwq_steps
-    dwq_train_loss_before
-    dwq_train_loss_after
-    dwq_validation_loss_before
-    dwq_validation_loss_after
+    session_id
+    finish_reason
+    truncation_count
+    truncation_recovered
+    cache_reuse_mode
+    cache_lcp_tokens
+    cache_mismatch_index
+    fresh_fallback
 
     mtp_enabled
     mtp_precision
     mtp_payload_bytes
-    mtp_draft_width
+    mtp_width
     mtp_proposed_tokens
     mtp_accepted_tokens
     mtp_acceptance_rate
     mtp_exact_match
 
-    suite_name
-    case_id
-    category
-    objective_pass
-    structured_valid
-    finish_reason
+    mtp_draft_seconds
+    mtp_snapshot_seconds
+    mtp_verify_seconds
+    mtp_compare_seconds
+    mtp_rollback_seconds
+    mtp_replay_seconds
+    mtp_sync_seconds
+    mtp_other_seconds
 
-    nll
-    kl
-    top1_agreement
+    target_calls
+    target_tokens_processed
+    draft_calls
+    replayed_target_tokens
+
+    verifier_mode
+    verifier_first_divergent_layer
+    verifier_first_divergent_cache_type
+    verifier_max_logit_diff
+    verifier_state_exact
 
     context_tokens
     suffix_tokens
     generated_tokens
-    prompt_tps
     ttft_seconds
     decode_tps
 
@@ -1046,18 +1178,18 @@ Recommended fields:
 
     agent_task_id
     agent_task_success
-    agent_partial_score
-    agent_turns
-    agent_tool_calls
-    agent_invalid_tool_calls
+    agent_turn
+    agent_tool_valid
+    agent_http_status
+    replay_detected
 
     classification
     exception
     safety_stop_reason
 
-Use null for unavailable fields.
+Use null for unavailable values.
 
-Never invent data.
+Never invent measurements.
 
 ---
 
@@ -1065,19 +1197,19 @@ Never invent data.
 
 Prefer logical commits:
 
-    benchmark: define diversity-aware Qwen3.8 DWQ calibration
-    feat: productionize bounded Qwen3.8 DWQ harness
-    experiment: scale bounded DWQ across sensitive modules
-    experiment: measure DWQ calibration robustness
-    benchmark: evaluate bounded-DWQ Qwen3.8 quality
-    benchmark: validate DWQ Qwen3.8 runtime
-    research: map Qwen3.8 MTP architecture
-    experiment: implement exact Qwen3.8 MTP prototype
-    experiment: quantize Qwen3.8 MTP weights
-    benchmark: measure Qwen3.8 MTP decode
-    benchmark: evaluate Qwen3.8 coding-agent tasks
-    feat: integrate Stage 7 Qwen3.8 runtime modes
-    docs: summarize Qwen3.8 Stage 7
+    test: reproduce truncated-completion session mismatch
+    fix: continue sessions after length-truncated completions
+    test: harden Qwen3.8 session cache fallback
+    benchmark: profile exact Qwen3.8 MTP overhead
+    experiment: localize Qwen3.8 verifier segmentation divergence
+    docs: design transactional Qwen3.8 verifier
+    experiment: implement sequential-equivalent Qwen3.8 verifier
+    benchmark: validate Qwen3.8 verifier exactness
+    perf: reduce Qwen3.8 MTP verification overhead
+    benchmark: measure optimized Qwen3.8 MTP verifier
+    benchmark: run long Qwen3.8 coding-agent session
+    feat: harden Qwen3.8 production agent runtime
+    docs: summarize Qwen3.8 Stage 8
 
 Do not commit model weights.
 
@@ -1085,158 +1217,173 @@ Do not commit model weights.
 
 # FINAL_REPORT.md Must Answer
 
-1. What Stage 7 calibration train/validation sets were created?
+1. What exactly caused HTTP 409 after a length-truncated completion?
 
-2. Are they materially more diverse than Stage 5 calibration?
+2. At what token index did the old session representation diverge?
 
-3. What teacher/student baseline gap exists on train vs validation?
+3. Was decode->encode token non-identity involved?
 
-4. Was the Stage 6 bounded DWQ result reproduced?
+4. Were assistant chat-boundary tokens involved?
 
-5. What learning rate/steps were stable?
+5. Was there any cache off-by-one/lookahead bug?
 
-6. How many modules were successfully refined?
+6. What authoritative session representation is used now?
 
-7. How did train loss change?
+7. Do EOS and length-truncated messages both continue correctly?
 
-8. How did validation loss change?
+8. How many truncation regression cases passed?
 
-9. Where did DWQ returns saturate?
+9. What happens when a valid request cannot reuse the cache?
 
-10. Did diversity-aware calibration outperform narrow-domain calibration?
+10. Is fresh-prefill fallback correct and observable in metrics?
 
-11. What is the best DWQ checkpoint?
+11. What percentage of old exact MTP runtime was spent in:
+        draft
+        snapshot
+        verification
+        rollback/replay
+        synchronization
+        other
 
-12. Did DWQ improve corrected heldout_v2?
+12. What caused the extra ~1.47 GiB 8K MTP peak?
 
-13. Did DWQ improve Quality Suite V2?
+13. How much was full-history KV copying responsible?
 
-14. Did DWQ improve NLL/KL/top-1?
+14. What was the first layer where chunk verification diverged from sequential?
 
-15. Did DWQ improve real coding-agent task success?
+15. Was the first divergence recurrent or attention?
 
-16. Did DWQ change model payload or runtime materially?
+16. What exact state differed first?
 
-17. What exact architecture do the 15 mtp.* tensors implement?
+17. What sequential-equivalent verifier design was implemented?
 
-18. Was a correct Qwen3.8 MTP decode prototype implemented?
+18. How are recurrent states checkpointed/committed?
 
-19. Was baseline greedy output preserved exactly?
+19. How are attention KV speculative deltas committed/trimmed?
 
-20. How was hybrid recurrent state handled during rejection/rollback?
+20. Does the optimized verifier avoid full historical cache duplication?
 
-21. What MTP precision was tested?
+21. Does optimized MTP remain token-identical to baseline greedy?
 
-22. What was MTP payload overhead?
+22. Does committed cache state match sequential continuation?
 
-23. What was MTP acceptance at short/4K/8K/16K?
+23. What is MTP acceptance after optimization?
 
-24. What was MTP decode speedup at 4K/8K/16K?
+24. What is MTP decode at 4K?
 
-25. Did MTP cause a long-context memory cliff?
+25. What is MTP decode at 8K?
 
-26. Is MTP DEFAULT, optional, experimental, or rejected?
+26. What is MTP decode at 16K?
 
-27. How many real coding-agent tasks were tested?
+27. What are the baseline comparisons/speedups?
 
-28. What was task success by model/mode?
+28. What is optimized MTP peak overhead at 8K and 16K?
 
-29. Were tool-role sequences valid?
+29. What is the final MTP classification?
 
-30. Are native structured tool calls reliable, or only serialized transport?
+30. How long was the final coding-agent session?
 
-31. What is the final DEFAULT checkpoint?
+31. What maximum logical context did it reach?
 
-32. Is there a separate QUALITY MODE?
+32. How many tool requests were valid/invalid?
 
-33. Is there a separate ACCELERATED MODE?
+33. How many forced truncations occurred?
 
-34. What context is recommended daily?
+34. How many truncations continued successfully?
 
-35. What exact CLI command should be used TODAY?
+35. Were there any HTTP 409s?
 
-36. What exact server command should be used TODAY?
+36. How many exact cache reuses vs fresh fallbacks occurred?
 
-37. What are the highest-value remaining Stage 8 ideas?
+37. What was median/p95/max warm TTFT?
+
+38. What was long-session decode throughput?
+
+39. Did the final coding-agent task succeed?
+
+40. What exact server command should the user run TODAY?
+
+41. What exact CLI command should the user run TODAY?
+
+42. What are the three highest-value remaining Stage 9 ideas, if any?
 
 Include:
 
-### DWQ Table
+### Truncation Table
 
-    checkpoint
-    modules refined
-    train loss
-    validation loss
-    held-out quality
-    NLL/KL
-    payload
+    termination type
+    test count
+    exact reuse
+    fresh fallback
+    failures
     verdict
 
-### MTP Table
+### MTP Profile Table
+
+    component
+    seconds/token or cycle
+    percent wall
+    memory contribution
+    verdict
+
+### Verifier Table
 
     mode
-    MTP precision
-    extra GiB
-    acceptance
+    exactness
+    target calls/token
+    memory overhead
     4K decode
     8K decode
     16K decode
-    exactness
     verdict
 
 ### Agent Table
 
-    model/mode
-    tasks passed
-    tool errors
-    median warm TTFT
+    final context
+    turns
+    valid tools
+    invalid tools
+    truncations
+    recovered
+    409s
+    median TTFT
     decode
-    verdict
-
-### Final Runtime Table
-
-    mode
-    model
-    context
-    decode
-    warm TTFT
-    peak
-    role
+    task success
 
 ---
 
 # Completion Condition
 
-Stage 7 is complete when:
+Stage 8 is complete when:
 
-- a diverse DWQ train/validation protocol exists;
-- bounded DWQ has been scaled beyond the Stage 6 one-module proof or has been
-  safely rejected;
-- final DWQ held-out quality is known;
-- Qwen3.8 MTP architecture has been documented;
-- an MTP correctness prototype has been attempted if architecture support is
-  sufficient;
-- MTP performance has been measured if correctness passes;
-- real serialized coding-agent tasks have been run;
-- final runtime/model roles are selected;
+- the truncated-completion HTTP 409 has a proven root cause;
+- production continuation is fixed or a clearly documented blocker remains;
+- lightweight and real-27B truncation regressions have run;
+- exact MTP overhead has been quantitatively profiled;
+- batched-vs-sequential first divergence has been localized;
+- a sequential-equivalent verifier has been implemented and tested, OR a
+  precise blocker has been demonstrated;
+- optimized MTP has been benchmarked if exactness passes;
+- a real 8K+ long coding-agent session has been run;
+- production runtime behavior is documented;
 - FINAL_REPORT.md exists;
 - STATUS.md is current;
 - useful work is committed.
 
-Do not start Stage 8 automatically.
+Do not start Stage 9 automatically.
 
 At completion return a concise summary with:
 
-    default model
-    DWQ verdict
-    DWQ quality gain/loss
-    MTP verdict
+    truncation root cause
+    truncation fix verdict
+    exact reuse/fallback behavior
+    MTP bottleneck breakdown
+    verifier verdict
     MTP 4K/8K/16K speedup
     MTP memory overhead
-    coding-agent benchmark verdict
-    recommended context
-    recommended CLI command
+    long-agent context/turns/success
     recommended server command
+    recommended CLI command
     FINAL_REPORT path
     commit SHAs
 
