@@ -1,0 +1,53 @@
+{
+  "classification": "P10_ERROR",
+  "context": "16k",
+  "elapsed_seconds": 83.39961054100422,
+  "exception": "KeyboardInterrupt: ",
+  "experiment_id": "P10-TRANSACTIONAL-16K-R1",
+  "forward_mode": "sequential",
+  "max_tokens": 64,
+  "memory_after_model": {
+    "active_memory_bytes": 10931338248,
+    "cache_memory_bytes": 10564,
+    "label": "after_model_load",
+    "peak_memory_bytes": 10931338248,
+    "rss_max_bytes": 7625670656
+  },
+  "memory_after_mtp_weights": {
+    "active_memory_bytes": 11156999432,
+    "cache_memory_bytes": 0,
+    "label": "after_mtp_weights",
+    "peak_memory_bytes": 11156999432,
+    "rss_max_bytes": 7625670656
+  },
+  "memory_before_generation": {
+    "active_memory_bytes": 11156999432,
+    "cache_memory_bytes": 0,
+    "label": "before_transactional_generation",
+    "peak_memory_bytes": 0,
+    "rss_max_bytes": 7625670656
+  },
+  "mode": "transactional",
+  "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+  "mtp": {
+    "block_size": 3,
+    "loaded_precision": "4-bit",
+    "norm_conversion": "raw HF centered RMSNorm vectors shifted by +1.0",
+    "reference": "stage7 source-backed affine MTP artifact",
+    "source_payload_bytes": 849398784,
+    "source_precision": "bf16",
+    "source_tensor_count": 15
+  },
+  "mtp_weights": "/private/tmp/qwen38-mtp-4bit-g128-stage8/model.safetensors",
+  "phase": 10,
+  "prompt_file_sha256": "67dcccb037993b679c5593073bbc1875ad61541827a6fc3bb6720410b8096903",
+  "prompt_path": "/Users/artem/projects/benchmark-qwen-3.8/qwen38-mtp-smoke/coding-prompt.txt",
+  "prompt_token_sha256": "3d48c04299028d17c939791b67574b34c8edbf812227cd352b3a16eb460b8a36",
+  "prompt_tokens": 16727,
+  "safety_stop_reason": null,
+  "source_path": "/private/tmp/qwen38-mtp-bf16-stage8",
+  "target_prompt_tokens": 16727,
+  "timestamp": "2026-09-02T20:46:52+0400",
+  "traceback": "Traceback (most recent call last):\n  File \"/Users/artem/projects/benchmark-qwen-3.8/research/stage8/mtp/run_transactional_benchmark.py\", line 144, in run\n    transactional = transactional_mtp_greedy(\n        mx,\n    ...<5 lines>...\n        forward_mode=\"sequential\",\n    )\n  File \"/Users/artem/projects/benchmark-qwen-3.8/research/stage8/mtp/transactional_verifier.py\", line 259, in transactional_mtp_greedy\n    hidden = target_prefill_baseline_schedule(mx, target_inner, prompt, target_cache)\n  File \"/Users/artem/projects/benchmark-qwen-3.8/research/stage7/harness/run_mtp_correctness.py\", line 242, in target_prefill_baseline_schedule\n    eval_cache(mx, cache, prefix_hidden, profile, \"prefill\")\n    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/artem/projects/benchmark-qwen-3.8/research/stage7/harness/run_mtp_correctness.py\", line 190, in eval_cache\n    mx.eval(arrays)\n    ~~~~~~~^^^^^^^^\nKeyboardInterrupt\n",
+  "verification_mode": "sequential_recurrent_transaction_shared_kv"
+}

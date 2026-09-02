@@ -86,6 +86,17 @@ def ids(value: Any) -> list[int]:
     return [int(item) for item in value]
 
 
+def tokenizer_eos_ids(tokenizer: Any) -> set[int]:
+    value = getattr(tokenizer, "eos_token_ids", None)
+    if value is None:
+        value = getattr(tokenizer, "eos_token_id", None)
+    if value is None:
+        return set()
+    if isinstance(value, int):
+        return {int(value)}
+    return {int(item) for item in value}
+
+
 def _copy_array(mx: Any, value: Any) -> Any:
     if value is None:
         return None
@@ -144,24 +155,62 @@ def cache_arrays(cache: list[Any]) -> list[Any]:
     return arrays
 
 
-def eval_cache(mx: Any, cache: list[Any], hidden: Any | None = None) -> None:
+def _profile_count(profile: Any | None, name: str, amount: int = 1) -> None:
+    if profile is not None:
+        profile.count(name, amount)
+
+
+def _profile_event(profile: Any | None, name: str, **payload: Any) -> None:
+    if profile is not None:
+        profile.event(name, **payload)
+
+
+def _profile_start(profile: Any | None, name: str) -> None:
+    if profile is not None:
+        profile.start(name)
+
+
+def _profile_stop(profile: Any | None, name: str, **payload: Any) -> None:
+    if profile is not None:
+        profile.stop(name, **payload)
+
+
+def eval_cache(
+    mx: Any,
+    cache: list[Any],
+    hidden: Any | None = None,
+    profile: Any | None = None,
+    phase: str = "other",
+) -> None:
     arrays = cache_arrays(cache)
     if hidden is not None:
         arrays.append(hidden)
     if arrays:
+        _profile_start(profile, "mx_eval")
         mx.eval(arrays)
+        _profile_stop(profile, "mx_eval", phase=phase, array_count=len(arrays))
 
 
 def target_forward_sequential(
-    mx: Any, target_inner: Any, input_ids: Any, cache: list[Any]
+    mx: Any,
+    target_inner: Any,
+    input_ids: Any,
+    cache: list[Any],
+    profile: Any | None = None,
+    phase: str = "verify",
 ) -> Any:
     """Run target tokens one at a time, matching baseline decode semantics."""
     hidden_parts = []
     for index in range(int(input_ids.shape[1])):
+        _profile_count(profile, "target_forward_calls")
+        _profile_count(profile, "target_tokens_processed")
+        if phase == "replay":
+            _profile_count(profile, "replayed_target_calls")
+            _profile_count(profile, "replayed_target_tokens")
         step_hidden = target_inner(input_ids[:, index : index + 1], cache=cache)
         # Force each recurrent/cache transition before the next token. This is
         # deliberately slow; Phase 8 is an exactness oracle, not a speed path.
-        eval_cache(mx, cache, step_hidden)
+        eval_cache(mx, cache, step_hidden, profile, phase)
         hidden_parts.append(step_hidden)
     if not hidden_parts:
         return mx.zeros((1, 0, 5120), dtype=mx.bfloat16)
@@ -174,6 +223,7 @@ def target_prefill_baseline_schedule(
     input_ids: Any,
     cache: list[Any],
     prefill_step_size: int = 2048,
+    profile: Any | None = None,
 ) -> Any:
     """Match pinned ``generate_step``'s chunked prefill and final decode step."""
     if int(input_ids.shape[1]) == 0:
@@ -184,20 +234,28 @@ def target_prefill_baseline_schedule(
     while total - processed > 1:
         remaining = total - processed - 1
         n_to_process = min(int(prefill_step_size), remaining)
+        _profile_count(profile, "target_forward_calls")
+        _profile_count(profile, "target_tokens_processed", n_to_process)
         prefix_hidden = target_inner(
             input_ids[:, processed : processed + n_to_process], cache=cache
         )
-        eval_cache(mx, cache, prefix_hidden)
+        eval_cache(mx, cache, prefix_hidden, profile, "prefill")
         hidden_parts.append(prefix_hidden)
         processed += n_to_process
+    _profile_count(profile, "target_forward_calls")
+    _profile_count(profile, "target_tokens_processed")
     last_hidden = target_inner(input_ids[:, -1:], cache=cache)
-    eval_cache(mx, cache, last_hidden)
+    eval_cache(mx, cache, last_hidden, profile, "prefill")
     hidden_parts.append(last_hidden)
     return mx.concatenate(hidden_parts, axis=1)
 
 
 def load_mtp_draft(
-    mx: Any, source_path: Path, model: Any, weights_path: Path | None = None
+    mx: Any,
+    source_path: Path,
+    model: Any,
+    weights_path: Path | None = None,
+    profile: Any | None = None,
 ) -> tuple[Any, dict[str, Any]]:
     """Load only the source MTP tensors through the local executable reference."""
     from mlx_vlm.speculative.drafters.qwen3_5_mtp import Qwen3_5MTPDraftModel
@@ -244,7 +302,9 @@ def load_mtp_draft(
         reference = "stage7 source-backed affine MTP artifact"
     mx.eval(draft.parameters())
     gc.collect()
+    _profile_start(profile, "cache_clear")
     mx.clear_cache()
+    _profile_stop(profile, "cache_clear")
     draft.reset(model)
     return draft, {
         "source_tensor_count": 15,
@@ -276,7 +336,7 @@ def baseline_greedy(
         prompt_cache=cache,
         prefill_step_size=2048,
     )
-    eos_ids = {int(item) for item in (tokenizer.eos_token_ids or [])}
+    eos_ids = tokenizer_eos_ids(tokenizer)
     generated: list[int] = []
     finish_reason = "length"
     try:
@@ -314,6 +374,7 @@ def mtp_greedy(
     prompt_ids: list[int],
     max_tokens: int,
     batch_verify: bool = False,
+    profile: Any | None = None,
 ) -> dict[str, Any]:
     """Run one exact-greedy MTP stream with explicit hybrid rollback."""
     mtp_started = time.perf_counter()
@@ -323,14 +384,19 @@ def mtp_greedy(
     target_cache = model.make_cache()
     prompt = mx.array(prompt_ids, dtype=mx.int32)[None, :]
     target_prefill_started = time.perf_counter()
-    hidden = target_prefill_baseline_schedule(mx, target_inner, prompt, target_cache)
+    _profile_event(profile, "target_prefill_start")
+    hidden = target_prefill_baseline_schedule(
+        mx, target_inner, prompt, target_cache, profile=profile
+    )
     target_prefill_seconds = time.perf_counter() - target_prefill_started
+    _profile_event(profile, "target_prefill_end", seconds=target_prefill_seconds)
     first_logits_started = time.perf_counter()
     first_logits = target_head(hidden[:, -1:, :])
     first_bonus = scalar(mx.argmax(first_logits, axis=-1).reshape(-1)[0])
     first_logits_seconds = time.perf_counter() - first_logits_started
+    _profile_event(profile, "first_target_logits", seconds=first_logits_seconds)
 
-    eos_ids = {int(item) for item in (tokenizer.eos_token_ids or [])}
+    eos_ids = tokenizer_eos_ids(tokenizer)
     generated = [first_bonus]
     draft.reset(model)
     if first_bonus in eos_ids or max_tokens <= 1:
@@ -365,6 +431,7 @@ def mtp_greedy(
 
     hidden_for_bonus = hidden[:, -1:, :]
     draft_prefill_started = time.perf_counter()
+    _profile_start(profile, "draft_prefill")
     draft.prefill_from_target_hidden(
         prompt,
         hidden,
@@ -373,7 +440,10 @@ def mtp_greedy(
         token_dtype=mx.int32,
         greedy=True,
     )
+    _profile_start(profile, "synchronize")
     mx.synchronize()
+    _profile_stop(profile, "synchronize", phase="draft_prefill")
+    _profile_stop(profile, "draft_prefill")
     draft_prefill_seconds = time.perf_counter() - draft_prefill_started
     draft.set_shared_kv({}, len(prompt_ids), position=max(len(prompt_ids) - 1, 0), kv_valid_len=len(prompt_ids))
 
@@ -395,7 +465,9 @@ def mtp_greedy(
     decode_started = time.perf_counter()
 
     while len(generated) < max_tokens:
+        _profile_event(profile, "round_start", round=rounds + 1)
         proposal_started = time.perf_counter()
+        _profile_start(profile, "draft_proposal")
         draft_tokens = draft.draft_block(
             bonus,
             hidden_for_bonus,
@@ -406,31 +478,55 @@ def mtp_greedy(
             greedy=True,
         )
         draft_list = ids(draft_tokens)
+        _profile_count(profile, "draft_calls")
+        _profile_count(profile, "draft_tokens_proposed", len(draft_list))
+        _profile_stop(profile, "draft_proposal", proposed_tokens=len(draft_list))
         proposal_seconds += time.perf_counter() - proposal_started
         if not draft_list:
             raise RuntimeError("MTP draft produced zero tokens")
         proposed_total += len(draft_list)
 
         before_verify = target_cache
+        if profile is not None:
+            profile.cache_checkpoint("before_snapshot", before_verify)
+        _profile_start(profile, "target_cache_snapshot")
         verify_cache = copy_cache(mx, before_verify)
+        _profile_stop(profile, "target_cache_snapshot")
+        if profile is not None:
+            profile.cache_checkpoint("after_snapshot", verify_cache)
         verify_input = mx.concatenate(
             [mx.array([[bonus]], dtype=mx.int32), draft_tokens.astype(mx.int32)], axis=1
         )
         verify_started = time.perf_counter()
+        _profile_start(profile, "target_verification")
         if batch_verify:
+            _profile_count(profile, "target_forward_calls")
+            _profile_count(profile, "target_tokens_processed", int(verify_input.shape[1]))
             verify_hidden = target_inner(verify_input, cache=verify_cache)
-            eval_cache(mx, verify_cache, verify_hidden)
+            eval_cache(mx, verify_cache, verify_hidden, profile, "verify")
         else:
-            verify_hidden = target_forward_sequential(mx, target_inner, verify_input, verify_cache)
+            verify_hidden = target_forward_sequential(
+                mx, target_inner, verify_input, verify_cache, profile, "verify"
+            )
         verify_logits = target_head(verify_hidden)
         target_tokens = ids(mx.argmax(verify_logits, axis=-1))
-        eval_cache(mx, verify_cache, verify_hidden)
+        eval_cache(mx, verify_cache, verify_hidden, profile, "verify")
+        _profile_stop(profile, "target_verification")
         verify_seconds += time.perf_counter() - verify_started
+        if profile is not None:
+            profile.cache_checkpoint("after_verification", verify_cache)
 
         accepted = 0
+        _profile_start(profile, "token_compare_acceptance")
         while accepted < len(draft_list) and target_tokens[accepted] == draft_list[accepted]:
             accepted += 1
         next_bonus = target_tokens[accepted]
+        _profile_stop(
+            profile,
+            "token_compare_acceptance",
+            accepted=accepted,
+            proposed=len(draft_list),
+        )
         accepted_total += accepted
         rejected = len(draft_list) - accepted
         rejected_total += rejected
@@ -461,8 +557,11 @@ def mtp_greedy(
         # final target token used as the next bonus.  It is safe to skip only
         # after the output budget/eos terminates the stream.
         if finish_reason == "eos" or len(generated) >= max_tokens:
+            if profile is not None:
+                profile.cache_checkpoint("after_commit_or_output_stop", verify_cache)
             break
         draft_update_started = time.perf_counter()
+        _profile_start(profile, "draft_state_synchronization")
         draft.accept_verified_tokens(
             verify_hidden,
             draft_tokens,
@@ -472,7 +571,10 @@ def mtp_greedy(
             token_dtype=mx.int32,
             greedy=True,
         )
+        _profile_start(profile, "synchronize")
         mx.synchronize()
+        _profile_stop(profile, "synchronize", phase="draft_state_synchronization")
+        _profile_stop(profile, "draft_state_synchronization")
         draft_update_seconds += time.perf_counter() - draft_update_started
 
         hidden_for_bonus = verify_hidden[:, accepted : accepted + 1, :]
@@ -484,15 +586,24 @@ def mtp_greedy(
             # avoids a second full cache copy while restoring both KV and
             # recurrent state; trimming only KV would be incorrect for Qwen3.8.
             replay_started = time.perf_counter()
+            _profile_start(profile, "rollback_replay")
             replay_cache = before_verify
             del verify_cache
             replay_input = mx.array([[bonus] + draft_list[:accepted]], dtype=mx.int32)
-            replay_hidden = target_forward_sequential(mx, target_inner, replay_input, replay_cache)
-            eval_cache(mx, replay_cache, replay_hidden)
+            replay_hidden = target_forward_sequential(
+                mx, target_inner, replay_input, replay_cache, profile, "replay"
+            )
+            eval_cache(mx, replay_cache, replay_hidden, profile, "replay")
             target_cache = replay_cache
             rollback_checks += 1
             replay_next = scalar(mx.argmax(target_head(replay_hidden[:, -1:, :]), axis=-1).reshape(-1)[0])
             replay_seconds += time.perf_counter() - replay_started
+            _profile_stop(
+                profile,
+                "rollback_replay",
+                accepted=accepted,
+                replay_tokens=int(replay_input.shape[1]),
+            )
             if replay_next == next_bonus:
                 rollback_exact += 1
             else:
@@ -508,6 +619,8 @@ def mtp_greedy(
                 )
         else:
             target_cache = verify_cache
+        if profile is not None:
+            profile.cache_checkpoint("after_rollback_or_commit", target_cache)
 
         bonus = next_bonus
 

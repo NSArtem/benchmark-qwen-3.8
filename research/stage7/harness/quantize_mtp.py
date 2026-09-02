@@ -37,13 +37,29 @@ def main() -> int:
     )
     draft = Qwen3_5MTPDraftModel(draft_config)
 
+    # The original HF source keeps the 15 tensors under ``mtp.*`` in the
+    # final shard.  Published standalone MLX MTP sidecars contain the same
+    # tensors under their draft-model keys and use ``model.safetensors``.
+    # Accept both layouts so a source-backed MTP artifact can be recovered
+    # without downloading the full target checkpoint.
     shard_path = source / "model-00018-of-00018.safetensors"
+    if not shard_path.exists():
+        shard_path = source / "model.safetensors"
+    if not shard_path.exists():
+        raise FileNotFoundError(
+            f"no MTP safetensors file found under {source}"
+        )
     shard = mx.load(str(shard_path))
     source_weights = {key: value for key, value in shard.items() if key.startswith("mtp.")}
+    source_layout = "hf_mtp_prefixed"
+    if not source_weights:
+        source_weights = dict(shard)
+        source_layout = "standalone_mlx_draft"
     if len(source_weights) != 15:
         raise RuntimeError(f"expected 15 MTP tensors, found {len(source_weights)}")
     source_payload_bytes = sum(int(value.nbytes) for value in source_weights.values())
-    source_weights = Qwen3_5MTPDraftModel.sanitize(None, source_weights)
+    if source_layout == "hf_mtp_prefixed":
+        source_weights = Qwen3_5MTPDraftModel.sanitize(None, source_weights)
     draft.load_weights(list(source_weights.items()))
     mx.eval(draft.parameters())
     del shard, source_weights
@@ -82,6 +98,8 @@ def main() -> int:
         output / "manifest.json",
         {
             "source_path": str(source),
+            "source_weights_file": str(shard_path),
+            "source_layout": source_layout,
             "source_mtp_payload_bytes": source_payload_bytes,
             "source_tensor_count": 15,
             "precision": f"{args.bits}-bit",

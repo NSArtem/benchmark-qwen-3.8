@@ -64,6 +64,24 @@ quantization or DWQ work is in scope.
 - The server now preserves generated IDs/finish reason and exposes cumulative
   exact-reuse, fallback, conflict, and truncation-continuation counters.
 
+## Phase 4–10 completion record
+
+- `mtp/profile_summary.json` and `mtp/PROFILE.md` quantify the unchanged
+  exact Stage 7 path at short/4K/8K. At 8K, target prefill is 85.68% of
+  diagnostic wall time; the full cache snapshot is 707,592,192 bytes and the
+  clean same-run peak delta is 1,581,699,296 bytes.
+- `mtp/divergence.json` localizes the first sequential-vs-batched mismatch to
+  layer 0's `ArraysCache` at width 2. The layerwise follow-up also fails at
+  full-attention layer 3, so it is not a valid optimized verifier.
+- `mtp/transactional_verifier.py` passes token and independent full-cache state
+  oracles at short, 4K, and 8K while sharing historical KV state and copying
+  only recurrent state. It does not reduce target compute.
+- Fresh-process headline runs are token-exact at 4K and 8K but slower than
+  baseline (5.511 vs 11.652 tok/s; 3.563 vs 11.115 tok/s). The guarded 16K
+  transactional run was stopped at the memory safety boundary before output.
+- MTP is closed as a production acceleration branch for this stage; baseline
+  g128 remains the default. The remaining gate is long-agent reliability.
+
 ## Deliverables
 
 - `truncation/ROOT_CAUSE.md`, `truncation/repro.json`, and regression evidence.

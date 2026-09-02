@@ -1,0 +1,3879 @@
+{
+  "baseline": {
+    "finish_reason": "length",
+    "token_hash": "e0eb73f42a7897d90d12792408c2b72df2ca22041805bb50ffc9a11f68c1a787",
+    "token_ids": [
+      2,
+      91094,
+      314,
+      65214,
+      66413,
+      271,
+      550,
+      220,
+      16,
+      13,
+      18284,
+      42874,
+      17775,
+      271,
+      760,
+      4800,
+      10142,
+      2218,
+      332,
+      1,
+      33586,
+      3041,
+      22217,
+      4523,
+      310,
+      4162,
+      175267,
+      321,
+      173976,
+      5394,
+      21979,
+      11121,
+      264,
+      2018,
+      3041,
+      175267,
+      2218,
+      267,
+      11513,
+      494,
+      264,
+      15346,
+      19333,
+      314,
+      279,
+      2972,
+      6409,
+      477,
+      55687,
+      332,
+      321,
+      279,
+      2972,
+      306,
+      3157,
+      349,
+      2179,
+      55687,
+      332,
+      303,
+      279,
+      1428,
+      7873,
+      13
+    ]
+  },
+  "classification": "TRANSACTIONAL_EXACT_STATE_PASS",
+  "context": "short",
+  "elapsed_seconds": 62.66002845898038,
+  "exact_tokens": true,
+  "exception": null,
+  "experiment_id": "P8-TRANSACTIONAL-SHORT",
+  "max_tokens": 64,
+  "memory_after_model": {
+    "active_memory_bytes": 10931338248,
+    "cache_memory_bytes": 10564,
+    "label": "after_model_load",
+    "peak_memory_bytes": 10931338248,
+    "rss_max_bytes": 6428917760
+  },
+  "memory_after_mtp_weights": {
+    "active_memory_bytes": 11156999434,
+    "cache_memory_bytes": 0,
+    "label": "after_mtp_weights",
+    "peak_memory_bytes": 12967717944,
+    "rss_max_bytes": 6428917760
+  },
+  "memory_after_state_oracle": {
+    "active_memory_bytes": 11638310152,
+    "cache_memory_bytes": 591974180,
+    "label": "after_state_oracle",
+    "peak_memory_bytes": 13436648770,
+    "rss_max_bytes": 6428917760
+  },
+  "memory_after_transactional": {
+    "active_memory_bytes": 11400269068,
+    "cache_memory_bytes": 834078056,
+    "label": "after_transactional_generation",
+    "peak_memory_bytes": 13193379138,
+    "rss_max_bytes": 6428917760
+  },
+  "model_path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+  "mtp": {
+    "block_size": 3,
+    "loaded_precision": "4-bit",
+    "norm_conversion": "raw HF centered RMSNorm vectors shifted by +1.0",
+    "reference": "stage7 source-backed affine MTP artifact",
+    "source_payload_bytes": 849398784,
+    "source_precision": "bf16",
+    "source_tensor_count": 15
+  },
+  "mtp_weights": "/private/tmp/qwen38-mtp-4bit-g128-stage8/model.safetensors",
+  "phase": 8,
+  "prompt_file_sha256": "56f745eb7e18b0e0a9bd9a5bf760a5a2a0efbb1c6f67a37114b58a235690e8cf",
+  "prompt_path": "/Users/artem/projects/benchmark-qwen-3.8/research/context-ladder/prompts/prompt-1024.tokens.json",
+  "prompt_token_sha256": "c6e7c1867ae8be8f39316f51030edffe16b00a64c3bcc5ef4f8c24f56876e1c6",
+  "prompt_tokens": 1023,
+  "safety_stop_reason": null,
+  "source_path": "/private/tmp/qwen38-mtp-bf16-stage8",
+  "state_exact": true,
+  "state_first_divergent": null,
+  "state_oracle": {
+    "cache_equal": true,
+    "first_divergent": null,
+    "layers": [
+      {
+        "cache_equal": true,
+        "layer_index": 0,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 1,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 2,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 3,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 4,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 5,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 6,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 7,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 8,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 9,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 10,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 11,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 12,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 13,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 14,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 15,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 16,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 17,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 18,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 19,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 20,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 21,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 22,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 23,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 24,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 25,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 26,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 27,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 28,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 29,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 30,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 31,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 32,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 33,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 34,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 35,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 36,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 37,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 38,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 39,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 40,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 41,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 42,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 43,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 44,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 45,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 46,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 47,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 48,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 49,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 50,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 51,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 52,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 53,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 54,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 55,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 56,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 57,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 58,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 59,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 60,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 61,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 62,
+        "left_type": "ArraysCache",
+        "max_abs_diff": 0.0,
+        "right_type": "ArraysCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 0
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state_index": 1
+          }
+        ]
+      },
+      {
+        "cache_equal": true,
+        "layer_index": 63,
+        "left_offset": 1086,
+        "left_type": "KVCache",
+        "max_abs_diff": 0.0,
+        "right_offset": 1086,
+        "right_type": "KVCache",
+        "state_diffs": [
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "keys"
+          },
+          {
+            "equal": true,
+            "max_abs_diff": 0.0,
+            "state": "values"
+          }
+        ]
+      }
+    ]
+  },
+  "target_prompt_tokens": 1024,
+  "timestamp": "2026-09-02T20:04:48+0400",
+  "token_file_sha256": "aa0d78aca4ea813341cc58237b374bc7ea56e829d39964942f8d79571a94c879",
+  "transactional": {
+    "acceptance_rate": 0.75,
+    "accepted_tokens": 39,
+    "committed_target_inputs": [
+      2,
+      91094,
+      314,
+      65214,
+      66413,
+      271,
+      550,
+      220,
+      16,
+      13,
+      18284,
+      42874,
+      17775,
+      271,
+      760,
+      4800,
+      10142,
+      2218,
+      332,
+      1,
+      33586,
+      3041,
+      22217,
+      4523,
+      310,
+      4162,
+      175267,
+      321,
+      173976,
+      5394,
+      21979,
+      11121,
+      264,
+      2018,
+      3041,
+      175267,
+      2218,
+      267,
+      11513,
+      494,
+      264,
+      15346,
+      19333,
+      314,
+      279,
+      2972,
+      6409,
+      477,
+      55687,
+      332,
+      321,
+      279,
+      2972,
+      306,
+      3157,
+      349,
+      2179,
+      55687,
+      332,
+      303,
+      279,
+      1428,
+      7873
+    ],
+    "finish_reason": "length",
+    "max_transaction_cache_bytes": {
+      "attention_bytes": 83886080,
+      "recurrent_bytes": 153944064,
+      "total_bytes": 237830144
+    },
+    "proposed_tokens": 52,
+    "recurrent_copy_bytes": 4002545664,
+    "rejected_tokens": 13,
+    "round_trace": [
+      {
+        "accepted": 0,
+        "bonus": 2,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024,
+          null,
+          null,
+          null,
+          1024
+        ],
+        "commit_count": 1,
+        "draft_tokens": [
+          65214,
+          25535
+        ],
+        "next_bonus": 91094,
+        "rejected": 2,
+        "round": 1,
+        "target_tokens": [
+          91094,
+          66413,
+          25
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 0,
+        "bonus": 91094,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025,
+          null,
+          null,
+          null,
+          1025
+        ],
+        "commit_count": 1,
+        "draft_tokens": [
+          25,
+          65214
+        ],
+        "next_bonus": 314,
+        "rejected": 2,
+        "round": 2,
+        "target_tokens": [
+          314,
+          65214,
+          66413
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 1,
+        "bonus": 314,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027,
+          null,
+          null,
+          null,
+          1027
+        ],
+        "commit_count": 2,
+        "draft_tokens": [
+          65214,
+          25535
+        ],
+        "next_bonus": 66413,
+        "rejected": 1,
+        "round": 3,
+        "target_tokens": [
+          65214,
+          66413,
+          66413
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 66413,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030,
+          null,
+          null,
+          null,
+          1030
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          271,
+          550
+        ],
+        "next_bonus": 220,
+        "rejected": 0,
+        "round": 4,
+        "target_tokens": [
+          271,
+          550,
+          220
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 220,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033,
+          null,
+          null,
+          null,
+          1033
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          16,
+          13
+        ],
+        "next_bonus": 18284,
+        "rejected": 0,
+        "round": 5,
+        "target_tokens": [
+          16,
+          13,
+          18284
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 18284,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036,
+          null,
+          null,
+          null,
+          1036
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          42874,
+          17775
+        ],
+        "next_bonus": 271,
+        "rejected": 0,
+        "round": 6,
+        "target_tokens": [
+          42874,
+          17775,
+          271
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 1,
+        "bonus": 271,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038,
+          null,
+          null,
+          null,
+          1038
+        ],
+        "commit_count": 2,
+        "draft_tokens": [
+          760,
+          10142
+        ],
+        "next_bonus": 4800,
+        "rejected": 1,
+        "round": 7,
+        "target_tokens": [
+          760,
+          4800,
+          3376
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 1,
+        "bonus": 4800,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040,
+          null,
+          null,
+          null,
+          1040
+        ],
+        "commit_count": 2,
+        "draft_tokens": [
+          10142,
+          3376
+        ],
+        "next_bonus": 2218,
+        "rejected": 1,
+        "round": 8,
+        "target_tokens": [
+          10142,
+          2218,
+          33586
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 0,
+        "bonus": 2218,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041,
+          null,
+          null,
+          null,
+          1041
+        ],
+        "commit_count": 1,
+        "draft_tokens": [
+          2005,
+          33586
+        ],
+        "next_bonus": 332,
+        "rejected": 2,
+        "round": 9,
+        "target_tokens": [
+          332,
+          33586,
+          3041
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 332,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044,
+          null,
+          null,
+          null,
+          1044
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          1,
+          33586
+        ],
+        "next_bonus": 3041,
+        "rejected": 0,
+        "round": 10,
+        "target_tokens": [
+          1,
+          33586,
+          3041
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 3041,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047,
+          null,
+          null,
+          null,
+          1047
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          22217,
+          4523
+        ],
+        "next_bonus": 310,
+        "rejected": 0,
+        "round": 11,
+        "target_tokens": [
+          22217,
+          4523,
+          310
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 1,
+        "bonus": 310,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049,
+          null,
+          null,
+          null,
+          1049
+        ],
+        "commit_count": 2,
+        "draft_tokens": [
+          4162,
+          303
+        ],
+        "next_bonus": 175267,
+        "rejected": 1,
+        "round": 12,
+        "target_tokens": [
+          4162,
+          175267,
+          279
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 1,
+        "bonus": 175267,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051,
+          null,
+          null,
+          null,
+          1051
+        ],
+        "commit_count": 2,
+        "draft_tokens": [
+          321,
+          2972
+        ],
+        "next_bonus": 173976,
+        "rejected": 1,
+        "round": 13,
+        "target_tokens": [
+          321,
+          173976,
+          50799
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 173976,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054,
+          null,
+          null,
+          null,
+          1054
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          5394,
+          21979
+        ],
+        "next_bonus": 11121,
+        "rejected": 0,
+        "round": 14,
+        "target_tokens": [
+          5394,
+          21979,
+          11121
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 11121,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057,
+          null,
+          null,
+          null,
+          1057
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          264,
+          2018
+        ],
+        "next_bonus": 3041,
+        "rejected": 0,
+        "round": 15,
+        "target_tokens": [
+          264,
+          2018,
+          3041
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 3041,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060,
+          null,
+          null,
+          null,
+          1060
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          175267,
+          2218
+        ],
+        "next_bonus": 267,
+        "rejected": 0,
+        "round": 16,
+        "target_tokens": [
+          175267,
+          2218,
+          267
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 267,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063,
+          null,
+          null,
+          null,
+          1063
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          11513,
+          494
+        ],
+        "next_bonus": 264,
+        "rejected": 0,
+        "round": 17,
+        "target_tokens": [
+          11513,
+          494,
+          264
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 1,
+        "bonus": 264,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065,
+          null,
+          null,
+          null,
+          1065
+        ],
+        "commit_count": 2,
+        "draft_tokens": [
+          15346,
+          29006
+        ],
+        "next_bonus": 19333,
+        "rejected": 1,
+        "round": 18,
+        "target_tokens": [
+          15346,
+          19333,
+          303
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 19333,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068,
+          null,
+          null,
+          null,
+          1068
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          314,
+          279
+        ],
+        "next_bonus": 2972,
+        "rejected": 0,
+        "round": 19,
+        "target_tokens": [
+          314,
+          279,
+          2972
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 2972,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071,
+          null,
+          null,
+          null,
+          1071
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          6409,
+          477
+        ],
+        "next_bonus": 55687,
+        "rejected": 0,
+        "round": 20,
+        "target_tokens": [
+          6409,
+          477,
+          55687
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 55687,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074,
+          null,
+          null,
+          null,
+          1074
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          332,
+          321
+        ],
+        "next_bonus": 279,
+        "rejected": 0,
+        "round": 21,
+        "target_tokens": [
+          332,
+          321,
+          279
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 279,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077,
+          null,
+          null,
+          null,
+          1077
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          2972,
+          306
+        ],
+        "next_bonus": 3157,
+        "rejected": 0,
+        "round": 22,
+        "target_tokens": [
+          2972,
+          306,
+          3157
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 3157,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080,
+          null,
+          null,
+          null,
+          1080
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          349,
+          2179
+        ],
+        "next_bonus": 55687,
+        "rejected": 0,
+        "round": 23,
+        "target_tokens": [
+          349,
+          2179,
+          55687
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 55687,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083,
+          null,
+          null,
+          null,
+          1083
+        ],
+        "commit_count": 3,
+        "draft_tokens": [
+          332,
+          303
+        ],
+        "next_bonus": 279,
+        "rejected": 0,
+        "round": 24,
+        "target_tokens": [
+          332,
+          303,
+          279
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 1,
+        "bonus": 279,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085,
+          null,
+          null,
+          null,
+          1085
+        ],
+        "commit_count": 2,
+        "draft_tokens": [
+          1428,
+          1970
+        ],
+        "next_bonus": 7873,
+        "rejected": 1,
+        "round": 25,
+        "target_tokens": [
+          1428,
+          7873,
+          3051
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      },
+      {
+        "accepted": 2,
+        "bonus": 7873,
+        "cache_offsets_after_commit": [
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086,
+          null,
+          null,
+          null,
+          1086
+        ],
+        "commit_count": 1,
+        "draft_tokens": [
+          13,
+          271
+        ],
+        "next_bonus": 13962,
+        "rejected": 0,
+        "round": 26,
+        "target_tokens": [
+          13,
+          271,
+          13962
+        ],
+        "transaction_cache_bytes": {
+          "attention_bytes": 83886080,
+          "recurrent_bytes": 153944064,
+          "total_bytes": 237830144
+        },
+        "transaction_recurrent_copy_bytes": 153944064,
+        "verify_count": 3
+      }
+    ],
+    "rounds": 26,
+    "target_calls": 1101,
+    "target_tokens_processed": 1101,
+    "text": "# Diagnosis of Lantern Incident\n\n## 1. Root Cause Analysis\n\nThe reported incident—**\"completed render occasionally returns to running\"** and **\"second retry creates a second render\"**—stems from a fundamental violation of the **atomicity invariant** and the **idempotency invariant** in the current implementation.",
+    "timing": {
+      "total_seconds": 20.80631950002862
+    },
+    "token_hash": "34fba235a50bb724ab6bdf4e776777ba71cabb382432957b0e68bb9853c2b934",
+    "token_ids": [
+      2,
+      91094,
+      314,
+      65214,
+      66413,
+      271,
+      550,
+      220,
+      16,
+      13,
+      18284,
+      42874,
+      17775,
+      271,
+      760,
+      4800,
+      10142,
+      2218,
+      332,
+      1,
+      33586,
+      3041,
+      22217,
+      4523,
+      310,
+      4162,
+      175267,
+      321,
+      173976,
+      5394,
+      21979,
+      11121,
+      264,
+      2018,
+      3041,
+      175267,
+      2218,
+      267,
+      11513,
+      494,
+      264,
+      15346,
+      19333,
+      314,
+      279,
+      2972,
+      6409,
+      477,
+      55687,
+      332,
+      321,
+      279,
+      2972,
+      306,
+      3157,
+      349,
+      2179,
+      55687,
+      332,
+      303,
+      279,
+      1428,
+      7873,
+      13
+    ]
+  },
+  "verification_mode": "sequential_recurrent_transaction_shared_kv"
+}
