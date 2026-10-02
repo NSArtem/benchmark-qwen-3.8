@@ -2,7 +2,7 @@
 
 import unittest
 
-from research.runtime.qwen38_agent_server import (
+from qwen38.server import (
     appended_messages,
     normalize_messages,
     protocol_self_test,

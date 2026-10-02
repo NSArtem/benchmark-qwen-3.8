@@ -3,7 +3,7 @@
 
 This server deliberately supports one active session and one inference at a
 time.  It reuses the validated exact-suffix cache mechanics from
-``qwen38_chat.py`` and accepts generic text content for system, user,
+``qwen38.chat`` and accepts generic text content for system, user,
 assistant, and tool messages.  It does not attempt to parse provider-specific
 tool-call objects; callers may persist tool-call/result payloads as text.
 
@@ -21,15 +21,9 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from pathlib import Path
 from typing import Any, Sequence
 
-
-RUNTIME_DIR = Path(__file__).resolve().parent
-if str(RUNTIME_DIR) not in sys.path:
-    sys.path.insert(0, str(RUNTIME_DIR))
-
-from qwen38_chat import (  # noqa: E402
+from qwen38.chat import (
     DEFAULT_MAX_TOKENS,
     DEFAULT_PREFILL_STEP_SIZE,
     HistoryTurn,
@@ -174,7 +168,6 @@ class AgentSession:
         self.prompt_cache = make_prompt_cache(self.model, self.max_kv_size)
 
     def reset(self) -> None:
-        _, _, _, make_prompt_cache, _ = _require_mlx()
         self._clear_runtime_state()
 
     def stats(self) -> dict[str, Any]:

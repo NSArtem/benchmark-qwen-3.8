@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
-"""Bounded-memory Qwen3.8 text-only g128 conversion.
+"""Build the production Qwen3.8-27B affine 3-bit / group-128 MLX checkpoint.
 
-This is intentionally narrower than mlx-lm's general converter.  It handles
-the exact Qwen/Qwen3.8-27B source layout and the existing text-only MLX model:
-source tensors are loaded one transformer layer at a time, sanitized with the
-pinned Qwen3.5 implementation, quantized, and flushed to small safetensor
-shards. It supports the primary affine 3-bit g128 candidate and one explicitly
-selected mixed_2_6 g128 candidate. Stage 4 additionally supports the pinned
-mixed_3_4 control and a manifest-selected sensitivity_3_4 candidate. It must
-run in the canonical MLX environment.
+Bounded-memory, text-only conversion from the BF16 ``Qwen/Qwen3.8-27B``
+source snapshot.  This is intentionally narrower than mlx-lm's general
+converter: source tensors are loaded one transformer layer at a time,
+sanitized with the pinned mlx-lm Qwen3.5-family implementation, quantized
+(affine, 3 bits, group size 128), and flushed to ~512 MiB safetensor shards.
+Peak MLX memory is about 3.3 GiB instead of the full 50+ GiB source.
 
-No model arrays are loaded by --self-test.  The converter never changes the
-MLX wired-memory policy.
+Only ``lm_head.weight`` and ``model.language_model.*`` tensors are kept; the
+vision tower and MTP (``mtp.*``) tensors are dropped.  Expected output: 851
+tensors -> 498 quantized modules, 19 shards, 10,930,715,648 bytes
+(10.180 GiB).
+
+``--baseline`` must be an existing text-only MLX checkpoint of the same
+architecture (for example ``lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly`` or a
+previous g128 build).  Only its ``config.json``, index metadata, and
+tokenizer/chat-template files are used; none of its weights are read.
+
+``--self-test`` checks the conversion plan without loading model arrays.
+The converter never changes the MLX wired-memory policy.
 """
 
 from __future__ import annotations
@@ -36,12 +44,9 @@ from mlx.utils import tree_flatten
 from mlx_lm.utils import _get_classes
 
 
-DEFAULT_GROUP_SIZE = 128
-DEFAULT_BITS = 3
-MIXED_LOW_BITS = 2
-MIXED_HIGH_BITS = 6
-MIXED_34_LOW_BITS = 3
-MIXED_34_HIGH_BITS = 4
+GROUP_SIZE = 128
+BITS = 3
+QUANTIZATION = {"group_size": GROUP_SIZE, "bits": BITS, "mode": "affine"}
 DEFAULT_SHARD_BYTES = 512 * (1 << 20)
 SENTINEL_FRAGMENT = "__qwen38_chunk_sentinel__"
 LAYER_RE = re.compile(r"^model\.language_model\.layers\.(\d+)\.")
@@ -106,89 +111,6 @@ def output_key(source_key: str) -> str:
     return f"language_model.{source_key}"
 
 
-def mixed_2_6_params(path: str, num_layers: int = 64) -> dict[str, Any]:
-    """Match pinned mlx-lm mixed_quant_predicate_builder('mixed_2_6')."""
-
-    if "lm_head" in path:
-        use_more_bits = True
-    else:
-        match = re.search(r"\.layers\.(\d+)\.", path)
-        index = int(match.group(1)) if match else 0
-        use_more_bits = (
-            index < num_layers // 8
-            or index >= 7 * num_layers // 8
-            or (index - num_layers // 8) % 3 == 2
-        )
-    high = use_more_bits and (
-        "v_proj" in path
-        or "v_a_proj" in path
-        or "v_b_proj" in path
-        or "down_proj" in path
-        or "lm_head" in path
-    )
-    return {
-        "group_size": DEFAULT_GROUP_SIZE,
-        "bits": MIXED_HIGH_BITS if high else MIXED_LOW_BITS,
-        "mode": "affine",
-    }
-
-
-def mixed_3_4_params(path: str, num_layers: int = 64) -> dict[str, Any]:
-    """Match pinned mlx-lm mixed_quant_predicate_builder('mixed_3_4')."""
-
-    if "lm_head" in path:
-        use_more_bits = True
-    else:
-        match = re.search(r"\.layers\.(\d+)\.", path)
-        index = int(match.group(1)) if match else 0
-        use_more_bits = (
-            index < num_layers // 8
-            or index >= 7 * num_layers // 8
-            or (index - num_layers // 8) % 3 == 2
-        )
-    high = use_more_bits and (
-        "v_proj" in path
-        or "v_a_proj" in path
-        or "v_b_proj" in path
-        or "down_proj" in path
-        or "lm_head" in path
-    )
-    return {
-        "group_size": DEFAULT_GROUP_SIZE,
-        "bits": MIXED_34_HIGH_BITS if high else MIXED_34_LOW_BITS,
-        "mode": "affine",
-    }
-
-
-def quant_params(
-    path: str,
-    recipe: str,
-    num_layers: int,
-    promoted_paths: set[str] | None = None,
-) -> dict[str, Any]:
-    if recipe == "mixed_2_6":
-        return mixed_2_6_params(path, num_layers)
-    if recipe == "mixed_3_4_control":
-        return mixed_3_4_params(path, num_layers)
-    if recipe == "sensitivity_3_4":
-        if promoted_paths is None:
-            raise ValueError("sensitivity_3_4 requires --promotion-manifest")
-        return {
-            "group_size": DEFAULT_GROUP_SIZE,
-            "bits": (
-                MIXED_34_HIGH_BITS
-                if path.removesuffix(".weight") in promoted_paths
-                else MIXED_34_LOW_BITS
-            ),
-            "mode": "affine",
-        }
-    return {
-        "group_size": DEFAULT_GROUP_SIZE,
-        "bits": DEFAULT_BITS,
-        "mode": "affine",
-    }
-
-
 def memory_snapshot(stage: str, elapsed_seconds: float) -> dict[str, Any]:
     active = int(mx.get_active_memory())
     cache = int(mx.get_cache_memory())
@@ -226,7 +148,9 @@ def os_snapshot() -> dict[str, str]:
     return result
 
 
-def append_metric(path: Path, record: dict[str, Any]) -> None:
+def append_metric(path: Path | None, record: dict[str, Any]) -> None:
+    if path is None:
+        return
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as stream:
         stream.write(json.dumps(record, sort_keys=True) + "\n")
@@ -249,29 +173,6 @@ def quantization_keys(model) -> set[str]:
 def load_json(path: Path) -> dict[str, Any]:
     with path.open(encoding="utf-8") as stream:
         return json.load(stream)
-
-
-def load_promotion_manifest(path: Path, candidate_name: str | None) -> set[str]:
-    value = load_json(path)
-    if "selected_paths" in value:
-        paths = value["selected_paths"]
-    else:
-        candidates = value.get("candidates", [])
-        if candidate_name is None:
-            if len(candidates) != 1:
-                raise ValueError(
-                    "promotion manifest contains multiple candidates; pass --candidate-name"
-                )
-            candidate = candidates[0]
-        else:
-            matching = [item for item in candidates if item.get("name") == candidate_name]
-            if len(matching) != 1:
-                raise ValueError(f"candidate not found in promotion manifest: {candidate_name}")
-            candidate = matching[0]
-        paths = candidate.get("selected_paths", [])
-    if not isinstance(paths, list) or not all(isinstance(item, str) for item in paths):
-        raise ValueError("promotion manifest selected_paths must be a list of strings")
-    return set(paths)
 
 
 def self_test(baseline: Path) -> dict[str, Any]:
@@ -321,17 +222,6 @@ def self_test(baseline: Path) -> dict[str, Any]:
     if abs(shifted_value - 2.0) > 0.01:
         raise AssertionError(f"global norm shift was not preserved: {shifted_value}")
 
-    mixed_counts = {2: 0, 6: 0}
-    for key in qkeys:
-        mixed_counts[mixed_2_6_params(key)["bits"]] += 1
-    if mixed_counts != {2: 457, 6: 41}:
-        raise AssertionError(f"unexpected mixed_2_6 module counts: {mixed_counts}")
-    mixed_34_counts = {3: 0, 4: 0}
-    for key in qkeys:
-        mixed_34_counts[mixed_3_4_params(key)["bits"]] += 1
-    if mixed_34_counts != {3: 457, 4: 41}:
-        raise AssertionError(f"unexpected mixed_3_4 module counts: {mixed_34_counts}")
-
     return {
         "model_type": config.get("model_type"),
         "architecture": config.get("architectures"),
@@ -339,8 +229,7 @@ def self_test(baseline: Path) -> dict[str, Any]:
         "text_only_quantization_keys": True,
         "chunk_plan_test": [layer for layer, _ in chunks],
         "global_norm_shift_test": shifted_value,
-        "mixed_2_6_module_counts": mixed_counts,
-        "mixed_3_4_module_counts": mixed_34_counts,
+        "quantization": QUANTIZATION,
         "wired_limit_calls": 0,
     }
 
@@ -442,7 +331,7 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
     source = Path(args.source).resolve()
     baseline = Path(args.baseline).resolve()
     output = Path(args.output).resolve()
-    metrics_path = Path(args.metrics).resolve()
+    metrics_path = Path(args.metrics).resolve() if args.metrics else None
     if output.exists():
         raise FileExistsError(f"refusing to overwrite output: {output}")
     if not source.is_dir() or not baseline.is_dir():
@@ -450,7 +339,8 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
 
     started = time.monotonic()
     output.mkdir(parents=True)
-    metrics_path.unlink(missing_ok=True)
+    if metrics_path is not None:
+        metrics_path.unlink(missing_ok=True)
     append_metric(metrics_path, {"event": "start", "os": os_snapshot()})
 
     config = load_json(baseline / "config.json")
@@ -467,20 +357,7 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
     chunks = plan_chunks(weight_map)
     target_dtype = mx.bfloat16
     cast_predicate = getattr(model, "cast_predicate", lambda _: True)
-    text_config = config.get("text_config", config)
-    num_layers = int(text_config.get("num_hidden_layers", 64))
-    promoted_paths: set[str] | None = None
-    if args.quant_recipe == "sensitivity_3_4":
-        if not args.promotion_manifest:
-            raise ValueError("sensitivity_3_4 requires --promotion-manifest")
-        promoted_paths = load_promotion_manifest(
-            Path(args.promotion_manifest).resolve(), args.candidate_name
-        )
-        qmodule_paths = {key.removesuffix(".weight") for key in qkeys}
-        if not promoted_paths <= qmodule_paths:
-            missing = sorted(promoted_paths - qmodule_paths)
-            raise ValueError(f"promotion manifest contains unknown module paths: {missing[:5]}")
-    quantization_counts = {"2": 0, "3": 0, "4": 0, "6": 0}
+    quantized_modules = 0
     output_map: dict[str, str] = {}
     shard_weights: dict[str, Any] = {}
     shard_bytes = 0
@@ -510,19 +387,13 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
                 weight = weight.astype(target_dtype)
 
             if key in qkeys:
-                params = quant_params(key, args.quant_recipe, num_layers, promoted_paths)
-                if weight.ndim < 2 or weight.shape[-1] % params["group_size"]:
+                if weight.ndim < 2 or weight.shape[-1] % GROUP_SIZE:
                     raise ValueError(
                         f"invalid g128 quantization shape for {key}: {weight.shape}"
                     )
-                quantized, scales, biases = mx.quantize(
-                    weight,
-                    group_size=params["group_size"],
-                    bits=params["bits"],
-                    mode=params["mode"],
-                )
+                quantized, scales, biases = mx.quantize(weight, **QUANTIZATION)
                 mx.eval(quantized, scales, biases)
-                quantization_counts[str(params["bits"])] += 1
+                quantized_modules += 1
                 outputs = {
                     key: quantized,
                     key.replace(".weight", ".scales"): scales,
@@ -586,32 +457,7 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
     output_map = {key: rename_map[name] for key, name in output_map.items()}
 
     output_config = copy.deepcopy(config)
-    quantization = {
-        "group_size": DEFAULT_GROUP_SIZE,
-        "bits": DEFAULT_BITS,
-        "mode": "affine",
-    }
-    if args.quant_recipe == "mixed_2_6":
-        quantization["bits"] = MIXED_LOW_BITS
-        quantization.update(
-            {
-                # mlx-lm's class_predicate receives module paths, not the
-                # serialized `.weight` tensor paths used by qkeys.
-                key.removesuffix(".weight"): quant_params(
-                    key, args.quant_recipe, num_layers, promoted_paths
-                )
-                for key in sorted(qkeys)
-            }
-        )
-    elif args.quant_recipe in {"mixed_3_4_control", "sensitivity_3_4"}:
-        quantization.update(
-            {
-                key.removesuffix(".weight"): quant_params(
-                    key, args.quant_recipe, num_layers, promoted_paths
-                )
-                for key in sorted(qkeys)
-            }
-        )
+    quantization = dict(QUANTIZATION)
     output_config["quantization"] = quantization
     output_config["quantization_config"] = copy.deepcopy(quantization)
     with (output / "config.json").open("w", encoding="utf-8") as stream:
@@ -637,8 +483,8 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
         "output_gib": round(total_size / (1 << 30), 6),
         "output_tensor_count": len(output_map),
         "output_parameter_count": index["metadata"]["total_parameters"],
-        "quant_recipe": args.quant_recipe,
-        "quantization_counts": quantization_counts,
+        "quantization": QUANTIZATION,
+        "quantized_modules": quantized_modules,
         **memory_snapshot("complete", time.monotonic() - started),
         "os": os_snapshot(),
     }
@@ -647,15 +493,17 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", help="local Qwen/Qwen3.8-27B source snapshot")
-    parser.add_argument("--baseline", required=True, help="local text-only MLX baseline")
-    parser.add_argument("--output", help="new output directory")
-    parser.add_argument(
-        "--metrics",
-        default="research/conversion/g128-progress.jsonl",
-        help="progress JSONL path",
+    parser = argparse.ArgumentParser(
+        description="Build the Qwen3.8-27B affine 3-bit/g128 text-only MLX checkpoint",
     )
+    parser.add_argument("--source", help="local BF16 Qwen/Qwen3.8-27B snapshot directory")
+    parser.add_argument(
+        "--baseline",
+        required=True,
+        help="existing text-only Qwen3.8 MLX checkpoint (config/tokenizer template)",
+    )
+    parser.add_argument("--output", help="new output directory (must not exist)")
+    parser.add_argument("--metrics", help="optional progress JSONL path")
     parser.add_argument(
         "--shard-bytes",
         type=int,
@@ -663,20 +511,10 @@ def main() -> None:
         help="output shard target; default 512 MiB",
     )
     parser.add_argument(
-        "--quant-recipe",
-        choices=("affine_3_g128", "mixed_2_6", "mixed_3_4_control", "sensitivity_3_4"),
-        default="affine_3_g128",
-        help="g128 recipe; Stage 4 candidates use mixed_3_4_control or sensitivity_3_4",
+        "--self-test",
+        action="store_true",
+        help="validate the conversion plan against --baseline without loading weights",
     )
-    parser.add_argument(
-        "--promotion-manifest",
-        help="JSON summary containing selected_paths for sensitivity_3_4",
-    )
-    parser.add_argument(
-        "--candidate-name",
-        help="candidate name inside --promotion-manifest when it contains multiple candidates",
-    )
-    parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
 
     if args.self_test:

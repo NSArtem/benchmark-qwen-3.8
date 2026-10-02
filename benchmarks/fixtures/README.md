@@ -1,7 +1,7 @@
-# Stage 7 coding-agent fixtures
+# Long-agent benchmark fixtures
 
-These are deterministic, read-only snapshot files used by the serialized
-agent benchmark. They are not imported by the research project and the
+These are deterministic, read-only snapshot files used by
+`benchmarks/long_agent.py`. They are never imported or executed, and the
 benchmark never writes to the repository. The runner exposes them only
 through simulated `read_file` tool results.
 

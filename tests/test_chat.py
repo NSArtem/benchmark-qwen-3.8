@@ -1,4 +1,4 @@
-"""Lightweight token/state regression tests for qwen38_chat.
+"""Lightweight token/state regression tests for qwen38.chat.
 
 These tests intentionally use no model weights and no Metal execution.
 """
@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import unittest
 
-from research.runtime.qwen38_chat import (
+from qwen38.chat import (
     HistoryTurn,
     TokenLedger,
     exact_suffix,

@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
-"""Strict long serialized coding-agent benchmark for the Stage 8 server.
+"""Long serialized coding-agent integration benchmark for ``qwen38.server``.
+
+Starts the real server with the g128 model, then drives one ~10K-token
+session through file inspection, a long tool result, a wrong hypothesis,
+failing-test revisions, and three forced ``finish_reason=length`` turns that
+must continue by exact cache reuse.
 
 The harness uses only deterministic local fixture contents. It never supplies
 an expected tool result after an invalid or unknown tool request; such a turn
 is retained as a protocol-quality failure in the raw transcript.
+
+Run from the repository root (loads the 27B model; do not run alongside
+another heavy MLX process)::
+
+    uv run python benchmarks/long_agent.py --output /tmp/long-agent.json
 """
 
 from __future__ import annotations
@@ -24,9 +34,9 @@ from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
-SERVER = ROOT / "runtime/qwen38_agent_server.py"
-FIXTURE_ROOT = ROOT / "stage7/agent/fixtures"
+ROOT = Path(__file__).resolve().parents[1]
+FIXTURE_ROOT = ROOT / "benchmarks/fixtures"
+MODEL_NAME = "qwen38-g128"
 DEFAULT_MODEL = "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX"
 TOOL_RE = __import__("re").compile(
     r"\bTOOL_CALL\s+([A-Za-z_][A-Za-z0-9_]*)\s+([^\s`]+)"
@@ -208,7 +218,7 @@ class SessionRunner:
             self.base_url,
             "/v1/chat/completions",
             {
-                "model": "qwen38-stage8-g128",
+                "model": MODEL_NAME,
                 "session_id": self.session_id,
                 "messages": self.messages,
                 "max_tokens": budget,
@@ -529,12 +539,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     server_log = output.with_suffix(".server.log")
     fixtures = fixture_map()
     result: dict[str, Any] = {
-        "experiment_id": "P11-G128-LONG-SERIALIZED-CODING-AGENT",
-        "phase": 11,
+        "benchmark": "long-serialized-coding-agent",
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "model_name": "g128",
         "model_path": str(Path(args.model).resolve()),
-        "server_path": str(SERVER),
+        "server_module": "qwen38.server",
         "base_url": args.base_url,
         "session_id": args.session_id,
         "max_tokens_default": args.max_tokens,
@@ -559,7 +568,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         process = subprocess.Popen(
             [
                 sys.executable,
-                str(SERVER),
+                "-m",
+                "qwen38.server",
                 "--model",
                 args.model,
                 "--host",
@@ -567,7 +577,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "--port",
                 str(args.port),
                 "--model-name",
-                "qwen38-stage8-g128",
+                MODEL_NAME,
                 "--mode",
                 "greedy",
                 "--max-tokens",
@@ -745,12 +755,12 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Long serialized coding-agent benchmark")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8766)
     parser.add_argument("--base-url", default="http://127.0.0.1:8766")
-    parser.add_argument("--session-id", default="stage8-long-agent")
+    parser.add_argument("--session-id", default="long-agent")
     parser.add_argument("--max-tokens", type=int, default=128)
     parser.add_argument("--server-timeout", type=float, default=1200.0)
     parser.add_argument("--output", required=True)
