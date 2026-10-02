@@ -1,6 +1,0 @@
-# Minimal Fix: Atomic Idempotency in `JobService.create`
-
-## The Problem
-The current implementation checks for an existing idempotency key **before** starting the database transaction. This creates a race condition:
-1. Request A checks for key `K` → finds nothing
-2. Request

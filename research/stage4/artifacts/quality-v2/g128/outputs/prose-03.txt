@@ -1,4 +1,0 @@
-Eda: "The garden bell is broken, so we can't rely on it to signal us."
-Jun: "Then let's just wait by the east gate until they arrive."
-Eda: "That sounds like a solid plan given the circumstances."
-Jun: "Agreed, the east gate is our best bet."

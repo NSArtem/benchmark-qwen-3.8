@@ -1,1 +1,0 @@
-Replace the `ON CONFLICT (tenant_id, job_id, sequence) DO NOTHING` clause in `apps/api/src/infra/postgres/outbox-repository.ts` with `ON CONFLICT (tenant_id, job_id, sequence) DO UPDATE SET payload = EXCLUDED.payload, occurred_at = EXCLUDED.occ

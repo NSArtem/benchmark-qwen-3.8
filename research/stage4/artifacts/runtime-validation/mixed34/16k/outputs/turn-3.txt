@@ -1,3 +1,0 @@
-**Setup:**
-1.  **Database State:** An empty `idempotency_keys` table and `jobs` table.
-2.  **Concurrent Requests:** Two concurrent `POST /v1/jobs` requests from the same tenant (`tenant-a`) using the same `Idempotency-Key

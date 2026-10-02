@@ -1,5 +1,0 @@
-# Diagnosis
-
-The reported incident—completed renders reverting to "running" and duplicate renders on retry—stems from three distinct architectural violations in the current checkout:
-
-1.  **Idempotency Race (Duplicate Jobs):** The `JobService.create` method uses `BEGIN` (Read Committed) isolation. When two concurrent requests with the same `Idempotency-Key` arrive, both see "no row" in the `idempotency_keys` table before either commits. Because the `INSERT` uses `ON CONFLICT DO NOTHING`, the second request silently succeeds in inserting a *different* job row (

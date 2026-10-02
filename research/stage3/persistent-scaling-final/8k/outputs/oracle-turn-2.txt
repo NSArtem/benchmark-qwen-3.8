@@ -1,2 +1,0 @@
-**Invariant:** `jobs.id` must be globally unique across all tenants.
-**Enforcement Boundary:** `jobs` table (Primary Key)

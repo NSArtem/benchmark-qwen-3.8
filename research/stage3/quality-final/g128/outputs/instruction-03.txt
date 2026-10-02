@@ -1,1 +1,0 @@
-g128 and normal KV are distinct quantization methods used to reduce memory overhead in large language models.

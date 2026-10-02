@@ -1,5 +1,0 @@
-As a Game Master, I’ve learned that Old School Renaissance (OSR) dungeons thrive on player agency and mechanical clarity. Here are three core principles to keep in mind:
-
-1. **The Map is the Story**: In OSR, the physical layout *is* the narrative. Avoid walls of text describing the room; instead, let the map speak. Use clear, evocative names for rooms (e.g., "The Drowned Crypt" rather than "Room 12") and ensure the geography creates natural tactical dilemmas. If the map is confusing, the game stalls.
-
-2. **Sensory Prim

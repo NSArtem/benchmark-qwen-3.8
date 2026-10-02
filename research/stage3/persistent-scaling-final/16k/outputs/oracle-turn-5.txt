@@ -1,1 +1,0 @@
-Replace the check-then-insert pattern in `JobService.create` with a single atomic transaction that attempts an `INSERT` into `idempotency_keys` using `ON CONFLICT (tenant_id, key) DO NOTHING`, and only proceeds to create the job if the insert succeeds; if the insert is skipped due

@@ -1,9 +1,0 @@
-# Diagnosis of the "Completed Render Returns to Running" Incident
-
-## Root Cause Analysis
-
-The incident is caused by a **race condition between the API's idempotency check and the worker's completion event**, compounded by **non-atomic sequence allocation** and **lack of terminal state enforcement** in the event store.
-
-### Violated Invariants
-
-1. **Idempotency is not atomic**: The `idempotency` table check and job creation happen in separate transactions. Two concurrent `POST /v1/jobs` with the same idempotency key can both pass the "no existing record" check

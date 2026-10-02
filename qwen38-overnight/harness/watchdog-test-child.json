@@ -1,6 +1,0 @@
-{
-  "error": "The child did not persist a result before it exited.",
-  "status": "child_failed_without_result",
-  "watchdog_abort": false,
-  "watchdog_reason": null
-}

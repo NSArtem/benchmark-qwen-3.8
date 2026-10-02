@@ -1,9 +1,0 @@
-# Incident Diagnosis & Minimal Refactor
-
-## Root Cause Analysis
-
-The incident ("completed render returns to running" and "second retry creates a second render") stems from **three compounding violations** of the stated invariants:
-
-### 1. Non-atomic idempotency + job creation (violates invariant: "every mutation carrying an idempotency key returns the same result on a retry")
-
-In `JobService.create()`, the idempotency key check happens **before** the job insert, but the idempotency record insert happens **after** the job insert, all within one transaction. However

@@ -1,17 +1,0 @@
-{"status": "loading", "model": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly", "mode": "target"}
-Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Fetching 9 files: 100%|██████████| 9/9 [00:00<00:00, 2297.55it/s]
-{"status": "loaded", "load_seconds": 4.123580375000529, "target_backend": "mlx-lm-text-only"}
-{"status": "sanity_start", "prompt_tokens": 17}
-[WARNING] Generating with a model that requires 11225 MB which is close to the maximum recommended size of 12288 MB. This can be slow. See the documentation for possible work-arounds: https://github.com/ml-explore/mlx-lm/tree/main#large-models
-{
-  "draft_configuration": null,
-  "draft_model": null,
-  "error": "TokenizersBackend has no attribute stopping_criteria",
-  "error_type": "AttributeError",
-  "load_seconds": 4.123580375000529,
-  "mode": "target",
-  "model_id": "lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly",
-  "requested_draft_kind": null,
-  "status": "failed_or_aborted",
-  "target_backend": "mlx-lm-text-only"
-}

@@ -1,3 +1,0 @@
-The component is `apps/api/src/infra/postgres/outbox-repository.ts` (specifically the `append` method).
-
-The failure path occurs because the `ON CONFLICT (tenant_id, job_id, sequence) DO NOTHING` clause silently swallows the unique constraint violation when a retried request or a

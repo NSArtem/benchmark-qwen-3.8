@@ -1,7 +1,0 @@
-Here is a focused integration test plan designed to verify that the system correctly handles the race condition where a transaction commits, but the asynchronous worker fails to process the outbox entry due to a timeout or delay.
-
-### Test Name
-`test_timeout_after_commit_race_condition`
-
-### Scenario
-Two identical `POST /orders

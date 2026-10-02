@@ -1,51 +1,0 @@
-case=16k
-model=lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly
-prompt_file=qwen38-3bit-textonly/prompts/16k.txt
-max_tokens=256
-memory policy: telemetry only; no low-memory or swap watchdog
-Downloading bytes:           |  0.00B            
-Reconstructing (incomplete total...): |          |  0.00B /  0.00B            [A
-
-Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s][A[AFetching 9 files: 100%|##########| 9/9 [00:00<00:00, 4023.53it/s]
-Download complete: :           |  0.00B            
-Reconstruction complete: |          |  0.00B /  0.00B                         [ADownload complete: :           |  0.00B            
-Reconstruction complete: |          |  0.00B /  0.00B            
-model_load_seconds=4.400657
-mlx_peak_after_load_bytes=11771722760
-prompt_tokens=16727
-[WARNING] Generating with a model that requires 11225 MB which is close to the maximum recommended size of 12288 MB. This can be slow. See the documentation for possible work-arounds: https://github.com/ml-explore/mlx-lm/tree/main#large-models
-prefill_progress=0/16727
-prefill_progress=2048/16727
-prefill_progress=4096/16727
-prefill_progress=6144/16727
-prefill_progress=8192/16727
-prefill_progress=10240/16727
-prefill_progress=12288/16727
-prefill_progress=14336/16727
-prefill_progress=16384/16727
-prefill_progress=16726/16727
-prefill_progress=16727/16727
-first_response_after_seconds=96.380748
-benchmark_exception=Metal OOM / insufficient memory: RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
-Traceback (most recent call last):
-  File "/Users/artem/projects/benchmark-qwen-3.8/qwen38-3bit-textonly/harness/benchmark.py", line 361, in run_case
-    for current in stream_generate(
-                   ~~~~~~~~~~~~~~~^
-        model,
-        ^^^^^^
-    ...<3 lines>...
-        prompt_progress_callback=progress,
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    ):
-    ^
-  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx_lm/generate.py", line 714, in stream_generate
-    with wired_limit(model, [generation_stream]):
-         ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py", line 148, in __exit__
-    next(self.gen)
-    ~~~~^^^^^^^^^^
-  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx_lm/generate.py", line 263, in wired_limit
-    mx.synchronize(s)
-    ~~~~~~~~~~~~~~^^^
-RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
-{"decode_tps": 6.228132573110398, "failure_reason": "Metal OOM / insufficient memory: RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).", "mlx_peak_bytes": 17199561782, "output_tokens": 256, "prefill_tps": 178.3669184156698, "prompt_tokens": 16727, "success": false, "swap_delta_mb": -543.18, "ttft_seconds": 96.38074849999975}

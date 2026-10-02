@@ -1,3 +1,0 @@
-Durable replay provides events 8 and 9. Live delivery provides events 9 and 10. Combining these yields the set {8, 9, 10}. Sequence-based de-duplication removes the duplicate event 9. The remaining distinct events are 8 and 10. Thus, the client applies 2 distinct events.
-
-Final: 2

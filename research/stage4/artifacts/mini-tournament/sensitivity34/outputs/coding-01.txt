@@ -1,7 +1,0 @@
-The race condition stems from a classic "check-then-act" anti-pattern. Two concurrent requests execute the `SELECT` simultaneously before either `INSERT` completes. Since the key does not exist yet, both threads see "not found" and proceed to insert. This results in duplicate job rows for the same idempotency key, violating the uniqueness constraint or causing data corruption.
-
-The smallest database-level fix is to enforce a **Unique Constraint** on the idempotency key column in the `jobs` table. Instead of relying on application logic to prevent duplicates, let the database handle the integrity check atomically.
-
-Modify the code to attempt the `INSERT` directly. If the insert fails due to a unique constraint violation (e.g., SQL error 1062 in MySQL or 23505 in PostgreSQL), catch that specific exception. Upon catching the duplicate key error, the code must then perform a `SELECT` to retrieve the existing job row associated with that key.
-
-This approach ensures that only one concurrent request succeeds in creating the new job. The losing request detects the conflict and falls back to reading the winner's data. By returning the original job's result (status, ID, and payload) from the existing row, the retry mechanism guarantees that the client receives the exact same response as the first request, preserving idempotency semantics without requiring complex distributed locks or transactions.

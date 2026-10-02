@@ -1,5 +1,0 @@
-# Diagnosis
-
-The incident—“completed render returns to running” and “second retry creates a second render”—stems from three distinct but interacting defects in the current implementation:
-
-1. **Non-atomic idempotency**: `JobService.create` inserts the idempotency key *inside* the transaction that creates the job. If the API process crashes or the client times out *after* `COMMIT` but *before* the response reaches the client, the idempotency row is persisted. However, if the client retries *before* the first transaction commits (e.g., due to a network timeout during

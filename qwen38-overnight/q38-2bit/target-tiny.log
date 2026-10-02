@@ -1,16 +1,0 @@
-{"status": "loading", "model": "lukaskremla/Qwen3.8-27B-2bit-MLX-TextOnly", "mode": "target"}
-Fetching 8 files:   0%|          | 0/8 [00:00<?, ?it/s]Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Fetching 8 files:  50%|█████     | 4/8 [00:00<00:00,  6.90it/s]Fetching 8 files:  75%|███████▌  | 6/8 [00:02<00:00,  2.41it/s]Fetching 8 files:  88%|████████▊ | 7/8 [03:16<00:44, 44.88s/it]Fetching 8 files: 100%|██████████| 8/8 [03:54<00:00, 43.11s/it]Fetching 8 files: 100%|██████████| 8/8 [03:54<00:00, 29.27s/it]
-{"status": "loaded", "load_seconds": 236.5802125830005, "target_backend": "mlx-lm-text-only"}
-{
-  "draft_configuration": null,
-  "draft_model": null,
-  "error": "'TokenizerWrapper' object is not callable",
-  "error_type": "TypeError",
-  "load_seconds": 236.5802125830005,
-  "mode": "target",
-  "model_id": "lukaskremla/Qwen3.8-27B-2bit-MLX-TextOnly",
-  "requested_draft_kind": null,
-  "status": "failed_or_aborted",
-  "target_backend": "mlx-lm-text-only"
-}

@@ -1,3 +1,0 @@
-**Diagnosis:** The race occurs because both concurrent requests pass the initial `SELECT` (finding no existing key) before either `INSERT` commits. Both then insert duplicate keys, violating uniqueness constraints or causing double-processing.
-
-**Fix:** Add a unique constraint on `(tenant_id, key)` to the `idemp

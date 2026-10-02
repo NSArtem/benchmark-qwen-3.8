@@ -1,1 +1,0 @@
-Change the `INSERT INTO idempotency_keys` statement in `apps/api/src/application/job-service.ts` to use `ON CONFLICT (tenant_id, key) DO UPDATE SET request_hash = EXCLUDED.request_hash, status_code = EXCLUDED.status_code, response_body = EXCLUDED.response_body` instead of `

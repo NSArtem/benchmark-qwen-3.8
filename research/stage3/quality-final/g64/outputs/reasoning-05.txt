@@ -1,5 +1,0 @@
-To determine the number of distinct events, we must identify the unique sequence numbers across both delivery mechanisms, as each sequence number represents a unique event in the stream.
-
-1.  **Analyze the sequences:**
-    *   Durable replay sends: **5, 6**
-    *   Live delivery sends

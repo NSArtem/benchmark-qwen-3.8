@@ -1,7 +1,0 @@
-### Security Bug Identification
-
-The security bug is **Insecure Direct Object Reference (IDOR)**, also known as **Broken Access Control**.
-
-**Why it is a bug:**
-1.  **Missing Tenant Isolation:** The repository method filters jobs by `id` but ignores the `tenantId`.
-2.

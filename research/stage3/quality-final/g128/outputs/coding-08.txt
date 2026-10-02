@@ -1,4 +1,0 @@
-### Correct Response
-The correct response is **HTTP 400 Bad Request** (or potentially **409 Conflict**, depending on the specific API specification, but 400 is the most standard interpretation for a validation failure due to mismatched parameters).
-
-**The response body should contain an error message**

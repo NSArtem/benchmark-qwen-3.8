@@ -1,3 +1,0 @@
-1. **Enforce Idempotency Uniqueness**: Add a unique constraint on the `idempotency_key` column in the transaction table and implement a database-level check to reject duplicate keys, ensuring that repeated requests with the same key are safely ignored or return the original result without side effects.
-
-2

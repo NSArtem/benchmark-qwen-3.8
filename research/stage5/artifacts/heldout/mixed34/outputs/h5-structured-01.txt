@@ -1,7 +1,0 @@
-```json
-{
-  "route": "events",
-  "retry": false,
-  "limit": 12
-}
-```

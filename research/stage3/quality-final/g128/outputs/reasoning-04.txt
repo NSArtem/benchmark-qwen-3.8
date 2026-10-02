@@ -1,4 +1,0 @@
-**Yes**
-
-**Explanation:**
-The lease expires at 30 seconds. The renewals occurred at 10 and 20 seconds, meaning the lease was successfully extended to 40 seconds (20 seconds + 30-second duration). Since the completion arrives at 31 seconds, it

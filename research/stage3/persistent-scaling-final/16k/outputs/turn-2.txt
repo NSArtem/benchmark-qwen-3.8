@@ -1,2 +1,0 @@
-**Invariant:** Unique idempotency key per tenant
-**Enforcement Boundary:** `idempotency_keys` table primary key

@@ -1,3 +1,0 @@
-10
-
-Start with 12 jobs, subtract the 4 completed and 3 cancelled jobs (totaling 7 removed), then add the 2 new jobs, resulting in 12 - 7 + 2 = 7, but since the question asks for nonterminal jobs and "cancelled" jobs

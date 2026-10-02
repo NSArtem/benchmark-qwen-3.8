@@ -1,3 +1,0 @@
-To find the total number of records, first calculate the records in the groups: 7 groups multiplied by 18 records per group equals 126. Next, add the 5 independent records to this amount. The sum is 126 + 5, which equals 131.
-
-Final: 131

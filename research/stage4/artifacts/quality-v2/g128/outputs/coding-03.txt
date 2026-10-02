@@ -1,8 +1,0 @@
-**Atomicity Failure**
-The described API violates the atomicity principle of ACID transactions. By committing the job state update in a separate transaction from the outbox insert, the system creates a window of vulnerability. If the application crashes, loses network connectivity, or encounters an error between the first commit and the second transaction, the database remains in an inconsistent state. The job is marked as updated, but the corresponding outbox event is never recorded.
-
-**Required Transaction Boundary**
-To ensure consistency, both operations must occur within a **single transaction boundary**. The job state update and the outbox row insertion must be executed together and committed atomically. This ensures that either both changes persist, or neither does. If the transaction fails, both operations are rolled back, preserving data integrity.
-
-**Failure Symptom**
-The primary symptom is **silent data loss** or **stalled processing**. The job state reflects the new status, but the outbox table lacks the corresponding event. Consequently, the event publisher (which polls the outbox table) never detects the change. The job appears updated in the database, but downstream consumers (e.g., notification services, analytics pipelines) never receive the event, leading to system desynchronization and unprocessed work.

@@ -1,5 +1,0 @@
-**Invariant:** A job in a terminal state (e.g., `succeeded`, `failed`, `cancelled`) is immutable. No subsequent event may transition the job out of this state.
-
-**Guard:** The reducer must check the current state before processing any new event. If the current state is terminal, the guard evaluates to `false` for any non-terminal event (like `running`). This prevents state regression from terminal to active.
-
-**Action:** The reducer should **discard** event sequence 7 (`running`). It must not update the job state. Instead, it should log a warning or error indicating that a non-terminal event was received for a job already in a terminal state, ensuring the job remains `succeeded`. This preserves the integrity of the job’s final status and prevents inconsistent state transitions.

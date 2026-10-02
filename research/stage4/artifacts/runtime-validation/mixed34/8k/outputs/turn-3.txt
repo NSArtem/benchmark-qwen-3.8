@@ -1,3 +1,0 @@
-**Setup:**
-1. Initialize a PostgreSQL test database with the `job_events` schema, ensuring the `UNIQUE (tenant_id, job_id, sequence)` constraint is active.
-2. Insert a valid `job_events` row with `tenant_id = 't1'`, `job_id = 'j

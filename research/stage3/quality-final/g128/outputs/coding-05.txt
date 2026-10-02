@@ -1,1 +1,0 @@
-The scenario you described highlights a classic **at-least-once delivery gap** in hybrid streaming architectures. When a client disconnects between the initial batch of PostgreSQL rows and the subsequent Redis subscription, the server loses the context of where the client left off. Upon reconnection, if the server simply resumes from the current Redis

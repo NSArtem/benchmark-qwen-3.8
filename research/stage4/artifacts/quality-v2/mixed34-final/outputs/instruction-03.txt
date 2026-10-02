@@ -1,1 +1,0 @@
-g128 and normal KV are distinct

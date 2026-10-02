@@ -1,4 +1,0 @@
-The problem you described is a classic **race condition** in hybrid streaming architectures. When a client disconnects between the initial "replay" (PostgreSQL) and the "live subscription" (Redis), it creates a gap in the event stream.
-
-*   **Scenario:**
-    1.  Client connects

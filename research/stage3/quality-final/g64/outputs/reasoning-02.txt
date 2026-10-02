@@ -1,5 +1,0 @@
-To determine the final version, we must track the state of the reducer as it processes the incoming events in the order they arrive, applying the rule that it **ignores stale events**.
-
-**Rules:**
-1.  **Current Version:** The version number the reducer is currently at.
-2.  **Incoming

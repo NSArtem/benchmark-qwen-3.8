@@ -1,1 +1,0 @@
-g128 is a quantization method that uses normal KV cache for memory efficiency.

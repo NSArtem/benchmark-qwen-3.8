@@ -1,9 +1,0 @@
-# Diagnosis of the "Completed Render Returns to Running" Incident
-
-## Root Cause Analysis
-
-The incident is caused by a **race condition between the API's idempotency handling and the worker's event publication**, compounded by **non-atomic sequence allocation** and **missing idempotency enforcement in the event store**.
-
-### Violated Invariants
-
-1. **Idempotent mutations**: `POST /v1/jobs` with the same idempotency key can create duplicate jobs if the first request times out after commit but before the client receives the response. The current `idempotency.ts` only hashes the

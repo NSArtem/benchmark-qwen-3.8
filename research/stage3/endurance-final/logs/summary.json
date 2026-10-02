@@ -1,9 +1,0 @@
-{
-  "completed_turns": 17,
-  "exception": null,
-  "experiment_id": "P4-G128-PERSISTENT-ENDURANCE-8K",
-  "final_logical_tokens": 10443,
-  "overall_classification": "STOPPED_OR_UNRESOLVED",
-  "safety_stop_reason": "first BROKEN endurance output at turn 17",
-  "total_elapsed_seconds": 224.33602783401147
-}

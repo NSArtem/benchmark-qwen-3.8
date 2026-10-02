@@ -1,4 +1,0 @@
-Record 119: owner=Uma; shard=copper; retry_window=28; status=active; checksum=U119Z; note=never retry after terminal state.
-
-**Checksum:** U119Z
-**Note:** never retry after terminal state

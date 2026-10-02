@@ -1,3 +1,0 @@
-Record 119: owner=Uma; shard=copper; retry_window=28; status=active; checksum=U119Z; note=never retry after terminal state.
-
-This constraint matters because it prevents the system from attempting to re-execute a

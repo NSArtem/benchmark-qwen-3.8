@@ -1,8 +1,0 @@
-[project]
-name = "benchmark-qwen-3-8"
-version = "0.1.0"
-requires-python = ">=3.14"
-dependencies = [
-    "mlx-dspark>=0.12.0",
-    "mlx-vlm>=0.6.13",
-]

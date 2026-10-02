@@ -1,5 +1,0 @@
-**Test Name:** `atomic_commit_job_and_outbox`
-
-**Setup:**
-1.  Initialize a `JobService` with a mock `Pool` that simulates a crash or error during the transaction.
-2.  Configure the mock `Pool` such that the `COMMIT` query throws an error

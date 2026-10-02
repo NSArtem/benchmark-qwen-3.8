@@ -1,2 +1,0 @@
-FIRST: alpha
-SECOND: beta

@@ -1,5 +1,0 @@
-Based on the ledger provided, here are the details for **Record 014**:
-
-*   **Owner:** Iris
-*   **Retry Window:** 37
-*   **Checksum:** A7C9

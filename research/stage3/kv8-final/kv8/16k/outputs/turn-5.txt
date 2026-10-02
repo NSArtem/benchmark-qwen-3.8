@@ -1,1 +1,0 @@
-Move the Redis enqueue operation inside the database transaction by implementing a custom `JobQueue` that uses a PostgreSQL `LISTEN/NOTIFY` channel instead of Redis, ensuring the job is visible to workers only if the transaction commits successfully.

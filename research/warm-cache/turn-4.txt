@@ -1,7 +1,0 @@
-# Focused Test: Concurrent Identical Job Creation
-
-## Test Strategy
-
-Simulate the exact race condition described in the incident:
-1. Two concurrent `POST /v1/jobs` requests with the **same tenant** and **same idempotency key**
-2. The first request commits successfully,

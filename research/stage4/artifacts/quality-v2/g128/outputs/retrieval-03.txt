@@ -1,5 +1,0 @@
-Based on the provided Local Operations Ledger, here are the details for Record 119:
-
-**Record 119**
-*   **Checksum:** U119Z
-*   **Note:** never retry after terminal state

@@ -1,1 +1,0 @@
-{"context": "8k", "elapsed_seconds": 126.01716162500088, "exception": "RuntimeError: 8k turn 2: no canonical transcript candidate begins with logical cached stream", "experiment_id": "P3-G128-PERSISTENT-SUFFIX-8K", "overall_classification": "ERROR", "safety_stop_reason": null, "turns": 1}

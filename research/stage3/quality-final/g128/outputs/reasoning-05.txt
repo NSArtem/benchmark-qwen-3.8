@@ -1,7 +1,0 @@
-**3**
-
-**Rule:** The browser applies the union of the event sequences from both sources, deduplicating any overlapping event IDs.
-
-**Reasoning:**
-1.  **Durable Replay** sends events with IDs: {5, 6}
-2.  **Live Delivery** sends events with

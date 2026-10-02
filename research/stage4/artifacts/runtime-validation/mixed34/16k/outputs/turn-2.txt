@@ -1,2 +1,0 @@
-**Invariant:** Atomicity of the idempotency key and job creation.
-**Enforcement Boundary:** The `idempotency_keys` table primary key (`tenant_id, key`) within the `JobService.create` transaction.

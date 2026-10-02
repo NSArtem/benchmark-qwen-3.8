@@ -1,8 +1,0 @@
-# Incident Diagnosis & Minimal Refactor
-
-## 1. Incident Diagnosis: Invariant Violations
-
-Based on the described architecture (API -> PostgreSQL/Outbox -> Redis/Worker -> SSE -> Browser) and the stated invariants, the current implementation at `7b91e1a` violates the following:
-
-**1. Concurrent Identical `POST /v1/jobs` (Invariant 1)**
-*   **Violation:** The API likely performs a "check-then-act" pattern. It checks if a job with the `idempotency_key` exists, and if not, inserts a new one

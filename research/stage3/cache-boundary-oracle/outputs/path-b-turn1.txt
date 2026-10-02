@@ -1,6 +1,0 @@
-# Diagnosis
-
-The reported incident—completed renders reverting to "running" and duplicate renders appearing—is caused by a fundamental architectural flaw in how the system handles idempotency and state consistency.
-
-**Root Cause 1: Idempotency is not atomic with the mutation.**
-In `apps/api/src/routes/jobs.ts` (implied by the repository map and standard patterns), the idempotency check and the job creation/update are likely separate operations. If

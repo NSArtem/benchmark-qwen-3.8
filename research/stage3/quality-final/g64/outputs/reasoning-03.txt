@@ -1,3 +1,0 @@
-Rejected
-
-The prompt explicitly states that a retry is safe **only** when **both** the tenant and request hash match. Since the hash differs, the condition of "both matching" is not met, making the retry unsafe and therefore rejected.

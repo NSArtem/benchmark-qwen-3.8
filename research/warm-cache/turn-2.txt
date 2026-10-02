@@ -1,5 +1,0 @@
-# Single Invariant to Enforce First
-
-**Invariant:** *Every mutation carrying an idempotency key returns the same result on a retry.*
-
-**Where it should live:** In the **API transaction**, specifically in `apps/api/src/routes/jobs.ts` (or a dedicated `idempotency-service

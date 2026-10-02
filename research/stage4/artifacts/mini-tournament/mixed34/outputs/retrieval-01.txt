@@ -1,1 +1,0 @@
-Record 017: owner=Iris; shard=amber; retry_window=37; checksum=A7C9

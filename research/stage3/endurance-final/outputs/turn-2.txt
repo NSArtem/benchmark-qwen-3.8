@@ -1,1 +1,0 @@
-The outbox row and the corresponding state change must commit atomically to ensure that no event is published without a corresponding durable state change, a boundary enforced by the `BEGIN` and `COMMIT` transaction wrapping both the `JobRepository` and `OutboxRepository` writes in `apps/api/src/application/job-service.ts`. ENDURANCE-T02

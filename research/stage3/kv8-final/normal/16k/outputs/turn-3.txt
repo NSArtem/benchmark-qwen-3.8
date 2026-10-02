@@ -1,4 +1,0 @@
-**Test Name:** `concurrent identical POST /v1/jobs with one tenant and one idempotency key creates exactly one job and returns the same response`
-
-**Setup:**
-1.  Initialize a `JobService` with a mock `Pool` that simulates PostgreSQL transactional behavior, including primary

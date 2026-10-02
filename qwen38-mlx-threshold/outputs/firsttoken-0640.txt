@@ -1,5 +1,0 @@
-</think>
-
-# Incident Diagnosis & Minimal Production-Quality Refactor
-
-## 1

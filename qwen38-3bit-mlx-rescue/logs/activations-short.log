@@ -1,59 +1,0 @@
-case=activations-short
-model=lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly
-prompt_file=qwen38-3bit-mlx-rescue/activation-short-prompt.txt
-max_tokens=128
-prefill_step_size=None
-cache_limit=None
-quantize_activations=True
-kv_bits=None
-kv_group_size=64
-quantized_kv_start=0
-wired_limit_check=iogpu.wired_limit_mb: 0
-
-memory policy: telemetry only; no low-memory or swap watchdog
-Downloading bytes:           |  0.00B            
-Reconstructing (incomplete total...): |          |  0.00B /  0.00B            [A
-
-Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s][A[AFetching 9 files: 100%|##########| 9/9 [00:00<00:00, 2401.17it/s]
-Download complete: :           |  0.00B            
-Reconstruction complete: |          |  0.00B /  0.00B                         [ADownload complete: :           |  0.00B            
-Reconstruction complete: |          |  0.00B /  0.00B            
-benchmark_exception=ValueError: Mode ({m.mode}) does not support activation quantization
-Traceback (most recent call last):
-  File "/Users/artem/projects/benchmark-qwen-3.8/qwen38-3bit-mlx-rescue/harness/run_case.py", line 331, in run_case
-    model, tokenizer = load(args.model, model_config=model_config)
-                       ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx_lm/utils.py", line 491, in load
-    model, config = load_model(model_path, lazy, model_config=model_config)
-                    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx_lm/utils.py", line 410, in load_model
-    leaves = tree_map(_maybe_qq, model.leaf_modules(), is_leaf=nn.Module.is_module)
-  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx/utils.py", line 55, in tree_map
-    k: tree_map(fn, child, *(r[k] for r in rest), is_leaf=is_leaf)
-       ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx/utils.py", line 55, in tree_map
-    k: tree_map(fn, child, *(r[k] for r in rest), is_leaf=is_leaf)
-       ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx/utils.py", line 55, in tree_map
-    k: tree_map(fn, child, *(r[k] for r in rest), is_leaf=is_leaf)
-       ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx/utils.py", line 52, in tree_map
-    return TreeType(*subtrees) if hasattr(tree, "_fields") else TreeType(subtrees)
-                                                                ~~~~~~~~^^^^^^^^^^
-  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx/utils.py", line 49, in <genexpr>
-    tree_map(fn, child, *(r[i] for r in rest), is_leaf=is_leaf)
-    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx/utils.py", line 55, in tree_map
-    k: tree_map(fn, child, *(r[k] for r in rest), is_leaf=is_leaf)
-       ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx/utils.py", line 55, in tree_map
-    k: tree_map(fn, child, *(r[k] for r in rest), is_leaf=is_leaf)
-       ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx/utils.py", line 45, in tree_map
-    return fn(tree, *rest)
-  File "/Users/artem/projects/benchmark-qwen-3.8/.venv/lib/python3.14/site-packages/mlx_lm/utils.py", line 397, in _maybe_qq
-    raise ValueError(
-        "Mode ({m.mode}) does not support activation quantization"
-    )
-ValueError: Mode ({m.mode}) does not support activation quantization
-{"case": "activations-short", "completed_without_exception": false, "decode_tps": null, "failure_reason": "ValueError: Mode ({m.mode}) does not support activation quantization", "generation_tokens": 0, "mlx_peak_bytes": 10572, "prefill_tps": null, "prompt_tokens": 0, "swap_delta_mb": 0.0}

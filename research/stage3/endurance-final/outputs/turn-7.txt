@@ -1,1 +1,0 @@
-The transaction must first lock the job row to allocate the next event sequence and update the job state to `succeeded`, then insert the corresponding `JobSucceeded` event into the outbox using that allocated sequence, and finally commit both changes atomically to ensure the durable event stream and the job projection remain consistent. ENDURANCE-T07

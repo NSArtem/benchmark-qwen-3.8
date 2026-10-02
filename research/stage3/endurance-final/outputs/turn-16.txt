@@ -1,1 +1,0 @@
-The browser reducer should compare the incoming event's sequence number

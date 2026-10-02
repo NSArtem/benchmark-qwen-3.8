@@ -1,5 +1,0 @@
-Based on the ledger provided, here are the details for **Record 063**:
-
-*   **Shard:** violet
-*   **Status:** paused
-*   **Note Concern:** tenant isolation review

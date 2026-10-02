@@ -1,4 +1,0 @@
-Based on the information provided:
-
-**EARLY FACT:** `shard=amber`
-**LATE FACT:** `checksum=U149Z`

@@ -1,2 +1,0 @@
-Invariant: Atomic commit of the outbox row and the corresponding state change.
-Enforcement boundary: The database transaction.

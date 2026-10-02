@@ -1,4 +1,0 @@
-**Invariant:**
-For any job, the set of applied events must be contiguous and strictly increasing from `job.version + 1`. No event with a sequence number greater than the current version may be applied if a lower, unapplied sequence number exists (no gaps).
-
-**Exact Guard for Terminal Jobs:**

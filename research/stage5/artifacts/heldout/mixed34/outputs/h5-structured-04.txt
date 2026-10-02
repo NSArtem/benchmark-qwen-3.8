@@ -1,7 +1,0 @@
-```json
-{
-  "lease_epoch": 4,
-  "owner": "worker-2",
-  "active": false
-}
-```

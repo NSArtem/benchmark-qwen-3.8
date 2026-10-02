@@ -1,1 +1,0 @@
-Answer in one concise sentence: what does a database uniqueness constraint prevent when two requests reuse the same idempotency key?

@@ -1,7 +1,0 @@
-Based on the ledger provided, here is the comparison between the two specified records:
-
-**Shards:**
-*   **Record 014:** The shard is **amber**.
-*   **Record 142:** The shard is **drift**.
-
-**

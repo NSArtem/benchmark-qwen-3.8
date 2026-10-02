@@ -1,3 +1,0 @@
-The component is `apps/api/src/application/job-service.ts` (specifically the `create` method).
-
-The failure path occurs because the transaction uses default Read Committed isolation, allowing two concurrent requests with the same idempotency key to both pass the initial `SELECT` check before either transaction commits. Consequently,

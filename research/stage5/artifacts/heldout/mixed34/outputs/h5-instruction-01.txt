@@ -1,4 +1,0 @@
-ROLE: evaluator
-CACHE: exact-suffix
-SCOPE: single-user
-RESULT: READY

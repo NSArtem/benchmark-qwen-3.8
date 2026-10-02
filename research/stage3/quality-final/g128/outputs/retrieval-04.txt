@@ -1,5 +1,0 @@
-Based on the provided ledger entries, here is the comparison between Record 014 and Record 142:
-
-**Shards:**
-*   **Record 014:** The shard is **amber**.
-*   **Record 142:** The

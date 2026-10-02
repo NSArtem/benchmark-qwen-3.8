@@ -1,4 +1,0 @@
-**Correct Response:**
-The server should return **HTTP 400 Bad Request** (or potentially **409 Conflict**, depending on specific API guidelines, but 400 is the most standard interpretation for invalid input relative to a known state).
-
-**Why returning the original body is not enough:**

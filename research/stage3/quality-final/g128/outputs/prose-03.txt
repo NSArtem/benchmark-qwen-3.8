@@ -1,4 +1,0 @@
-Eda: "The garden bell is broken."
-Jun: "Let's wait by the east gate."
-Eda: "I know the garden bell is broken."
-Jun: "We should wait by the east gate."

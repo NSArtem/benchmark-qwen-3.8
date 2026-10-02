@@ -1,5 +1,0 @@
-{
-  "items": ["alpha", "beta"],
-  "count": 2,
-  "valid": true
-}

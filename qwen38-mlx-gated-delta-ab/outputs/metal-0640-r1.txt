@@ -1,8 +1,0 @@
-**1. Orientation**
-
-I need to understand the current state of the codebase before I can diagnose it. Let me read the key files that are referenced in the prompt: the main entry, the routes, the service, the domain model, and the infrastructure. I'll also check for any existing tests, migration files, and the domain model to understand the current invariants and where they break.
-
-**2. Reading the code**
-
-Let me start by reading the files that are explicitly mentioned in the prompt, plus any supporting files (migrations, domain, tests) that I'll need to understand the full picture.
-

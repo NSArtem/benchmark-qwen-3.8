@@ -1,9 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/artem/projects/benchmark-qwen-3.8/qwen38-mlx0321-oom/harness/oom_diagnostic.py", line 319, in run_case
-    token, _ = next(generator)
-               ~~~~^^^^^^^^^^^
-  File "/Users/artem/projects/benchmark-qwen-3.8/envs/mlx-0.32.1/.venv/lib/python3.14/site-packages/mlx_lm/generate.py", line 433, in generate_step
-    mx.eval([c.state for c in prompt_cache])
-    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-RuntimeError: [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).
-{"exception_type": "RuntimeError", "first_token_id": null, "memory_snapshots": 7, "result": "OOM", "test_id": "direct-wired-recommended"}

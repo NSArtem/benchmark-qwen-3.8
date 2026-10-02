@@ -1,5 +1,0 @@
-# Minimal Fix Outline: Idempotent Job Creation
-
-## 1. Database Schema (Migration)
-
-Add an `idempotency_keys` table to store the result of the first successful request. This ensures that if the first request commits but the client times out, the retry can retrieve the original response without creating

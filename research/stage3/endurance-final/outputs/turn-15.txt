@@ -1,1 +1,0 @@
-The correction is to enforce monotonic sequence allocation by adding a `WHERE next_event_sequence = $expected`

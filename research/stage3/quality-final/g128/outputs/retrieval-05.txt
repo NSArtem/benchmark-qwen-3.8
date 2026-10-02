@@ -1,8 +1,0 @@
-Based on the provided ledger, here are the details for the two specific records mentioned:
-
-**Record 119**
-*   **Checksum:** U119Z
-*   **Constraint:** never retry after terminal state
-
-**Record 142**
-*   **Checksum:** DRIFT-

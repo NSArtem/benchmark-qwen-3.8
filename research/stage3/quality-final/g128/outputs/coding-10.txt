@@ -1,3 +1,0 @@
-1. **Enforce Idempotency Uniqueness**: Add a unique constraint on the `idempotency_key` column in the request log table and implement a `ON CONFLICT` handler in the API layer to ensure duplicate requests return the original response without re-processing.
-
-2. **Implement Atomic Projection

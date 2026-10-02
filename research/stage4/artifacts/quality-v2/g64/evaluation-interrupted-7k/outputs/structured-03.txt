@@ -1,7 +1,0 @@
-```json
-{
-  "sequence": 4,
-  "terminal": false,
-  "event": "job.started"
-}
-```
