@@ -94,6 +94,36 @@ system message.
 One `threading.Lock` guards the session. At most one session exists, and at
 most one inference runs at a time.
 
+## Model build (`tools/build_g128.py`)
+
+The checkpoint is built from the BF16 `Qwen/Qwen3.8-27B` snapshot at revision
+`1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0`. The only other inputs are the
+builder and the pinned mlx-lm and transformers code.
+
+1. **Verify the source.** The six metadata files must match their Hub hashes
+   at that revision. The index must list 18 shards. Exactly 851 BF16 text
+   tensors must remain after dropping 333 `model.visual.*` and 15 `mtp.*`
+   tensors. A tensor from any other family is an error.
+2. **Derive the config.** `derive_text_config` is a pure function of the
+   source `config.json` and `generation_config.json`. It keeps the nested
+   `text_config`, which pinned mlx-lm loads through
+   `mlx_lm.models.qwen3_5`, and applies the edits listed in
+   [decisions](decisions.md#g128-is-built-from-the-bf16-source-alone).
+3. **Check the plan against the model.** The pinned model class is
+   instantiated from the derived config with lazy, unallocated parameters.
+   The 851 mapped source keys must equal the model's parameter keys, with
+   matching element counts. There must be 64 layers (48 linear), and 498
+   modules must be quantizable.
+4. **Convert one layer at a time.** Each chunk is loaded and passed through
+   the pinned `sanitize`. A conv1d sentinel keeps the global norm-shift rule
+   intact. The chunk is quantized (affine, 3 bits, group 128) and written to
+   ~512 MiB shards. Peak MLX memory is 3.3 GiB.
+5. **Write metadata.** `total_size` is summed from the written tensors.
+   `total_parameters` comes from the pinned `get_total_parameters`, as
+   `mlx_lm.utils.save_model` computes it. Tokenizer files are re-serialized
+   through `TokenizersBackend`. `generation_config.json` is copied. The
+   output is checked to tokenize like the source `tokenizer.json`.
+
 ## Limitations
 
 - No streaming, `stop` sequences, cancellation, batching or concurrency.

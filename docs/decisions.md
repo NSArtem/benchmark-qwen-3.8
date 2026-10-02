@@ -16,6 +16,48 @@ per weight).
   long-context headroom: about 10.4–10.6 tok/s and a 15.24 GiB peak at
   16.7K tokens.
 
+## g128 is built from the BF16 source alone
+
+**Decision:** `tools/build_g128.py` takes only `--source`, the BF16
+`Qwen/Qwen3.8-27B` snapshot at revision
+`1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0`. The old `--baseline` input, an
+existing text-only MLX checkpoint, is gone. The tool used to copy that
+checkpoint's `config.json`, tokenizer files and `total_parameters`, so a
+rebuild depended on a checkpoint that no longer exists locally. Each item is
+now derived as follows:
+
+- **`config.json`** is the source config with:
+  - `vision_config` removed, as `mlx_lm.utils.save_config` does;
+  - `text_config.rope_parameters.rope_type` renamed to `type`, which pinned
+    `TextModelArgs.__post_init__` does in place;
+  - `eos_token_id` (`[248046, 248044]`) copied from
+    `generation_config.json`, as `mlx_lm.utils.load_config` does;
+  - `quantization` and `quantization_config` added.
+
+  It also drops `text_config.mtp_num_hidden_layers` and
+  `mtp_use_dedicated_embeddings`, because the checkpoint has no MTP
+  weights. Pinned mlx-lm ignores both keys. This is the only difference
+  from the earlier production config.
+- **Tokenizer files** are re-serialized from the source tokenizer through
+  transformers `TokenizersBackend`. The output records the
+  `tool_parser_type` that mlx-lm infers (`qwen3_coder`). Copying the source
+  `tokenizer_config.json` unchanged would be wrong: it names
+  `Qwen2Tokenizer`, and pinned transformers 5.15 then replaces the
+  pre-tokenizer regex with one that lacks `\p{M}`, which changes Devanagari
+  and Thai tokenization. The resulting `tokenizer.json`,
+  `tokenizer_config.json` and `chat_template.jinja` are byte-identical to
+  the production files. `generation_config.json` is copied unchanged.
+- **`total_parameters`** (26,895,993,856) is pinned mlx-lm
+  `get_total_parameters`, the value `save_model` writes. That function
+  counts leaf modules only, so it leaves out the 4,608 `A_log`/`dt_bias`
+  values held directly by the 48 GatedDelta blocks. The full source count is
+  26,895,998,464.
+
+**Validation (2026-10-02):** a source-only rebuild took 33 s with a 3.33 GiB
+MLX peak. All 19 shards, the index and the tokenizer files were
+byte-identical to production, covering all 1,847 tensors. Both configs
+produce identical pinned `TextModelArgs` and parameter trees.
+
 ## g64 is not the default
 
 The original `lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly` uses group size

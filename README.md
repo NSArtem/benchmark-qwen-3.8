@@ -96,7 +96,8 @@ uv run python -m unittest discover -s tests
 The tests load no model weights and need no Metal device. The tokenizer-based
 session tests read `tokenizer.json` from the model directory. Point them
 elsewhere with `QWEN38_MODEL=/path/to/model`. They are skipped if no tokenizer
-is found.
+is found. Two model-builder tests read the BF16 source snapshot
+(`QWEN38_SOURCE`, default: the Hugging Face cache) and are skipped without it.
 
 ## Integration benchmark
 
@@ -120,26 +121,48 @@ HTTP errors.
 
 ## Rebuilding the g128 model
 
-`tools/build_g128.py` quantizes the BF16 `Qwen/Qwen3.8-27B` snapshot one layer
-at a time (peak MLX memory ~3.3 GiB):
+The model can be rebuilt from the original BF16 `Qwen/Qwen3.8-27B` release
+alone. No other MLX checkpoint is needed. The build is pinned to source
+revision `1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0`; the tool checks the
+source metadata hashes and refuses any other revision.
+
+Fetch the source (55.6 GB of weights plus six small metadata files):
 
 ```sh
-uv run python tools/build_g128.py \
-  --source /path/to/Qwen3.8-27B \
-  --baseline /path/to/any/text-only/Qwen3.8-MLX-checkpoint \
-  --output /Users/artem/models/Qwen3.8-27B-3bit-g128-MLX
+uv run hf download Qwen/Qwen3.8-27B \
+  --revision 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0 \
+  --include '*.safetensors' --include config.json \
+  --include generation_config.json --include model.safetensors.index.json \
+  --include chat_template.jinja --include tokenizer_config.json \
+  --include tokenizer.json
 ```
 
-- `--source`: the full Hugging Face snapshot, revision
-  `1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0`, 55.6 GB.
-- `--baseline`: any existing text-only Qwen3.8 MLX checkpoint, such as
-  `lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly` or a previous g128 build. Only
-  its config and tokenizer files are used.
+Repeat `--include` for every pattern. If the patterns follow a single
+`--include`, `hf` reads them as filenames and skips the weights.
 
-The tool keeps `lm_head` and `model.language_model.*` and drops the vision
-tower and MTP tensors. The expected output is 498 quantized modules in 19
-shards, totaling 10,930,715,648 bytes. Add `--self-test` to validate the
-plan without reading weights.
+Build:
+
+```sh
+SOURCE="$HOME/.cache/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
+
+uv run python tools/build_g128.py --source "$SOURCE" --self-test
+
+uv run python tools/build_g128.py \
+  --source "$SOURCE" \
+  --output "$HOME/models/Qwen3.8-27B-3bit-g128-MLX"
+```
+
+`--self-test` checks the source, the derived config, the model mapping and
+the tokenizer files in a few seconds, without loading weights. The build
+quantizes one layer at a time (peak MLX memory 3.3 GiB) and writes into
+`<output>.partial`, renaming it only when complete. It refuses to overwrite
+an existing output.
+
+The output is 1,847 tensors (498 quantized modules) in 19 shards, totaling
+10,930,715,648 bytes. A source-only rebuild on 2026-10-02 produced weight
+shards, index and tokenizer files byte-identical to the production
+checkpoint. `config.json` differed only by two dropped MTP keys (see
+[docs/decisions.md](docs/decisions.md)).
 
 ## Limitations
 
