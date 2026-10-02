@@ -1,0 +1,105 @@
+# Decision log
+
+These decisions came from measurements on an Apple M3 Pro with 18 GB of
+unified memory, using MLX 0.32.1 and the pinned mlx-lm revision. Full
+evidence is in git under tag `research-stage8-complete`.
+
+## Model: affine 3-bit, group 128 (g128)
+
+**Decision:** g128 is the only supported checkpoint (10.180 GiB, 3.25 bits
+per weight).
+
+- On the corrected quality suite it scored 23/24 objective and 4/4
+  semi-objective, the same as g64, which failed the same case. On the
+  held-out v2 suite it scored 20/21 and 3/3.
+- It is the smallest and fastest candidate tested, and it has the most
+  long-context headroom: about 10.4–10.6 tok/s and a 15.24 GiB peak at
+  16.7K tokens.
+
+## g64 is not the default
+
+The original `lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly` uses group size
+64. It is 0.78 GiB larger (10.96 GiB) and showed no quality advantage on the
+corrected suites. Its larger footprint costs long-context speed on 18 GB: the
+fresh ladder dropped to 7.7 tok/s at 12K, and a 16.7K prompt decoded at about
+4.1 tok/s with a 17.2 GB peak.
+
+## mixed_3_4 rejected: long-context cliff
+
+The mlx-lm `mixed_3_4` recipe at g128 (10.66 GiB) scored 24/24 on the Stage
+4 suite. In fresh processes, however, it decoded at 4.9–5.7 tok/s at 16.7K,
+against 10.4–10.6 for g128, while matching g128 at 8K. Its peak was 0.485
+GiB higher, matching its larger payload. The cliff is real and reproducible.
+A small quality edge does not justify halving throughput at the target
+context.
+
+## mixed_2_6 and uniform 2-bit rejected
+
+mixed_2_6 at g128 saved memory but fell into an identical repetition loop in
+two fresh short runs. Lower-bit uniform quants were not pursued further.
+
+## KL/loss-guided frontier (Q1/Q2/Q3) abandoned
+
+A sensitivity-guided 3/4-bit frontier produced three checkpoints of
+10.33–10.62 GiB. Q1, the smallest, scored below g128 on both suites (22/24
+and 17/21). It was also slightly slower, at 10.26 versus about 10.4 tok/s at
+16K, and heavier. The pre-registered gate therefore skipped Q2 and Q3.
+
+## DWQ abandoned
+
+Bounded, diversity-aware DWQ improved its own calibration objective. The
+four-module candidate still lost one case on each practical suite, and its
+held-out teacher NLL got worse by 0.003 nats/token. It never produced a
+better complete model.
+
+## MTP and speculative decoding: not in production
+
+Qwen3.8 ships 15 `mtp.*` tensors. An exact greedy MTP prototype was built,
+including a 4-bit draft head of 0.21 GiB with about 43–68% acceptance. It
+was rejected for production for these reasons:
+
+- **Batched verification is not exact.** Verifying 2 or more drafted tokens
+  in one target call diverges at layer 0 in the recurrent (GatedDelta)
+  state. The fused sequence update gives slightly different numbers than
+  token-by-token decode.
+- **Exact verification costs one target forward per token.** The exact
+  transactional verifier copies only recurrent state, shares the KV history,
+  and trims KV on rejection. It still runs one target forward per candidate
+  token, so it cannot reduce target compute.
+- **It is slower.** Measured speed was 0.47× baseline at 4K (5.5 vs 11.7
+  tok/s) and 0.32× at 8K (3.6 vs 11.1 tok/s).
+- **It needs more memory.** Peak memory was 1.47 GiB higher at 8K, and the
+  16K run hit the memory safety stop.
+
+Reopening MTP would require an exact fused multi-token GatedDelta kernel. That
+would be new kernel work, not tuning.
+
+## KV cache quantization: optional only
+
+KV8 (8-bit KV cache, `--kv-bits 8`) was correct at 16K. It saved only 0.47
+GiB of peak memory and cut decode from 10.5 to 9.5 tok/s. The flag is still
+available, but the default uses normal KV.
+
+## GGUF / llama.cpp not maintained
+
+In the llama.cpp branch, the conventional `Q3_K_M` GGUF (12.9 GiB) failed to
+load because of Metal OOM. `UD-IQ3_XXS` ran up to 32K, but decoded at only
+about 4.4 tok/s at 16K, against about 10.5 for MLX g128. MLX direct
+generation is the maintained runtime.
+
+## DSpark and Qwen3.5 experiments
+
+The mlx-dspark smoke test could not finish a 27B run without uncontrolled swap
+growth. The Qwen3.5 MTP and DFlash smoke tests covered a different model
+family. Neither produced anything this runtime uses.
+
+## Context recommendation: 12K–16K
+
+| Context | Decode speed | Peak memory | Verdict |
+| ---: | ---: | ---: | --- |
+| 8K | 11.1 tok/s | 14.0 GiB | comfortable |
+| 12K | 10.8 tok/s | 14.6 GiB | usable |
+| 16K | 10.4–10.6 tok/s | 15.2 GiB | practical upper end for daily use |
+| 20K | 10.37 tok/s | 15.86 GiB | worked once on a clean host; only 23% memory free afterwards |
+
+24K and above were not attempted on 18 GB.
