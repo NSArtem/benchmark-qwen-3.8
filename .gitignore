@@ -8,50 +8,11 @@ __pycache__/
 # Local environment and dependency cache
 .venv/
 .uv-cache/
-envs/**/.venv/
 
-# Local archive used during experimentation
-archive.zip
+# Model weights never belong in this repository
+*.safetensors
+*.gguf
+*.bin
 
-# Qwen3.5 native-MTP smoke-test local model/cache files
-qwen35-mtp-smoke/model-cache/
-qwen35-mtp-smoke/__pycache__/
-qwen35-mtp-smoke/*.safetensors
-qwen35-mtp-smoke/*.bin
-qwen35-mtp-smoke/*.gguf
-
-# Qwen3.5 native-MTP APC smoke-test local cache and Python artifacts
-qwen35-mtp-apc-smoke/apc-cache/
-qwen35-mtp-apc-smoke/__pycache__/
-qwen35-mtp-apc-smoke/*.py[cod]
-
-# Qwen3.5 DFlash smoke-test local Python artifacts
-qwen35-dflash-smoke/__pycache__/
-qwen35-dflash-smoke/*.py[cod]
-
-# Qwen3.8 native-MTP feasibility-test Python artifacts
-qwen38-mtp-smoke/__pycache__/
-qwen38-mtp-smoke/*.py[cod]
-
-# Qwen3.8 overnight exploration local caches and generated Python artifacts
-qwen38-overnight/**/__pycache__/
-qwen38-overnight/**/*.py[cod]
-qwen38-overnight/**/apc-cache/
-qwen38-overnight/**/*.safetensors
-qwen38-overnight/**/*.bin
-qwen38-overnight/**/*.gguf
-
-# Qwen3.8 GGUF branch: model files/cache are never repository artifacts
-qwen38-gguf/**/*.gguf
-qwen38-gguf/**/__pycache__/
-qwen38-gguf/**/*.py[cod]
-
-# Qwen3.8 MLX threshold experiment: model weights and local Python artifacts
-qwen38-mlx-threshold/**/*.safetensors
-qwen38-mlx-threshold/**/*.bin
-qwen38-mlx-threshold/**/*.gguf
-qwen38-mlx-threshold/**/__pycache__/
-
-# Stage 6 local benchmark outputs and partial model artifacts
-research/stage6/artifacts/
-qwen38-mlx-threshold/**/*.py[cod]
+# Local benchmark outputs
+benchmarks/results/

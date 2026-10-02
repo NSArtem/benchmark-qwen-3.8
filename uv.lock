@@ -361,9 +361,9 @@ wheels = [
 ]
 
 [[package]]
-name = "qwen38-mlx-0321"
+name = "qwen38"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "mlx" },
     { name = "mlx-lm" },
