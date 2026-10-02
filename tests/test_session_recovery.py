@@ -13,8 +13,12 @@ default below); the tests are skipped when it is absent.
 
 from __future__ import annotations
 
+import json
 import os
+import threading
 import unittest
+import urllib.error
+import urllib.request
 from pathlib import Path
 from typing import Any
 
@@ -302,6 +306,69 @@ class SessionRecoveryTests(unittest.TestCase):
         self.assertTrue(edited["cache_fresh_fallback"])
         self.assertEqual(session.stats()["cache_fresh_fallback"], 1)
         self.assertEqual(session.stats()["cache_conflict_error"], 0)
+
+
+
+@requires_tokenizer
+class HttpRoundTripTests(unittest.TestCase):
+    """Drive the real HTTP handler with the fake generator."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.tokenizer = _load_tokenizer()
+
+    def setUp(self) -> None:
+        SessionRecoveryTests.setUp(self)  # type: ignore[arg-type]
+        self.server = agent_server.AgentHTTPServer(
+            ("127.0.0.1", 0),
+            model=self.model,
+            tokenizer=self.tokenizer,
+            model_name="qwen38-test",
+            default_max_tokens=4,
+        )
+        self.base = f"http://127.0.0.1:{self.server.server_address[1]}"
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+
+    def tearDown(self) -> None:
+        self.server.shutdown()
+        self.server.server_close()
+        SessionRecoveryTests.tearDown(self)  # type: ignore[arg-type]
+
+    def _request(self, path: str, body: dict[str, Any] | None = None) -> tuple[int, dict[str, Any]]:
+        data = None if body is None else json.dumps(body).encode()
+        request = urllib.request.Request(
+            self.base + path,
+            data=data,
+            method="GET" if body is None else "POST",
+            headers={"Content-Type": "application/json"},
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return response.status, json.loads(response.read())
+        except urllib.error.HTTPError as exc:
+            return exc.code, json.loads(exc.read())
+
+    def test_truncated_turn_continues_over_http(self) -> None:
+        self.assertEqual(self._request("/health")[0], 200)
+        messages = [{"role": "user", "content": "emit a marker"}]
+        status, first = self._request(
+            "/v1/chat/completions", {"messages": messages, "session_id": "s"}
+        )
+        self.assertEqual(status, 200)
+        choice = first["choices"][0]
+        self.assertEqual(choice["finish_reason"], "length")
+        messages += [choice["message"], {"role": "tool", "content": "tool output"}]
+        status, second = self._request(
+            "/v1/chat/completions", {"messages": messages, "session_id": "s", "max_tokens": 2}
+        )
+        self.assertEqual(status, 200, second)
+        self.assertEqual(second["x_qwen38_metrics"]["cache_reuse_mode"], "exact_reuse")
+        status, metrics = self._request("/metrics")
+        self.assertEqual(metrics["active_session"]["truncation_continuations"], 1)
+        self.assertEqual(metrics["active_session"]["cache_conflict_error"], 0)
+        status, reset = self._request("/v1/sessions/s/reset", {})
+        self.assertEqual((status, reset["reset"]), (200, True))
 
 
 if __name__ == "__main__":
