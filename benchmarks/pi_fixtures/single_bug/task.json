@@ -1,0 +1,8 @@
+{
+  "category": "simple single-file bug",
+  "prompts": [
+    "The unit tests in this repository fail. Run them with `python3 -m unittest -v`, find the bug in the source code, fix it without modifying the tests, and re-run the tests to confirm they pass."
+  ],
+  "protected": ["test_stats.py"],
+  "check": ["python3", "-m", "unittest", "-q"]
+}

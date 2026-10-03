@@ -1,0 +1,10 @@
+{
+  "category": "multi-prompt session (persistent cache across Pi invocations, 8K+ context)",
+  "prompts": [
+    "Read kvstore.py and tests/test_kvstore.py, run the tests with `python3 -m unittest discover -s tests -v`, and summarize the store's design in three short bullets. Do not change any files yet.",
+    "Add an optional `ttl_seconds` argument (default None) to `KVStore.set`. An entry whose TTL has elapsed according to the injected clock must behave as missing for get, require, keys and updated_at. Add tests for this in tests/test_kvstore.py and run the test suite.",
+    "Now add a `purge_expired()` method that deletes expired entries and returns how many were removed. Add a test for it, then run the whole test suite and report the result."
+  ],
+  "protected": [],
+  "check": ["python3", "{fixture}/hidden_check.py"]
+}

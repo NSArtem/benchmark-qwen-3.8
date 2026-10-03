@@ -1,0 +1,8 @@
+{
+  "category": "multi-file bug",
+  "prompts": [
+    "Some tests in tests/ fail. Investigate the shop package, fix every source bug that causes the failures (the tests are correct; do not modify them), and verify with `python3 -m unittest discover -s tests -v`."
+  ],
+  "protected": ["tests/test_cart.py"],
+  "check": ["python3", "-m", "unittest", "discover", "-s", "tests", "-q"]
+}

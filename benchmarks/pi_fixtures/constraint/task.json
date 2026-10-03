@@ -1,0 +1,8 @@
+{
+  "category": "early constraint that must hold after context grows",
+  "prompts": [
+    "Constraints for this whole task: keep the public signature of `format_report` exactly as it is, keep report.py compatible with Python 3.8 (no `match` statements, no `X | Y` unions, no builtin generics such as `list[int]` in annotations), and do not create new files.\n\nTask: when the rows contain numeric `amount` values, `format_report` must append a final line `TOTAL: <sum>` with the sum formatted to two decimals (rows without an `amount` count as 0; if no row has an `amount` key, add no total line). First read report.py and tests/test_report.py, then implement the change, add a test for the total line to tests/test_report.py, update any existing test whose expected output legitimately changes, and run `python3 -m unittest discover -s tests -v`."
+  ],
+  "protected": [],
+  "check": ["python3", "{fixture}/hidden_check.py"]
+}

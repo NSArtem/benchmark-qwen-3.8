@@ -1,0 +1,8 @@
+{
+  "category": "search/read across several files",
+  "prompts": [
+    "Find where the default request timeout used by app/net/client.py is actually defined, change that default to 45 seconds, and update the documentation that states the default. Leave the deprecated legacy module unchanged. Run `python3 -m unittest discover -s tests -v` afterwards."
+  ],
+  "protected": ["app/legacy/old_client.py", "tests/test_client.py"],
+  "check": ["python3", "-c", "import sys; sys.path.insert(0, '.'); from app.settings import defaults; doc = open('docs/CONFIG.md').read(); assert defaults.REQUEST_TIMEOUT_SECONDS == 45, defaults.REQUEST_TIMEOUT_SECONDS; assert '45 seconds' in doc and '30 seconds' not in doc, doc; import unittest; r = unittest.TextTestRunner(verbosity=0).run(unittest.defaultTestLoader.discover('tests')); sys.exit(0 if r.wasSuccessful() else 1)"]
+}

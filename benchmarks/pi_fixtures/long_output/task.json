@@ -1,0 +1,8 @@
+{
+  "category": "long command/test output",
+  "prompts": [
+    "Run `python3 check_roman.py`. It prints a long conversion log and then lists failures at the end. Fix roman.py so the check passes, then run it again to confirm. Do not modify check_roman.py."
+  ],
+  "protected": ["check_roman.py"],
+  "check": ["python3", "check_roman.py"]
+}
