@@ -218,6 +218,9 @@ uv run python benchmarks/pi_agent.py --verify-fixtures   # no model: baselines m
 uv run python benchmarks/pi_agent.py                     # real run, ~25 minutes
 ```
 
+`tools/memory_watchdog.sh <pid> <log>` stops a benchmark whose host free
+memory drops below 6% or whose swap grows by more than 3 GiB.
+
 ## Rebuilding the g128 model
 
 The model can be rebuilt from the original BF16 `Qwen/Qwen3.8-27B` release

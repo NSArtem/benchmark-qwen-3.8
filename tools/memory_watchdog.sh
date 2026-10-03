@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Memory guard for real-model runs: stop the target pid (and its children) if
 # system free memory drops below 6% or swap use grows >3 GiB over its start.
-# Usage: stage9/watchdog.sh <pid> <logfile>
+# Usage: tools/memory_watchdog.sh <pid> <logfile>
 pid=$1; log=$2
 base=$(sysctl -n vm.swapusage | sed -E 's/.*used = ([0-9.]+)M.*/\1/'); base=${base%.*}
 while kill -0 $pid 2>/dev/null; do
