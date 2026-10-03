@@ -241,6 +241,24 @@ class ToolSessionTests(unittest.TestCase):
         raw += [self.client_view(first), {"role": "tool", "tool_call_id": call_id, "content": "# Demo"}]
         return raw, first
 
+    def test_repeated_tool_call_is_not_stale_replay(self) -> None:
+        raw = [{"role": "user", "content": "Run the tests, fix, and rerun."}]
+        command = call_text("run_command", command="python3 -m unittest -v")
+        self.queue(command)
+        first = complete(self.session, self.replay(raw), tools=TOOLS)
+        raw += [self.client_view(first), {"role": "tool", "tool_call_id": first["message"]["tool_calls"][0]["id"], "content": "FAILED"}]
+        self.queue(command)
+        second = complete(self.session, self.replay(raw), tools=TOOLS)
+        self.assertTrue(second["repeated_tool_call"])
+        self.assertFalse(second["replay_detected"])
+        raw += [self.client_view(second), {"role": "tool", "tool_call_id": second["message"]["tool_calls"][0]["id"], "content": "FAILED"}]
+        self.queue("The same long prose answer, repeated verbatim twice.")
+        complete(self.session, self.replay(raw), tools=TOOLS)
+        raw += [{"role": "assistant", "content": "The same long prose answer, repeated verbatim twice."}, {"role": "user", "content": "again"}]
+        self.queue("The same long prose answer, repeated verbatim twice.")
+        prose = complete(self.session, self.replay(raw), tools=TOOLS)
+        self.assertTrue(prose["replay_detected"])
+
     def test_changed_tool_schema_forces_fresh_prefill(self) -> None:
         raw, _ = self._first_tool_turn()
         changed = json.loads(json.dumps(TOOLS))

@@ -234,7 +234,7 @@ def run_task(task: dict[str, Any], args: argparse.Namespace, work: Path, base_ur
                 "http_status", "stream", "message_count", "last_role", "prompt_tokens", "processed_suffix_tokens",
                 "cached_tokens", "generated_tokens", "logical_context_tokens", "cache_reuse_mode",
                 "cache_fallback_reason", "finish_reason", "tool_calls", "tool_parse_error", "unknown_tools",
-                "argument_type_mismatches", "ttft_seconds", "decode_tps", "wall_seconds", "replay_detected",
+                "argument_type_mismatches", "ttft_seconds", "decode_tps", "wall_seconds", "replay_detected", "repeated_tool_call",
                 "cancelled", "error", "peak_memory_bytes",
             )}
             records.append({"type": "request", "task_id": task["id"], "turn": len(records) + 1, **record})
@@ -256,6 +256,7 @@ def run_task(task: dict[str, Any], args: argparse.Namespace, work: Path, base_ur
         "tool_calls_by_name": {name: sum(c["name"] == name for c in calls) for name in sorted({c["name"] for c in calls})},
         "valid_tool_calls": sum(not e["invalid"] for e in executions),
         "invalid_tool_calls": sum(e["invalid"] for e in executions),
+        # Error results from valid calls: failing test commands, edit text not found, etc.
         "tool_execution_errors": sum(e["is_error"] and not e["invalid"] for e in executions),
         "tool_error_samples": [e["error_text"] for e in executions if e["is_error"]][:5],
         "tool_parse_failures": sum(bool(r["tool_parse_error"]) for r in records),
@@ -263,6 +264,7 @@ def run_task(task: dict[str, Any], args: argparse.Namespace, work: Path, base_ur
         "pi_errors": [err for run in prompt_runs for err in run["errors"]],
         "pi_retries": sum(run["retries"] for run in prompt_runs),
         "stale_replay_count": sum(bool(r["replay_detected"]) for r in records),
+        "repeated_tool_calls": sum(bool(r.get("repeated_tool_call")) for r in records),
         "exact_reuse_count": sum(r["cache_reuse_mode"] == "exact_reuse" for r in records),
         "fresh_fallback_count": sum(r["cache_reuse_mode"] == "fresh_fallback" for r in records),
         "fresh_prefill_count": sum(r["cache_reuse_mode"] == "fresh_prefill" for r in records),

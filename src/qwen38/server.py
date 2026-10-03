@@ -321,10 +321,14 @@ class AgentSession:
         ttft = result.ttft_seconds
         prompt_tps = len(suffix_ids) / ttft if ttft else None
         memory = _memory_snapshot()
-        replay_detected = any(
+        repeated_output = any(
             response_replay_detected(generated_ids, record.generated_ids)
             for record in self.records
         )
+        # An agent legitimately repeats an identical tool call (re-running the
+        # tests after an edit).  Token-identical prose is the stale-replay
+        # symptom; the cache invariants above are the actual correctness gate.
+        replay_detected = repeated_output and not parsed.tool_calls
         self.messages = list(plan.messages) + [parsed.stored_message()]
         self.tools_key = tools_key
         self.cached_token_ids = list(full_token_ids) + list(generated_ids)
@@ -355,6 +359,7 @@ class AgentSession:
             "cache_offset_after": cache_after,
             "logical_context_tokens": len(self.cached_token_ids),
             "replay_detected": replay_detected,
+            "repeated_tool_call": repeated_output and bool(parsed.tool_calls),
             "cache_reuse_mode": cache_mode,
             "cache_exact_reuse": cache_mode == "exact_reuse",
             "cache_fresh_fallback": cache_mode == "fresh_fallback",
@@ -601,6 +606,8 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
         headers_sent = False
         try:
             request = parse_chat_request(self._body())
+            if request.stream:
+                server.counters["stream_requests"] += 1
             temperature, top_p, max_tokens = self._sampling(request)
             log.update(
                 {
@@ -793,7 +800,7 @@ class AgentRequestHandler(BaseHTTPRequestHandler):
             "finish_reason", "generation_stop", "prompt_tokens", "processed_suffix_tokens",
             "cached_tokens", "generated_tokens", "logical_context_tokens", "cache_reuse_mode",
             "cache_fallback_reason", "ttft_seconds", "decode_tps", "prompt_tps", "total_seconds",
-            "replay_detected", "tool_parse_error", "unknown_tools", "argument_type_mismatches",
+            "replay_detected", "repeated_tool_call", "tool_parse_error", "unknown_tools", "argument_type_mismatches",
             "peak_memory_bytes", "active_plus_cache_bytes", "tools_in_prompt",
         )
         fields = {key: metrics.get(key) for key in keys}
