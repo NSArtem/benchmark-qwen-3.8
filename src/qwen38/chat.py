@@ -219,12 +219,14 @@ def reconcile_canonical_history(
     adjustments: list[dict[str, Any]] = list(
         canonical.get("cache_boundary_adjustments", [])
     )
-    cumulative_shift = 0
     for turn_index, turn in enumerate(history):
         generated = [int(value) for value in turn.generated_ids]
         if not generated:
             continue
-        start = int(turn.prompt_token_count) + cumulative_shift
+        # ``token_ids`` is edited in place, so everything before this turn is
+        # already in authoritative (cache) coordinates, which is also what
+        # ``prompt_token_count`` measures.  No offset correction applies.
+        start = int(turn.prompt_token_count)
         if start < 0 or start > len(token_ids):
             raise RuntimeError(
                 f"history turn {turn_index} prompt boundary {start} is outside the canonical stream"
@@ -244,7 +246,8 @@ def reconcile_canonical_history(
         old_segment = token_ids[start:boundary]
         if old_segment != replacement:
             token_ids[start:boundary] = replacement
-            cumulative_shift += len(replacement) - len(old_segment)
+            # The template's close token moved with the splice.
+            boundary = start + len(replacement)
             adjustments.append(
                 {
                     "turn_index": turn_index,
@@ -278,7 +281,6 @@ def reconcile_canonical_history(
                 and int(token_ids[boundary + 1]) == int(generated[-1])
             ):
                 del token_ids[boundary + 1]
-                cumulative_shift -= 1
                 adjustments.append(
                     {
                         "turn_index": turn_index,

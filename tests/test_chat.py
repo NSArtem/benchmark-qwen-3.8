@@ -93,6 +93,27 @@ class TokenLedgerTests(unittest.TestCase):
         adjusted = reconcile_canonical_history(canonical, history, {99})
         self.assertEqual(adjusted["token_ids"], [1, 2, 20, 99, 30])
 
+    def test_later_turns_use_authoritative_positions(self) -> None:
+        # Turn 1 renders shorter than it was generated; turn 2's recorded
+        # prompt boundary is a cache position and must not be shifted again.
+        history = [
+            HistoryTurn("old", 2, [20, 21, 22, 99], "a"),
+            HistoryTurn("old", 7, [41, 99], "b"),
+        ]
+        canonical = {"token_ids": [1, 2, 20, 23, 99, 30, 40, 50, 99, 60]}
+        adjusted = reconcile_canonical_history(canonical, history, {99})
+        self.assertEqual(adjusted["token_ids"], [1, 2, 20, 21, 22, 99, 30, 41, 99, 60])
+
+    def test_later_turns_after_longer_render(self) -> None:
+        history = [
+            HistoryTurn("old", 2, [20, 99], "a"),
+            HistoryTurn("old", 5, [41, 42, 99], "b"),
+        ]
+        # Turn 1 rendered as three tokens instead of one.
+        canonical = {"token_ids": [1, 2, 20, 23, 24, 99, 30, 40, 99, 60]}
+        adjusted = reconcile_canonical_history(canonical, history, {99})
+        self.assertEqual(adjusted["token_ids"], [1, 2, 20, 99, 30, 41, 42, 99, 60])
+
 
 if __name__ == "__main__":
     unittest.main()

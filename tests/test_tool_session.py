@@ -233,6 +233,27 @@ class ToolSessionTests(unittest.TestCase):
         # The ledger equals a fresh canonical render reconciled with generated IDs.
         self.assertEqual(stats["logical_context_tokens"], fourth["cache_offset_after"])
 
+    def test_reformatted_tool_json_keeps_exact_reuse_over_many_turns(self) -> None:
+        # The model's own JSON spelling differs from the template's tojson
+        # re-render, so each assistant span re-renders with a different
+        # length.  Every later turn must still reuse the cache exactly.
+        tools = [{"type": "function", "function": {"name": "edit", "parameters": {"type": "object", "properties": {"path": {"type": "string"}, "edits": {"type": "array"}}}}}]
+        raw: list[dict[str, Any]] = [{"role": "user", "content": "Make three edits."}]
+        for index in range(4):
+            spelled = '[\n  {\n    "oldText": "a%d",\n    "newText": "b%d"\n  }\n]' % (index, index)
+            self.queue(f"Edit {index}.\n\n" + call_text("edit", path="f.py", edits=spelled))
+            result = complete(self.session, self.replay(raw, tools), tools=tools)
+            self.assertEqual(result["finish_reason"], "tool_calls")
+            if index:
+                self.assertEqual(result["cache_reuse_mode"], "exact_reuse", result["cache_fallback_reason"])
+                self.assertEqual(result["processed_suffix_tokens"], result["prompt_tokens"] - result["cached_tokens"])
+            adjustments = result["canonical_cache_boundary_adjustments"]
+            if index >= 2:
+                self.assertTrue(any(a.get("old_length") != a.get("new_length") for a in adjustments))
+            call_id = result["message"]["tool_calls"][0]["id"]
+            raw += [self.client_view(result), {"role": "tool", "tool_call_id": call_id, "content": f"edited {index}"}]
+        self.assertEqual(self.session.stats()["cache_fresh_fallback"], 0)
+
     def _first_tool_turn(self) -> tuple[list[dict[str, Any]], dict[str, Any]]:
         raw = [{"role": "user", "content": "Show README.md"}]
         self.queue(call_text("read_file", path="README.md"))
