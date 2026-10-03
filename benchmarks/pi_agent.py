@@ -69,6 +69,10 @@ def load_task(task_id: str) -> dict[str, Any]:
 
 def prepare_repo(task_id: str, parent: Path) -> Path:
     repo = parent / task_id
+    suffix = 1
+    while repo.exists():  # the same task may be listed more than once
+        suffix += 1
+        repo = parent / f"{task_id}.{suffix}"
     shutil.copytree(FIXTURES / task_id / "repo", repo)
     env = {**os.environ, "GIT_AUTHOR_NAME": "bench", "GIT_AUTHOR_EMAIL": "bench@localhost",
            "GIT_COMMITTER_NAME": "bench", "GIT_COMMITTER_EMAIL": "bench@localhost"}
@@ -180,7 +184,7 @@ def run_task(task: dict[str, Any], args: argparse.Namespace, work: Path, base_ur
     repo = prepare_repo(task["id"], work / "repos")
     protected = {name: sha256(repo / name) for name in task.get("protected", [])}
     agent_dir = work / "agent"
-    session_dir = work / "sessions" / task["id"]
+    session_dir = work / "sessions" / repo.name
     session_dir.mkdir(parents=True, exist_ok=True)
     env = {
         **os.environ,
@@ -194,7 +198,7 @@ def run_task(task: dict[str, Any], args: argparse.Namespace, work: Path, base_ur
     started = time.perf_counter()
     prompt_runs = []
     for index, prompt in enumerate(task["prompts"]):
-        events_path = work / "events" / f"{task['id']}.{index}.jsonl"
+        events_path = work / "events" / f"{repo.name}.{index}.jsonl"
         events_path.parent.mkdir(parents=True, exist_ok=True)
         command = ["pi", "--mode", "json", "--provider", "qwen38-local", "--model", "qwen38-local"]
         if index:
