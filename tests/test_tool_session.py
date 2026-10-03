@@ -272,12 +272,24 @@ class ToolSessionTests(unittest.TestCase):
         second = complete(self.session, self.replay(raw), tools=TOOLS)
         self.assertTrue(second["repeated_tool_call"])
         self.assertFalse(second["replay_detected"])
+        # The same call cut short by a small client budget is still a repeat,
+        # not stale replay.
         raw += [self.client_view(second), {"role": "tool", "tool_call_id": second["message"]["tool_calls"][0]["id"], "content": "FAILED"}]
-        self.queue("The same long prose answer, repeated verbatim twice.")
-        complete(self.session, self.replay(raw), tools=TOOLS)
-        raw += [{"role": "assistant", "content": "The same long prose answer, repeated verbatim twice."}, {"role": "user", "content": "again"}]
-        self.queue("The same long prose answer, repeated verbatim twice.")
+        self.queue(command)
+        cut = complete(self.session, self.replay(raw), max_tokens=10, tools=TOOLS)
+        self.assertEqual((cut["finish_reason"], cut["tool_calls"]), ("length", []))
+        self.assertTrue(cut["repeated_tool_call"])
+        self.assertFalse(cut["replay_detected"])
+        # Token-identical prose is still flagged.
+        prose_text = "The same long prose answer, repeated verbatim twice."
+        raw += [self.client_view(cut), {"role": "user", "content": "continue"}]
+        self.queue(prose_text)
+        first_prose = complete(self.session, self.replay(raw), tools=TOOLS)
+        self.assertFalse(first_prose["replay_detected"])
+        raw += [self.client_view(first_prose), {"role": "user", "content": "again"}]
+        self.queue(prose_text)
         prose = complete(self.session, self.replay(raw), tools=TOOLS)
+        self.assertEqual(prose["cache_reuse_mode"], "exact_reuse")
         self.assertTrue(prose["replay_detected"])
 
     def test_changed_tool_schema_forces_fresh_prefill(self) -> None:

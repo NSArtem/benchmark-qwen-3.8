@@ -44,6 +44,7 @@ from qwen38.chat import (
 )
 from qwen38.protocol import (
     CONTEXT_OVERFLOW_CODE,
+    TOOL_CALL_START,
     ParsedAssistant,
     ProtocolError,
     StreamAssembler,
@@ -326,9 +327,10 @@ class AgentSession:
             for record in self.records
         )
         # An agent legitimately repeats an identical tool call (re-running the
-        # tests after an edit).  Token-identical prose is the stale-replay
+        # tests after an edit), possibly cut short by the client's budget.  Token-identical prose is the stale-replay
         # symptom; the cache invariants above are the actual correctness gate.
-        replay_detected = repeated_output and not parsed.tool_calls
+        tool_markup = bool(parsed.tool_calls) or (bool(tools) and TOOL_CALL_START in text)
+        replay_detected = repeated_output and not tool_markup
         self.messages = list(plan.messages) + [parsed.stored_message()]
         self.tools_key = tools_key
         self.cached_token_ids = list(full_token_ids) + list(generated_ids)
@@ -359,7 +361,7 @@ class AgentSession:
             "cache_offset_after": cache_after,
             "logical_context_tokens": len(self.cached_token_ids),
             "replay_detected": replay_detected,
-            "repeated_tool_call": repeated_output and bool(parsed.tool_calls),
+            "repeated_tool_call": repeated_output and tool_markup,
             "cache_reuse_mode": cache_mode,
             "cache_exact_reuse": cache_mode == "exact_reuse",
             "cache_fresh_fallback": cache_mode == "fresh_fallback",
