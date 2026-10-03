@@ -5,7 +5,8 @@ targets an 18 GB M3 Pro and provides:
 
 - `qwen38-chat`, an interactive CLI with a persistent prompt cache;
 - `qwen38-server`, a serialized OpenAI-compatible HTTP backend for coding
-  agents (`/v1/chat/completions`).
+  agents (`/v1/chat/completions` with native tool calling and streaming),
+  tested with the Pi coding agent.
 
 Both reuse the model cache across turns: each turn feeds the model only the
 new tokens. When the server cannot prove that a request extends its cached
@@ -57,25 +58,100 @@ stderr. Useful flags:
 ```sh
 uv run qwen38-server \
   --model /Users/artem/models/Qwen3.8-27B-3bit-g128-MLX \
-  --host 127.0.0.1 --port 8000 --mode greedy --max-tokens 512
+  --host 127.0.0.1 --port 8000 --model-name qwen38-local
 ```
 
 | Endpoint | Purpose |
 | --- | --- |
-| `POST /v1/chat/completions` | Non-streaming chat completion. Accepts `system`, `user`, `assistant`, `tool` messages and an optional `session_id` field (or the `X-Qwen38-Session-Id` header). |
+| `POST /v1/chat/completions` | OpenAI Chat Completions, JSON or SSE streaming (`stream: true`), with native tool calling. An optional `session_id` field (or `X-Qwen38-Session-Id` header) names the session. |
 | `POST /v1/sessions/{id}/reset` | Drop that session's transcript and cache. |
 | `GET /v1/models`, `GET /health` | Model id and readiness. |
-| `GET /metrics` | Request count plus session counters: exact reuse, fresh fallback, conflicts, truncation continuations. |
+| `GET /metrics` | Request, streaming, tool-call, parse-failure, cancellation and overflow counters, plus session cache counters. |
 
-One session and one inference run at a time. Sending the full conversation
-on every request is the intended client behavior. Responses also include an
-`x_qwen38_metrics` object with TTFT, decode speed, cache mode and memory.
+Supported request fields: `messages` (`system`/`developer` first,
+`user`, `assistant` with `tool_calls`, `tool` with `tool_call_id`; text or
+text-part content), `tools` (function tools), `tool_choice` (`auto` or
+`none`), `stream`, `stream_options.include_usage`, `max_completion_tokens` or
+`max_tokens`, `temperature`, `top_p`. Harmless extras (`store`, `metadata`,
+`user`, `seed`, `parallel_tool_calls`) are ignored. Options the server cannot
+honor are rejected with 400: images, `stop`, `n > 1`, non-text
+`response_format`, `tool_choice: "required"` or a named function.
 
-Check the server without loading the model:
+**Tool calling.** Tools are rendered by Qwen3.8's own chat template, and the
+model's native `<tool_call><function=…><parameter=…>` output is parsed into
+OpenAI `tool_calls` (`call_…` ids, JSON-string `arguments` typed by the
+declared schema, several calls per turn) with `finish_reason: "tool_calls"`.
+Malformed or truncated tool syntax is returned as plain text, never as a
+call. Generated token IDs remain the cache truth; see
+[architecture](docs/architecture.md#generated-tokens-are-the-truth-the-api-message-is-a-view).
+
+**Streaming.** SSE chunks with `delta.content`, `delta.tool_calls` (index, id,
+name, argument fragments), a `finish_reason` chunk, an optional usage chunk
+(`prompt_tokens_details.cached_tokens` is the reused cache prefix) and
+`data: [DONE]`. Headers go out before prefill and `: keep-alive` comments
+every 10 s keep clients from timing out on long prefills. A client disconnect
+stops generation and discards the session cache.
+
+**Sessions and context.** One session and one inference run at a time; send
+the full conversation on every request. A request that extends the stored
+transcript with the same tools reuses the cache and prefills only the new
+tokens. Anything else (edited history, changed tools, compaction) is rebuilt
+by a fresh prefill, never an error. `--max-context-tokens` (default 16384)
+caps prompt plus completion; a larger prompt gets a 400
+`context_length_exceeded`. JSON responses and the final stream chunk carry
+`x_qwen38_metrics` (TTFT, decode speed, cache mode, memory); `--metrics-log
+PATH` writes one JSON line per request.
+
+Check the protocol layer without loading the model:
 
 ```sh
 uv run qwen38-server --self-test
 ```
+
+## Using it with Pi
+
+Tested with Pi 1.0.0 (`pi-coding-agent`, Homebrew). Pi needs only its
+standard OpenAI-compatible provider, no extension. Copy
+[`integrations/pi/models.example.json`](integrations/pi/models.example.json)
+to `~/.pi/agent/models.json` (or merge its provider into an existing file) and
+[`integrations/pi/settings.example.json`](integrations/pi/settings.example.json)
+into `~/.pi/agent/settings.json`. The settings matter: Pi's default
+compaction reserve (16384) and kept tail (20000) assume a large window and
+would never compact a 16K one.
+
+```sh
+uv run qwen38-server --model /Users/artem/models/Qwen3.8-27B-3bit-g128-MLX --port 8000
+# in the project you want to work on:
+pi --provider qwen38-local --model qwen38-local
+pi -p --provider qwen38-local --model qwen38-local "Run the tests and fix the failure"
+```
+
+To try it without touching your Pi configuration, point
+`PI_CODING_AGENT_DIR` at a directory holding the two example files. Pi's
+observed wire behavior is in [docs/pi-wire-contract.md](docs/pi-wire-contract.md).
+
+## Hermes Agent (compatibility only)
+
+Hermes Agent v0.21.5 (`a5e7df27`, official installer) works against the same
+endpoint as a `custom` provider with no server changes specific to it:
+
+```yaml
+model:
+  provider: custom
+  base_url: http://127.0.0.1:8000/v1
+  default: qwen38-local
+  api_key: local
+```
+
+A bounded smoke passed: plain chat, a `read_file` call and its result,
+and a small fix-the-test task (`search_files`, `read_file`, `terminal`,
+`patch`), all streamed, with exact cache reuse between turns. It is **not a
+supported setup on this Mac**: Hermes refuses to start below a 64K context
+window, so the smoke had to declare `context_length: 65536` while the server
+still enforces 16K. Hermes also sends side requests (title generation with
+`response_format: json_schema`, which the server rejects and Hermes retries
+without) that replace the single session's cache, so the next turn pays a
+fresh prefill.
 
 ## Context size
 
@@ -93,13 +169,17 @@ Follow-up turns only pay for their new tokens. See
 uv run python -m unittest discover -s tests
 ```
 
-The tests load no model weights and need no Metal device. The tokenizer-based
-session tests read `tokenizer.json` from the model directory. Point them
+The tests load no model weights and need no Metal device. Protocol tests
+(`test_tool_protocol.py`) need nothing. The tokenizer-based tests
+(`test_tool_session.py`, `test_streaming.py`, `test_session_recovery.py`)
+pin the Qwen3.8 template's tool format and drive the real session and HTTP/SSE
+code with a scripted fake generator; they read `tokenizer.json` from the model
+directory. Point them
 elsewhere with `QWEN38_MODEL=/path/to/model`. They are skipped if no tokenizer
 is found. Two model-builder tests read the BF16 source snapshot
 (`QWEN38_SOURCE`, default: the Hugging Face cache) and are skipped without it.
 
-## Integration benchmark
+## Integration benchmarks
 
 `benchmarks/long_agent.py` starts the real server and drives one
 coding-agent session with:
@@ -118,6 +198,25 @@ uv run python benchmarks/long_agent.py --output benchmarks/results/long-agent.js
 It exits 0 when the classification is `PASS_LONG_SERIALIZED_AGENT`. The
 reference run reached 10,589 logical tokens over 29 assistant turns, with no
 HTTP errors.
+
+`benchmarks/tool_smoke.py` is a short real-model check of native tool calls
+over SSE: one `read_file` and one `run_command` round trip, a non-streaming
+turn, a changed tool schema, and a two-call turn. It takes about 2 minutes.
+
+```sh
+uv run python benchmarks/tool_smoke.py --output benchmarks/results/tool-smoke.json
+```
+
+`benchmarks/pi_agent.py` runs Pi itself on seven fixture repositories in
+`benchmarks/pi_fixtures/` (Pi owns the loop and its built-in tools; each
+fixture has a hidden evaluator Pi never sees) and writes per-request and
+per-task records to `benchmarks/results/pi-stage9.jsonl`. It needs `pi` on
+`PATH` and uses a disposable Pi agent directory.
+
+```sh
+uv run python benchmarks/pi_agent.py --verify-fixtures   # no model: baselines must fail
+uv run python benchmarks/pi_agent.py                     # real run, ~25 minutes
+```
 
 ## Rebuilding the g128 model
 
@@ -220,10 +319,9 @@ legacy variant, so a plain `--verify-output` reports it as legacy, and
 
 - Single user, serialized. Requests with a different `session_id` replace the
   current session and its cache.
-- No streaming, no `stop` sequences, and no cancellation.
-- Tool calls are plain text. Incoming `tool_calls` are serialized into the
-  assistant message content, and responses never contain structured
-  `tool_calls`.
+- No `stop` sequences, forced tool choice, constrained decoding or images.
+- A client disconnect is noticed at the next token or heartbeat; a running
+  prefill is not interrupted.
 - No speculative decoding or MTP. Exact MTP was built and measured, but it is
   slower than plain decoding (see [docs/decisions.md](docs/decisions.md)).
 - Never call `mx.set_wired_limit()` or change `iogpu.wired_limit_mb`. The

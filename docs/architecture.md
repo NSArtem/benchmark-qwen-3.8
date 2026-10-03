@@ -4,8 +4,9 @@ The runtime is two modules in `src/qwen38/`:
 
 | Module | Contents |
 | --- | --- |
-| `chat.py` | Token and cache logic shared by both entry points: canonical prompt rendering, exact-suffix computation, history reconciliation, cache offset checks. It also contains `ExactSuffixChat` and the `qwen38-chat` CLI. |
-| `server.py` | OpenAI-style message normalization, `AgentSession` (adds session bookkeeping and fallback to `chat.py`), and a stdlib `http.server` backend. |
+| `chat.py` | Token and cache logic shared by both entry points: canonical prompt rendering, exact-suffix computation, history reconciliation, cache offset checks, and `generate_tokens`, the single direct `generate_step` loop. It also contains `ExactSuffixChat` and the `qwen38-chat` CLI. |
+| `protocol.py` | Pure OpenAI Chat Completions layer: request validation into structured messages, the Qwen3.8 tool-call parser, transcript identity, and streaming assembly. No MLX import. |
+| `server.py` | `AgentSession` (session bookkeeping, exact reuse vs fresh fallback, cancellation) and a stdlib `http.server` backend with JSON and SSE responses. |
 
 MLX and mlx-lm are imported lazily (`chat._require_mlx`), so the protocol and
 token tests run without a Metal device.
@@ -71,28 +72,120 @@ generated. Two cases were measured:
 For every assistant generation, the session stores the exact generated IDs,
 the decoded text, the finish reason and the prompt-token boundary. Before
 computing the suffix, `reconcile_canonical_history` swaps each rendered
-assistant span for its stored IDs and keeps a single EOS boundary. The API
+assistant span for its stored IDs and keeps a single EOS boundary. Spans are
+replaced in order and in place, so each recorded boundary is already a cache
+position; no offset is carried between spans. Tool-call turns make this
+matter: the template re-renders a call's JSON values with `tojson`, which
+rarely has the same length as the model's own spelling. The API
 still returns the decoded text. Exact token identity is used only internally.
 
 ## Server request handling (`AgentSession.complete`)
 
-- **Exact reuse.** The incoming messages extend the stored transcript, and
-  the reconciled canonical stream starts with the cached tokens. Only the
-  suffix is prefilled. This applies to turns that ended by EOS and turns that
-  ended by `finish_reason=length` alike.
-- **Fresh fallback.** The messages are valid but cannot be proven to extend
-  the cache, for example after an edited history, a missing message, or a
-  failed reconciliation. The cache is cleared and the whole canonical
-  transcript is prefilled. A cache miss never causes an HTTP 409.
-- **Errors.** Invalid requests get 400. A cache-state inconsistency that
-  survives the fallback gets 409 and resets the session. Any other inference
-  failure gets 500 and resets the session.
+### Structured messages
 
-A configured server `--system-prompt` is prepended when the client omits a
-system message.
+`protocol.parse_chat_request` turns an OpenAI request into the structure the
+Qwen3.8 chat template renders: text content parts joined into strings
+(images and other parts are rejected with 400), assistant `tool_calls` with
+`arguments` parsed from their JSON string into a mapping (the template
+iterates `arguments|items` and fails on a string), and `tool_call_id` kept on
+tool results. `developer` is accepted as the first-message `system` role. The
+template is the only renderer; the server adds no tool syntax of its own.
 
-One `threading.Lock` guards the session. At most one session exists, and at
-most one inference runs at a time.
+### Native tool format
+
+The template (see `tests/test_tool_session.py`) renders:
+
+- `tools` into the system block as one `tojson` line each, in request order
+  and key order, followed by the format instructions;
+- assistant calls as `qwen3_coder` XML:
+  `<tool_call>\n<function=NAME>\n<parameter=KEY>\nVALUE\n</parameter>\n</function>\n</tool_call>`,
+  strings verbatim and other values as JSON, several calls per turn allowed;
+- consecutive tool results as one user turn of `<tool_response>` blocks,
+  matched by order. Call IDs never reach the prompt; the API layer assigns
+  them (`call_<24 hex>`).
+
+`<tool_call>`/`</tool_call>` are single added tokens (248058/248059), not
+special, so they survive `skip_special_tokens` decoding. With thinking off
+the generation prompt ends in an empty `<think>\n\n</think>\n\n`, and the
+template's default `preserve_thinking` re-renders that same empty block for
+every assistant turn, so transcripts stay exact extensions.
+
+### Generated tokens are the truth; the API message is a view
+
+After generation the decoded text is parsed by `parse_assistant_text`: text
+before the first `<tool_call>` becomes `content` (right-trimmed), each call is
+parsed strictly and its values converted with the declared JSON Schema type
+(a value that does not fit stays a string and is counted as an argument type
+mismatch, so the client's validator reports it to the model). Malformed or
+truncated tool syntax is never turned into a call: the whole text becomes
+`content`, `tool_parse_error` is recorded, and `finish_reason` is `stop` or
+`length`. A parsed call gives `finish_reason: "tool_calls"`. Without tools in
+effect (`tool_choice: "none"` or no `tools`) nothing is parsed.
+
+The session stores both the generated IDs and the API view it returned.
+Clients replay that view differently (Pi re-serializes `arguments`, sends
+`null` content), so `protocol.messages_equal` compares assistant messages by
+trimmed content and by tool-call id, name and parsed arguments. Equality only
+identifies which stored generation a replayed message stands for. The
+rendered span is then replaced by the stored IDs (`reconcile_canonical_history`),
+exactly as for plain text turns. Cache correctness never depends on
+re-serializing the parsed calls.
+
+### Exact reuse and fresh fallback
+
+`_plan` decides without touching any state:
+
+- **Exact reuse**: the effective tool set is identical (`tools_identity`, the
+  exact rendered JSON in order), the request strictly extends the stored
+  transcript under `messages_equal`, the cache offset equals the ledger, and
+  the reconciled canonical stream starts with the cached tokens. The stored
+  copies of already-served messages are rendered, so assistant spans come
+  from the server's own view before being replaced by their IDs.
+- **Fresh fallback**: any of these fails (`cache_fallback_reason` says which:
+  `tool_set_changed`, `transcript_does_not_extend_session`,
+  `token_prefix_mismatch`). Changed, reordered, added or removed tools, or a
+  switch to `tool_choice: "none"`, always land here. A cache miss is never an
+  HTTP error.
+
+Only after rendering does the server check `--max-context-tokens` (default
+16384, prompt plus completion): a prompt that does not fit gets a 400
+`context_length_exceeded` with OpenAI's wording, which Pi recognizes and
+answers by compacting. The completion budget is clamped to what fits. A
+rejected request leaves the session untouched.
+
+### Streaming, heartbeats and cancellation
+
+With `stream: true` the server validates and renders first (errors are plain
+HTTP 4xx), then sends `text/event-stream` headers and a role chunk *before*
+prefill, so a long cold prefill cannot trip the client's header timeout. A
+heartbeat thread writes `: keep-alive` comments after 10 s of silence. Content
+deltas come from `StreamAssembler`, which holds back a trailing incomplete
+UTF-8 sequence (U+FFFD), trailing whitespace, and anything from `<tool_call>`
+on; the concatenated deltas equal the non-streaming `content` exactly. At the
+end the server sends parsed tool calls (one chunk with index, id and name,
+then argument fragments), a `finish_reason` chunk, a `usage` chunk when
+`stream_options.include_usage` is set (with `prompt_tokens_details.cached_tokens`
+= the reused prefix), and `data: [DONE]`. An error after the headers is an
+SSE `{"error": ...}` event.
+
+If a write fails (client disconnect), the next token callback stops
+generation. Any exception after generation starts invalidates the session:
+the recurrent cache already holds tokens the client never accepted and cannot
+be trimmed, so the next request is a fresh prefill. A failure while writing
+the final chunks also invalidates the already-committed turn, because the
+client may not hold it.
+
+### Errors and serialization
+
+Invalid requests get 400. A cache-state inconsistency that survives the
+fallback gets 409 and resets the session. Any other inference failure gets
+500 and resets the session. One `threading.Lock` guards the session; at most
+one session exists and one inference runs at a time. A configured
+`--system-prompt` is prepended when the client omits a system message.
+
+`--metrics-log PATH` appends one JSON line per request (cache mode, suffix,
+TTFT, decode rate, tool calls, parse errors, HTTP status); `GET /metrics`
+returns cumulative counters.
 
 ## Model build (`tools/build_g128.py`)
 
@@ -131,8 +224,12 @@ builder and the pinned mlx-lm and transformers code.
 
 ## Limitations
 
-- No streaming, `stop` sequences, cancellation, batching or concurrency.
-- Tool calls travel as text. Native OpenAI `tool_calls` are not produced.
+- No `stop` sequences, `n > 1`, `response_format` other than text,
+  `tool_choice: "required"` or named-function forcing (all rejected with
+  400: decoding is not constrained), images, batching or concurrency.
+  `parallel_tool_calls` is accepted but not enforced.
+- Cancellation is noticed at the next token or heartbeat; a prefill already
+  running is not interrupted.
 - Requests with a different session id replace the active session.
-- Generation logic is duplicated between `ExactSuffixChat.turn` and
-  `AgentSession.complete`, and only the server has the fresh-fallback path.
+- Only the server has the fresh-fallback path; the CLI resets the session on
+  any cache error.

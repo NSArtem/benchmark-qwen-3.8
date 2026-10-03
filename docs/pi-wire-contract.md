@@ -99,3 +99,11 @@ Pi compacts when `contextTokens > contextWindow - compaction.reserveTokens`
 transcript would grow past what the host can serve. The example Pi settings
 therefore set `reserveTokens` and `keepRecentTokens` for a 16K window. A
 compaction rewrites history, so the next request is a safe fresh prefill.
+
+Observed with the real model (benchmark run 2): as the context approaches
+the compaction threshold, Pi lowers `max_completion_tokens` (prompt plus
+limit stayed at about 12.3K for a 16K window and reserve 4096: 628, 508 ...
+28 tokens). A reply cut by that limit ends with `finish_reason: "length"`;
+Pi then compacts once and retries. After that single recovery a second
+`length` ends the run. Pi's `keepRecentTokens` is measured with its own
+estimate; the compacted transcript in that run still held 11.7K real tokens.

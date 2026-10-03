@@ -86,6 +86,53 @@ existing directory.
   upgrade therefore forces the manifest to be revalidated and regenerated
   deliberately.
 
+## Agent integration: standard OpenAI Chat Completions, no client adapters
+
+**Decision:** the server implements the OpenAI Chat Completions subset that
+real clients send, rendered only through the model's own chat template. Pi is
+configured with a plain `models.json` provider (`api: "openai-completions"`);
+there is no Pi extension, no `compat` override, and no client-specific
+dialect. Evidence: `docs/pi-wire-contract.md` (Pi 1.0.0 capture and source).
+
+- **Tool syntax comes from the template.** Qwen3.8's template defines
+  `qwen3_coder` XML calls and `<tool_response>` results. The only glue is
+  parsing OpenAI's JSON-string `arguments` into the mapping the template
+  iterates.
+- **Generated IDs stay authoritative.** Parsed `tool_calls` are an API view.
+  A replayed assistant message is matched semantically (content trimmed,
+  tool calls by id, name and parsed arguments) only to find its stored
+  generation; the cache then uses the stored token IDs. Re-serializing the
+  parsed call to recover tokens was rejected: clients re-serialize arguments
+  and the model's own whitespace and value spelling would not survive.
+- **Tools are part of the prompt identity.** Any change of the exact tool
+  JSON (content, order, presence) or `tool_choice: "none"` forces a fresh
+  prefill, before the token-level prefix check that would also catch it.
+- **Malformed tool syntax is text, not a call.** A truncated or malformed
+  `<tool_call>` returns the raw text with `finish_reason` `stop`/`length` and
+  is counted (`tool_parse_failures`). A well-formed call to an undeclared tool
+  or with a value that does not fit the schema type is returned as a call and
+  counted, so the client's validator tells the model what was wrong.
+- **Unenforceable options are rejected.** `tool_choice: "required"` or a named
+  function, `stop`, `n > 1`, and non-text `response_format` get 400 rather
+  than being silently ignored. `parallel_tool_calls` is accepted unenforced.
+- **Streaming is required.** Pi always sends `stream: true` and fails without a
+  `finish_reason` chunk. Headers and the role chunk are sent before prefill
+  and `: keep-alive` comments every 10 s, because Pi's default 300 s idle
+  timeout is close to a 16K cold prefill.
+- **Cancellation discards the cache.** The hybrid cache cannot be trimmed, so
+  a disconnect or error after generation starts invalidates the session.
+  Pi drops an aborted turn from its transcript, so nothing reusable is lost.
+- **A server-side context cap.** `--max-context-tokens 16384` (prompt plus
+  completion) protects the 18 GB host and returns OpenAI's
+  `context_length_exceeded` wording, which Pi treats as overflow and answers
+  by compacting. Pi's default compaction settings assume large windows
+  (reserve 16384, keep 20000), so the example settings use reserve 4096 and
+  keep 6144 for a 16K window.
+- **Repeated tool calls are not stale replay.** A token-identical tool call
+  (re-running the tests after an edit) is legitimate and reported as
+  `repeated_tool_call`; `replay_detected` flags token-identical prose only.
+  The real gate is the per-request cache offset/prefix invariant.
+
 ## g64 is not the default
 
 The original `lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly` uses group size
