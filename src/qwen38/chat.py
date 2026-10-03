@@ -88,17 +88,25 @@ def eos_token_ids(tokenizer: Any) -> set[int]:
 
 def canonical_prompt(
     tokenizer: Any,
-    messages: list[dict[str, str]],
+    messages: list[dict[str, Any]],
     *,
     enable_thinking: bool = False,
+    tools: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Render and cross-check the canonical Qwen chat-template token stream."""
+    """Render and cross-check the canonical Qwen chat-template token stream.
 
+    ``tools`` are rendered by the template into the system block, so they are
+    part of the prompt identity.
+    """
+
+    template_kwargs: dict[str, Any] = {"enable_thinking": enable_thinking}
+    if tools:
+        template_kwargs["tools"] = tools
     rendered = tokenizer.apply_chat_template(
         messages,
         tokenize=False,
         add_generation_prompt=True,
-        enable_thinking=enable_thinking,
+        **template_kwargs,
     )
     encoded_from_text = normalize_token_ids(
         tokenizer.encode(rendered, add_special_tokens=False)
@@ -108,7 +116,7 @@ def canonical_prompt(
             messages,
             tokenize=True,
             add_generation_prompt=True,
-            enable_thinking=enable_thinking,
+            **template_kwargs,
         )
     )
     if encoded_from_text != encoded_direct:
@@ -352,6 +360,100 @@ def _memory_snapshot() -> dict[str, int | None]:
 
 
 @dataclass
+class GeneratedTokens:
+    """Raw outcome of one direct ``generate_step`` run."""
+
+    token_ids: list[int]
+    stop: str  # "eos", "length", or "generator_stop"
+    started: float
+    first_token_time: float | None
+    completed: float
+
+    @property
+    def ttft_seconds(self) -> float | None:
+        if self.first_token_time is None:
+            return None
+        return self.first_token_time - self.started
+
+    @property
+    def generation_seconds(self) -> float | None:
+        if self.first_token_time is None:
+            return None
+        return self.completed - self.first_token_time
+
+    @property
+    def decode_tps(self) -> float | None:
+        seconds = self.generation_seconds
+        return max(len(self.token_ids) - 1, 0) / seconds if seconds else None
+
+
+def generate_tokens(
+    model: Any,
+    prompt_cache: Sequence[Any],
+    suffix_ids: Sequence[int],
+    *,
+    max_tokens: int,
+    sampler: Any,
+    eos_ids: set[int],
+    prefill_step_size: int = DEFAULT_PREFILL_STEP_SIZE,
+    kv_bits: int | None = None,
+    kv_group_size: int = 64,
+    quantized_kv_start: int = 0,
+    on_token: Any = None,
+) -> GeneratedTokens:
+    """Feed ``suffix_ids`` into the persistent cache and decode new tokens.
+
+    This is the single generation loop shared by the CLI and the server. It
+    calls pinned ``generate_step`` directly (never the wired-limit wrapper).
+    ``on_token(token_ids)`` is called after every generated token with the
+    full list so far; an exception from it stops generation and propagates,
+    leaving the cache advanced past the committed ledger (callers must then
+    discard the cache).
+    """
+
+    mlx_core, _, mlx_generate_step, _, _ = _require_mlx()
+    started = time.perf_counter()
+    generator = mlx_generate_step(
+        mlx_core.array(list(suffix_ids)),
+        model,
+        max_tokens=max_tokens,
+        sampler=sampler,
+        prompt_cache=prompt_cache,
+        prefill_step_size=prefill_step_size,
+        kv_bits=kv_bits,
+        kv_group_size=kv_group_size,
+        quantized_kv_start=quantized_kv_start,
+    )
+    generated_ids: list[int] = []
+    first_token_time: float | None = None
+    stop = "length"
+    try:
+        while len(generated_ids) < max_tokens:
+            try:
+                token, _logprobs = next(generator)
+            except StopIteration:
+                stop = "generator_stop"
+                break
+            if first_token_time is None:
+                first_token_time = time.perf_counter()
+            token_id = int(token.item()) if hasattr(token, "item") else int(token)
+            generated_ids.append(token_id)
+            if on_token is not None:
+                on_token(generated_ids)
+            if token_id in eos_ids:
+                stop = "eos"
+                break
+    finally:
+        generator.close()
+    completed = time.perf_counter()
+    try:
+        mlx_core.synchronize()
+    except BaseException:
+        pass
+    return GeneratedTokens(generated_ids, stop, started, first_token_time, completed)
+
+
+@dataclass
 class ExactSuffixTurn:
     text: str
     prompt_tokens: int
@@ -507,7 +609,7 @@ class ExactSuffixChat:
         quantized_kv_start: int = 0,
         prefill_step_size: int = DEFAULT_PREFILL_STEP_SIZE,
     ) -> ExactSuffixTurn:
-        mlx_core, _, mlx_generate_step, _, mlx_make_sampler = _require_mlx()
+        _, _, _, _, mlx_make_sampler = _require_mlx()
         if not query.strip():
             raise ValueError("empty user messages are not sent to the model")
         if max_tokens <= 0:
@@ -515,44 +617,21 @@ class ExactSuffixChat:
         self.kv_bits = kv_bits
         canonical, _, cache_offset_before = self._select_canonical(query)
         suffix_ids = exact_suffix(canonical["token_ids"], self.ledger.cached_token_ids)
-        sampler = mlx_make_sampler(temperature, top_p)
-        started = time.perf_counter()
-        generator = mlx_generate_step(
-            mlx_core.array(suffix_ids),
+        result = generate_tokens(
             self.model,
+            self.prompt_cache,
+            suffix_ids,
             max_tokens=max_tokens,
-            sampler=sampler,
-            prompt_cache=self.prompt_cache,
+            sampler=mlx_make_sampler(temperature, top_p),
+            eos_ids=eos_token_ids(self.tokenizer),
             prefill_step_size=prefill_step_size,
             kv_bits=kv_bits,
             kv_group_size=kv_group_size,
             quantized_kv_start=quantized_kv_start,
         )
-        generated_ids: list[int] = []
-        first_token_time: float | None = None
-        eos_ids = eos_token_ids(self.tokenizer)
-        finish_reason = "length"
-        try:
-            while len(generated_ids) < max_tokens:
-                try:
-                    token, _logprobs = next(generator)
-                except StopIteration:
-                    finish_reason = "generator_stop"
-                    break
-                if first_token_time is None:
-                    first_token_time = time.perf_counter()
-                token_id = int(token.item()) if hasattr(token, "item") else int(token)
-                generated_ids.append(token_id)
-                if token_id in eos_ids:
-                    finish_reason = "eos"
-                    break
-        finally:
-            generator.close()
-        completed = time.perf_counter()
-        try:
-            mlx_core.synchronize()
-        except BaseException:
-            pass
+        generated_ids = result.token_ids
+        finish_reason = result.stop
+        started, completed = result.started, result.completed
         cache_offset_after = _cache_offset(self.prompt_cache)
         expected_after = len(canonical["token_ids"]) + len(generated_ids)
         if cache_offset_after != expected_after:
@@ -560,17 +639,9 @@ class ExactSuffixChat:
                 f"cache after-generation offset {cache_offset_after} != expected {expected_after}"
             )
         text = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
-        ttft = (
-            first_token_time - started if first_token_time is not None else None
-        )
-        generation_seconds = (
-            completed - first_token_time if first_token_time is not None else None
-        )
-        decode_tps = (
-            max(len(generated_ids) - 1, 0) / generation_seconds
-            if generation_seconds
-            else None
-        )
+        ttft = result.ttft_seconds
+        generation_seconds = result.generation_seconds
+        decode_tps = result.decode_tps
         prompt_tps = len(suffix_ids) / ttft if ttft else None
         replay_was_detected = any(
             response_replay_detected(generated_ids, previous.generated_ids)

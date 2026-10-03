@@ -33,6 +33,7 @@ from qwen38.chat import (
     canonical_prompt,
     exact_suffix,
     eos_token_ids,
+    generate_tokens,
     normalize_cache_boundary,
     reconcile_canonical_history,
     response_replay_detected,
@@ -210,7 +211,7 @@ class AgentSession:
         quantized_kv_start: int,
         prefill_step_size: int,
     ) -> dict[str, Any]:
-        mlx_core, _, generate_step, _, make_sampler = _require_mlx()
+        _, _, _, _, make_sampler = _require_mlx()
         if max_tokens <= 0:
             raise ValueError("max_tokens must be positive")
         if not incoming:
@@ -299,43 +300,21 @@ class AgentSession:
             lcp += 1
         if cache_mode == "exact_reuse":
             self.cache_exact_reuse += 1
-        started = time.perf_counter()
-        generator = generate_step(
-            mlx_core.array(suffix_ids),
+        result = generate_tokens(
             self.model,
+            self.prompt_cache,
+            suffix_ids,
             max_tokens=max_tokens,
             sampler=make_sampler(temperature, top_p),
-            prompt_cache=self.prompt_cache,
+            eos_ids=eos_ids,
             prefill_step_size=prefill_step_size,
             kv_bits=kv_bits,
             kv_group_size=kv_group_size,
             quantized_kv_start=quantized_kv_start,
         )
-        generated_ids: list[int] = []
-        first_token_time: float | None = None
-        eos_ids = eos_token_ids(self.tokenizer)
-        finish_reason = "length"
-        try:
-            while len(generated_ids) < max_tokens:
-                try:
-                    token, _logprobs = next(generator)
-                except StopIteration:
-                    finish_reason = "stop"
-                    break
-                if first_token_time is None:
-                    first_token_time = time.perf_counter()
-                token_id = int(token.item()) if hasattr(token, "item") else int(token)
-                generated_ids.append(token_id)
-                if token_id in eos_ids:
-                    finish_reason = "stop"
-                    break
-        finally:
-            generator.close()
-        completed = time.perf_counter()
-        try:
-            mlx_core.synchronize()
-        except BaseException:
-            pass
+        generated_ids = result.token_ids
+        finish_reason = "length" if result.stop == "length" else "stop"
+        started, completed = result.started, result.completed
         cache_after = _cache_offset(self.prompt_cache)
         expected_after = len(full_token_ids) + len(generated_ids)
         if cache_after != expected_after:
@@ -343,15 +322,8 @@ class AgentSession:
                 f"cache after-generation offset {cache_after} != expected {expected_after}"
             )
         text = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
-        ttft = first_token_time - started if first_token_time is not None else None
-        generation_seconds = (
-            completed - first_token_time if first_token_time is not None else None
-        )
-        decode_tps = (
-            max(len(generated_ids) - 1, 0) / generation_seconds
-            if generation_seconds
-            else None
-        )
+        ttft = result.ttft_seconds
+        decode_tps = result.decode_tps
         prompt_tps = len(suffix_ids) / ttft if ttft else None
         memory = _memory_snapshot()
         replay_detected = any(
