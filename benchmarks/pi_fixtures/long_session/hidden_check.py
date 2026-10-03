@@ -20,6 +20,24 @@ store = KVStore(clock=clock)
 params = inspect.signature(store.set).parameters
 if "ttl_seconds" not in params or params["ttl_seconds"].default is not None:
     raise SystemExit(f"set() lacks optional ttl_seconds: {list(params)}")
+
+# Purge first: an implementation may also drop expired entries lazily on
+# read, so reads must not happen before purge_expired() is checked.
+store.set("short", 1, ttl_seconds=10)
+store.set("forever", 2)
+store.set("ns_short", 3, namespace="jobs", ttl_seconds=5)
+clock.now = 111.0
+removed = store.purge_expired()
+if removed != 2 or len(store) != 1:
+    raise SystemExit(f"purge_expired returned {removed}, len {len(store)}")
+if store.purge_expired() != 0:
+    raise SystemExit("second purge should remove nothing")
+if store.get("forever") != 2:
+    raise SystemExit("entry without ttl was purged")
+
+# Expiry visibility through the read API.
+clock.now = 100.0
+store = KVStore(clock=clock)
 store.set("short", 1, ttl_seconds=10)
 store.set("forever", 2)
 store.set("ns_short", 3, namespace="jobs", ttl_seconds=5)
@@ -33,11 +51,6 @@ if store.get("short") is not None or store.get("forever") != 2:
     raise SystemExit("ttl expiry wrong")
 if "short" in list(store.keys()):
     raise SystemExit("expired key still listed by keys()")
-removed = store.purge_expired()
-if removed != 2 or len(store) != 1:
-    raise SystemExit(f"purge_expired returned {removed}, len {len(store)}")
-if store.purge_expired() != 0:
-    raise SystemExit("second purge should remove nothing")
 result = subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-q"], capture_output=True, text=True)
 if result.returncode:
     raise SystemExit(result.stderr)
