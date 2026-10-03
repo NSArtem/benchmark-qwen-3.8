@@ -152,6 +152,15 @@ class RequestParsingTests(unittest.TestCase):
             with self.subTest(name), self.assertRaises(ProtocolError):
                 parse_chat_request(body)
 
+    def test_unsupported_option_wording_is_conventional(self) -> None:
+        # Clients (e.g. Hermes) retry without a field when the error says it
+        # is "not supported"; keep that wording.
+        with self.assertRaises(ProtocolError) as caught:
+            parse_chat_request({"messages": [{"role": "user", "content": "x"}], "response_format": {"type": "json_schema", "json_schema": {}}})
+        self.assertIn("not supported", str(caught.exception))
+        self.assertIn("json_schema", str(caught.exception))
+        self.assertEqual(caught.exception.param, "response_format")
+
     def test_tool_choice_none_hides_tools(self) -> None:
         request = parse_chat_request(
             {"messages": [{"role": "user", "content": "x"}], "tools": TOOLS, "tool_choice": "none"}

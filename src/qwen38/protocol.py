@@ -282,13 +282,19 @@ def parse_chat_request(body: Any) -> ChatRequest:
         raise ProtocolError("stream_options must be an object", param="stream_options")
     n = body.get("n", 1)
     if n not in (None, 1):
-        raise ProtocolError("only n=1 is supported", param="n")
+        raise ProtocolError(f"n={n!r} is not supported; only one choice per request", param="n")
     stop = body.get("stop")
     if stop not in (None, [], ""):
         raise ProtocolError("stop sequences are not supported", param="stop")
     response_format = body.get("response_format")
     if response_format not in (None, {"type": "text"}):
-        raise ProtocolError("only response_format type 'text' is supported", param="response_format")
+        kind = response_format.get("type") if isinstance(response_format, dict) else response_format
+        # Conventional wording, so clients that retry without the field recognize it.
+        raise ProtocolError(
+            f"response_format type {kind!r} is not supported by this server; only 'text'",
+            code="unsupported_parameter",
+            param="response_format",
+        )
     max_tokens = body.get("max_completion_tokens", body.get("max_tokens"))
     if max_tokens is not None:
         if isinstance(max_tokens, bool) or not isinstance(max_tokens, int) or max_tokens <= 0:
