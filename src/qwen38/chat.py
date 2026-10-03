@@ -157,41 +157,6 @@ class HistoryTurn:
     assistant_text: str
 
 
-def normalize_cache_boundary(
-    canonical: dict[str, Any],
-    history: Sequence[HistoryTurn],
-    eos_ids: set[int],
-) -> dict[str, Any]:
-    """Remove a duplicate template EOS after an EOS already in the cache."""
-
-    token_ids = list(canonical["token_ids"])
-    adjustments: list[dict[str, Any]] = []
-    for turn in history:
-        generated = turn.generated_ids
-        if not generated or int(generated[-1]) not in eos_ids:
-            continue
-        start = int(turn.prompt_token_count)
-        end = start + len(generated)
-        if (
-            end < len(token_ids)
-            and token_ids[start:end] == generated
-            and token_ids[end] == int(generated[-1])
-        ):
-            del token_ids[end]
-            adjustments.append(
-                {
-                    "removed_index": end,
-                    "removed_token_id": int(generated[-1]),
-                    "reason": "template_added_EOS_already_in_cached_generation",
-                }
-            )
-    adjusted = dict(canonical)
-    adjusted["token_ids"] = token_ids
-    adjusted["token_count"] = len(token_ids)
-    adjusted["cache_boundary_adjustments"] = adjustments
-    return adjusted
-
-
 def reconcile_canonical_history(
     canonical: dict[str, Any],
     history: Sequence[HistoryTurn],

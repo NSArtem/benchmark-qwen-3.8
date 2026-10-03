@@ -11,7 +11,6 @@ from qwen38.chat import (
     HistoryTurn,
     TokenLedger,
     exact_suffix,
-    normalize_cache_boundary,
     reconcile_canonical_history,
     response_replay_detected,
 )
@@ -49,20 +48,6 @@ class TokenLedgerTests(unittest.TestCase):
         self.assertTrue(response_replay_detected(list(range(8)), list(range(9))))
         self.assertFalse(response_replay_detected([8, 7], [7, 8, 9]))
         self.assertFalse(response_replay_detected([], [7, 8, 9]))
-
-    def test_duplicate_template_eos_is_removed_at_boundary(self) -> None:
-        history = [
-            HistoryTurn(
-                user_text="old",
-                prompt_token_count=2,
-                generated_ids=[20, 99],
-                assistant_text="answer",
-            )
-        ]
-        canonical = {"token_ids": [1, 2, 20, 99, 99, 3]}
-        adjusted = normalize_cache_boundary(canonical, history, {99})
-        self.assertEqual(adjusted["token_ids"], [1, 2, 20, 99, 3])
-        self.assertEqual(len(adjusted["cache_boundary_adjustments"]), 1)
 
     def test_authoritative_ids_repair_rendered_assistant_content(self) -> None:
         history = [
