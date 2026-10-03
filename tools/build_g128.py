@@ -28,6 +28,12 @@ Metadata is derived from the source:
 
 ``--self-test`` checks all of this against the source without loading weight
 arrays.  The converter never changes the MLX wired-memory policy.
+
+Canonical identity: ``tools/g128-reference-manifest.json`` records the size and
+SHA-256 of every file of the validated canonical checkpoint.  A default build
+is verified against it before it is moved to ``--output``, and
+``--verify-output DIR`` checks any existing checkpoint using only the standard
+library: no source, MLX, network or reference checkpoint is needed.
 """
 
 from __future__ import annotations
@@ -44,7 +50,9 @@ import shutil
 import struct
 import subprocess
 import tempfile
+import sys
 import time
+import tomllib
 from pathlib import Path
 from typing import Any
 
@@ -100,6 +108,11 @@ LM_HEAD_KEY = "lm_head.weight"
 DROPPED_PREFIXES = {"visual": "model.visual.", "mtp": "mtp."}
 SENTINEL_FRAGMENT = "__qwen38_chunk_sentinel__"
 LAYER_RE = re.compile(r"^model\.language_model\.layers\.(\d+)\.")
+
+MODEL_NAME = "Qwen3.8-27B-3bit-g128-MLX"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+MANIFEST_PATH = Path(__file__).resolve().with_name("g128-reference-manifest.json")
+MANIFEST_SCHEMA_VERSION = 1
 
 TOKENIZER_OUTPUT_FILES = ("tokenizer.json", "tokenizer_config.json", "chat_template.jinja")
 TOKENIZER_PROBES = (
@@ -510,6 +523,349 @@ def verify_tokenizer_assets(source: Path, output: Path) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------
+# Canonical output manifest
+
+# Files every canonical checkpoint has besides its weight shards.
+REQUIRED_OUTPUT_FILES = (
+    "config.json",
+    "generation_config.json",
+    "model.safetensors.index.json",
+    *TOKENIZER_OUTPUT_FILES,
+)
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+
+
+class ManifestError(ValueError):
+    """The manifest file itself is unreadable or not a supported schema."""
+
+
+def sha256_file(path: Path) -> str:
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def locked_toolchain(root: Path = REPO_ROOT) -> dict[str, str]:
+    """The pinned conversion toolchain from ``uv.lock`` and ``.python-version``."""
+
+    lock = tomllib.loads((root / "uv.lock").read_text(encoding="utf-8"))
+    packages = {package["name"]: package for package in lock["package"]}
+    return {
+        "python": (root / ".python-version").read_text(encoding="utf-8").strip(),
+        "mlx": packages["mlx"]["version"],
+        "mlx_lm_revision": packages["mlx-lm"]["source"]["git"].rsplit("#", 1)[1],
+        "transformers": packages["transformers"]["version"],
+        "tokenizers": packages["tokenizers"]["version"],
+    }
+
+
+def model_entries(model_dir: Path) -> list[str]:
+    """Entry names in ``model_dir`` that count as checkpoint content.
+
+    Hidden entries (``.DS_Store`` and the like) are filesystem noise and are
+    ignored.  Every other entry, file or directory, is content, so verification
+    reports anything the manifest does not list.
+    """
+
+    return sorted(path.name for path in model_dir.iterdir() if not path.name.startswith("."))
+
+
+def artifact_summary(model_dir: Path) -> dict[str, Any]:
+    """Structural facts read from ``config.json`` and the index (no hashing)."""
+
+    config = load_json(model_dir / "config.json")
+    index = load_json(model_dir / "model.safetensors.index.json")
+    weight_map = index["weight_map"]
+    return {
+        "quantization": config.get("quantization"),
+        "quantization_config": config.get("quantization_config"),
+        "shard_files": sorted(set(weight_map.values())),
+        "tensor_count": len(weight_map),
+        "quantized_modules": sum(key.endswith(".scales") for key in weight_map),
+        "weight_payload_bytes": index["metadata"]["total_size"],
+        "total_parameters": index["metadata"]["total_parameters"],
+    }
+
+
+def calculate_manifest(model_dir: Path) -> dict[str, Any]:
+    """Describe the checkpoint in ``model_dir`` as a canonical manifest.
+
+    The result has no paths, timestamps or host details, so the same
+    checkpoint always gives the same manifest (see ``manifest_text``).
+    """
+
+    model_dir = Path(model_dir)
+    names = model_entries(model_dir)
+    summary = artifact_summary(model_dir)
+    shards = summary["shard_files"]
+    missing = sorted(set(REQUIRED_OUTPUT_FILES + tuple(shards)) - set(names))
+    extra = sorted(set(names) - set(REQUIRED_OUTPUT_FILES) - set(shards))
+    if missing or extra:
+        raise ValueError(f"not a complete g128 checkpoint: missing={missing} extra={extra}")
+    if summary["quantization"] != QUANTIZATION or summary["quantization_config"] != QUANTIZATION:
+        raise ValueError(f"config quantization is {summary['quantization']}, expected {QUANTIZATION}")
+
+    files = {}
+    for name in names:
+        path = model_dir / name
+        if not path.is_file():
+            raise ValueError(f"not a regular file: {name}")
+        files[name] = {"size": path.stat().st_size, "sha256": sha256_file(path)}
+    return {
+        "schema_version": MANIFEST_SCHEMA_VERSION,
+        "model": {
+            "name": MODEL_NAME,
+            "source_repo": SOURCE_REPO,
+            "source_revision": SOURCE_REVISION,
+            "quantization": dict(QUANTIZATION),
+        },
+        "build": {"tool": "tools/build_g128.py", "shard_bytes": DEFAULT_SHARD_BYTES},
+        "toolchain": locked_toolchain(),
+        "expected": {
+            "total_files": len(files),
+            "total_bytes": sum(entry["size"] for entry in files.values()),
+            "weight_shards": len(shards),
+            "weight_payload_bytes": summary["weight_payload_bytes"],
+            "tensor_count": summary["tensor_count"],
+            "quantized_modules": summary["quantized_modules"],
+            "total_parameters": summary["total_parameters"],
+            "retained_source_tensors": RETAINED_SOURCE_TENSORS,
+        },
+        "files": files,
+    }
+
+
+def manifest_text(manifest: dict[str, Any]) -> str:
+    """The one serialization of a manifest: sorted keys, two-space indent."""
+
+    return json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+
+
+def _require_file_entry(where: str, entry: Any) -> None:
+    if (
+        not isinstance(entry, dict)
+        or not isinstance(entry.get("size"), int)
+        or isinstance(entry.get("size"), bool)
+        or entry["size"] < 0
+        or not isinstance(entry.get("sha256"), str)
+        or not SHA256_RE.match(entry["sha256"])
+    ):
+        raise ManifestError(f"{where} needs an integer 'size' and a lowercase hex 'sha256'")
+
+
+def validate_manifest(manifest: Any) -> dict[str, Any]:
+    """Check the manifest's schema and internal consistency; return it."""
+
+    if not isinstance(manifest, dict):
+        raise ManifestError("manifest must be a JSON object")
+    version = manifest.get("schema_version")
+    if version != MANIFEST_SCHEMA_VERSION:
+        raise ManifestError(
+            f"unsupported manifest schema_version {version!r} (expected {MANIFEST_SCHEMA_VERSION})"
+        )
+    for key in ("model", "toolchain", "expected", "files"):
+        if not isinstance(manifest.get(key), dict):
+            raise ManifestError(f"manifest is missing the '{key}' object")
+
+    model = manifest["model"]
+    identity = {
+        "source_repo": SOURCE_REPO,
+        "source_revision": SOURCE_REVISION,
+        "quantization": QUANTIZATION,
+    }
+    for key, expected in identity.items():
+        if model.get(key) != expected:
+            raise ManifestError(f"manifest model.{key} is {model.get(key)!r}, expected {expected!r}")
+
+    files = manifest["files"]
+    if not files:
+        raise ManifestError("manifest lists no files")
+    for name, entry in files.items():
+        if "/" in name or "\\" in name or name.startswith("."):
+            raise ManifestError(f"manifest file name must be a plain visible file name: {name!r}")
+        _require_file_entry(f"files[{name!r}]", entry)
+    missing = sorted(set(REQUIRED_OUTPUT_FILES) - set(files))
+    if missing:
+        raise ManifestError(f"manifest does not cover required files {missing}")
+
+    expected = manifest["expected"]
+    actual_totals = {
+        "total_files": len(files),
+        "total_bytes": sum(entry["size"] for entry in files.values()),
+        "weight_shards": sum(name.endswith(".safetensors") for name in files),
+    }
+    for key, actual in actual_totals.items():
+        if expected.get(key) != actual:
+            raise ManifestError(f"manifest expected.{key} is {expected.get(key)!r}, files give {actual}")
+
+    legacy = manifest.get("legacy_variants", {})
+    if not isinstance(legacy, dict):
+        raise ManifestError("manifest legacy_variants must be an object")
+    for name, variants in legacy.items():
+        if name not in files or not isinstance(variants, list):
+            raise ManifestError(f"legacy_variants[{name!r}] must be a list for a listed file")
+        for number, variant in enumerate(variants):
+            _require_file_entry(f"legacy_variants[{name!r}][{number}]", variant)
+            if not isinstance(variant.get("note"), str) or not variant["note"]:
+                raise ManifestError(f"legacy_variants[{name!r}][{number}] needs a 'note'")
+    return manifest
+
+
+def load_manifest(path: Path = MANIFEST_PATH) -> dict[str, Any]:
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except OSError as exc:
+        raise ManifestError(f"cannot read manifest {path}: {exc}") from exc
+    try:
+        manifest = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ManifestError(f"manifest {path} is not valid JSON: {exc}") from exc
+    return validate_manifest(manifest)
+
+
+def verify_manifest(
+    model_dir: Path, manifest: dict[str, Any], allow_legacy: bool = False
+) -> dict[str, Any]:
+    """Compare ``model_dir`` with ``manifest`` file by file.
+
+    Every listed file must exist with the exact size and SHA-256.  Any other
+    visible entry is a failure (strict: a canonical checkpoint contains
+    nothing else); hidden entries such as ``.DS_Store`` are ignored.  A file
+    matching one of the manifest's ``legacy_variants`` fails too, with the
+    variant's note, unless ``allow_legacy`` is set.
+
+    Returns ``{"ok", "failures", "notes", "files", "bytes"}``; each failure
+    names the offending file.
+    """
+
+    validate_manifest(manifest)
+    model_dir = Path(model_dir)
+    files = manifest["files"]
+    legacy = manifest.get("legacy_variants", {})
+    failures: list[str] = []
+    notes: list[str] = []
+    if not model_dir.is_dir():
+        failures.append(f"FAIL {model_dir}: not a directory")
+        return {"ok": False, "failures": failures, "notes": notes, "files": 0, "bytes": 0}
+
+    for name in sorted(set(model_entries(model_dir)) - set(files)):
+        failures.append(f"FAIL {name}: unexpected entry, not in the canonical manifest")
+
+    verified_files = 0
+    verified_bytes = 0
+    legacy_delta = 0
+    for name, entry in sorted(files.items()):
+        path = model_dir / name
+        if not path.exists():
+            failures.append(f"FAIL {name}: missing")
+            continue
+        if not path.is_file():
+            failures.append(f"FAIL {name}: not a regular file")
+            continue
+        size = path.stat().st_size
+        digest = sha256_file(path) if size == entry["size"] or name in legacy else None
+        if size == entry["size"] and digest == entry["sha256"]:
+            verified_files += 1
+            verified_bytes += size
+            continue
+        variant = next(
+            (v for v in legacy.get(name, []) if v["size"] == size and v["sha256"] == digest),
+            None,
+        )
+        if variant is not None:
+            legacy_delta += size - entry["size"]
+            if allow_legacy:
+                notes.append(f"NOTE {name}: accepted legacy variant: {variant['note']}")
+                verified_files += 1
+                verified_bytes += size
+            else:
+                failures.append(
+                    f"FAIL {name}: matches a known legacy variant, not the canonical file\n"
+                    f"  {variant['note']}\n"
+                    "  rerun with --allow-legacy to accept it"
+                )
+            continue
+        if size != entry["size"]:
+            failures.append(
+                f"FAIL {name}: size mismatch\n"
+                f"  expected size: {entry['size']}\n"
+                f"  actual size:   {size}"
+            )
+        else:
+            failures.append(
+                f"FAIL {name}: sha256 mismatch\n"
+                f"  expected sha256: {entry['sha256']}\n"
+                f"  actual sha256:   {digest}"
+            )
+
+    # Every visible regular file counts, so extra or truncated content shows
+    # up here too.  A known legacy variant is already reported per file.
+    content_bytes = sum(
+        (model_dir / name).stat().st_size
+        for name in model_entries(model_dir)
+        if (model_dir / name).is_file()
+    )
+    expected_bytes = manifest["expected"]["total_bytes"] + legacy_delta
+    if content_bytes != expected_bytes:
+        failures.append(
+            f"FAIL aggregate size: {content_bytes} bytes of content, expected {expected_bytes}"
+        )
+
+    failures.extend(_structure_failures(model_dir, manifest))
+    return {
+        "ok": not failures,
+        "failures": failures,
+        "notes": notes,
+        "files": verified_files,
+        "bytes": verified_bytes,
+    }
+
+
+def _structure_failures(model_dir: Path, manifest: dict[str, Any]) -> list[str]:
+    """Readable config/index mismatches, reported alongside any hash failure."""
+
+    try:
+        summary = artifact_summary(model_dir)
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        return [f"FAIL config.json/model.safetensors.index.json: unreadable structure: {exc!r}"]
+    failures = []
+    quantization = manifest["model"]["quantization"]
+    for key in ("quantization", "quantization_config"):
+        if summary[key] != quantization:
+            failures.append(f"FAIL config.json: {key} is {summary[key]}, expected {quantization}")
+    expected = manifest["expected"]
+    actual = dict(summary, weight_shards=len(summary["shard_files"]))
+    for key in (
+        "weight_shards",
+        "tensor_count",
+        "quantized_modules",
+        "weight_payload_bytes",
+        "total_parameters",
+    ):
+        if key in expected and actual[key] != expected[key]:
+            failures.append(
+                f"FAIL model.safetensors.index.json: {key} is {actual[key]}, expected {expected[key]}"
+            )
+    unlisted = sorted(set(summary["shard_files"]) - set(manifest["files"]))
+    if unlisted:
+        failures.append(f"FAIL model.safetensors.index.json: references unlisted shards {unlisted}")
+    return failures
+
+
+def report_verification(result: dict[str, Any], manifest_path: Path, stream=sys.stdout) -> None:
+    for line in result["failures"] + result["notes"]:
+        print(line, file=stream)
+    if result["ok"]:
+        print("PASS", file=stream)
+        print("canonical g128 manifest verified", file=stream)
+        print(f"{result['files']} files", file=stream)
+        print(f"{result['bytes']:,} bytes", file=stream)
+        accepted = f" ({len(result['notes'])} accepted legacy variant(s))" if result["notes"] else ""
+        print(f"SHA-256 all match{accepted}", file=stream)
+    else:
+        print(f"FAIL: {len(result['failures'])} problem(s) against {manifest_path}", file=stream)
+
+
+# --------------------------------------------------------------------------
 # Self-test
 
 
@@ -656,6 +1012,10 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
     if output.exists():
         raise FileExistsError(f"remove the stale partial build first: {output}")
 
+    # Only the default shard layout can reproduce the canonical files.
+    canonical = args.shard_bytes == DEFAULT_SHARD_BYTES
+    manifest = load_manifest(MANIFEST_PATH) if canonical else None
+
     started = time.monotonic()
     plan = read_source(source)
     config = plan["config"]
@@ -796,6 +1156,20 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
         json.dump(index, stream, indent=4)
     write_tokenizer_assets(source, output)
     tokenizer = verify_tokenizer_assets(source, output)
+    print("conversion complete", file=sys.stderr)
+    if manifest is None:
+        verification = "skipped: non-default --shard-bytes is not the canonical layout"
+        print(f"canonical manifest verification {verification}", file=sys.stderr)
+    else:
+        print("verifying canonical output...", file=sys.stderr)
+        result = verify_manifest(output, manifest)
+        if not result["ok"]:
+            report_verification(result, MANIFEST_PATH, stream=sys.stderr)
+            raise RuntimeError(
+                f"build does not match the canonical manifest; output left at {output}"
+            )
+        print("PASS: canonical g128 manifest matched", file=sys.stderr)
+        verification = f"PASS: {result['files']} files, {result['bytes']} bytes"
     output.rename(final_output)
 
     result = {
@@ -811,6 +1185,7 @@ def convert(args: argparse.Namespace) -> dict[str, Any]:
         "quantization": QUANTIZATION,
         "quantized_modules": quantized_modules,
         "tokenizer": tokenizer,
+        "manifest_verification": verification,
         **memory_snapshot("complete", time.monotonic() - started),
         "os": os_snapshot(),
     }
@@ -827,9 +1202,7 @@ def main() -> None:
         epilog=f"Fetch the source with:\n  {SOURCE_DOWNLOAD_HINT}",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument(
-        "--source", required=True, help=f"local BF16 {SOURCE_REPO} snapshot directory"
-    )
+    parser.add_argument("--source", help=f"local BF16 {SOURCE_REPO} snapshot directory")
     parser.add_argument("--output", help="new output directory (must not exist)")
     parser.add_argument("--metrics", help="optional progress JSONL path")
     parser.add_argument(
@@ -843,8 +1216,35 @@ def main() -> None:
         action="store_true",
         help="validate the source and conversion plan without loading weight arrays",
     )
+    parser.add_argument(
+        "--verify-output",
+        metavar="DIR",
+        help="verify an existing checkpoint against the canonical manifest and exit",
+    )
+    parser.add_argument(
+        "--manifest",
+        default=str(MANIFEST_PATH),
+        help="manifest for --verify-output; default: the committed reference manifest",
+    )
+    parser.add_argument(
+        "--allow-legacy",
+        action="store_true",
+        help="with --verify-output, accept files matching a documented legacy variant",
+    )
     args = parser.parse_args()
 
+    if args.verify_output:
+        manifest_path = Path(args.manifest)
+        try:
+            manifest = load_manifest(manifest_path)
+        except ManifestError as exc:
+            print(f"FAIL manifest: {exc}")
+            sys.exit(2)
+        result = verify_manifest(Path(args.verify_output), manifest, args.allow_legacy)
+        report_verification(result, manifest_path)
+        sys.exit(0 if result["ok"] else 1)
+    if not args.source:
+        parser.error("--source is required unless --verify-output is used")
     if args.self_test:
         print(json.dumps(self_test(Path(args.source)), indent=2, sort_keys=True))
         return

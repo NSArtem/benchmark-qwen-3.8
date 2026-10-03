@@ -1,0 +1,145 @@
+{
+  "build": {
+    "shard_bytes": 536870912,
+    "tool": "tools/build_g128.py"
+  },
+  "expected": {
+    "quantized_modules": 498,
+    "retained_source_tensors": 851,
+    "tensor_count": 1847,
+    "total_bytes": 10951147660,
+    "total_files": 25,
+    "total_parameters": 26895993856,
+    "weight_payload_bytes": 10930715648,
+    "weight_shards": 19
+  },
+  "files": {
+    "chat_template.jinja": {
+      "sha256": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+      "size": 8952
+    },
+    "config.json": {
+      "sha256": "d937b6af28eac255ba9f114f3f7d0c6958dbc5058fee1def2b517473c3a09e34",
+      "size": 4008
+    },
+    "generation_config.json": {
+      "sha256": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+      "size": 202
+    },
+    "model-00001-of-00019.safetensors": {
+      "sha256": "40fcc86242055c0d5f00cc32149fe9f8c99ac37bd8cc50392aee3a38e7a08520",
+      "size": 1033011905
+    },
+    "model-00002-of-00019.safetensors": {
+      "sha256": "3e58fd14784ccbc387f8ed7925e814754e5478876d9345f2cbc033717d87969f",
+      "size": 539810393
+    },
+    "model-00003-of-00019.safetensors": {
+      "sha256": "64ffc888478d05991e2511abbf065c8b6c3070035ecfd56cf223b40560f150ed",
+      "size": 546181894
+    },
+    "model-00004-of-00019.safetensors": {
+      "sha256": "3a0cc7d06b7e2c67d4d25f0fe22b90f8d926bd5f6a8c594ef0dd59342af59907",
+      "size": 546202664
+    },
+    "model-00005-of-00019.safetensors": {
+      "sha256": "aba61af1b22e94e58820489b97f05f577205137c8e0825814a34c0ff0957c3ad",
+      "size": 556851543
+    },
+    "model-00006-of-00019.safetensors": {
+      "sha256": "7db9196f37cb4f3b4ff7d0f6a693f0029108ad92998313232fa588dbb988c18a",
+      "size": 560808456
+    },
+    "model-00007-of-00019.safetensors": {
+      "sha256": "54354e1b9822abaa9a6e82ff45fec95e25c963043a9f2b0c8db7f7103896c1e2",
+      "size": 546202728
+    },
+    "model-00008-of-00019.safetensors": {
+      "sha256": "a828a02ea990c84570ddf33246be8b62f47c25c2c52baa6e8de4020e8446517b",
+      "size": 571457243
+    },
+    "model-00009-of-00019.safetensors": {
+      "sha256": "23a11ab0a053abbf433659051d841c7f16a8979e0dbbee065b25be68dbed2a07",
+      "size": 546202712
+    },
+    "model-00010-of-00019.safetensors": {
+      "sha256": "6faf3d9ae48e581f79bce96e95b956c08b21481c5b1642ca52e11a2898c580f5",
+      "size": 556851519
+    },
+    "model-00011-of-00019.safetensors": {
+      "sha256": "73ac950ae89750dd3fbcaf55434a0bb2b1e6c6feb2383a5b1d6e0c5dfb5b0c12",
+      "size": 554416270
+    },
+    "model-00012-of-00019.safetensors": {
+      "sha256": "04e452c396c98d8db6629fd9a5d53d99c370a254dac2e1ded2550eae37168e83",
+      "size": 546202650
+    },
+    "model-00013-of-00019.safetensors": {
+      "sha256": "d222c1997981bbc10d09b49bd0d58138d20443f992c4a0623520acfc04d89aea",
+      "size": 546182013
+    },
+    "model-00014-of-00019.safetensors": {
+      "sha256": "245bd8443934250e0ec16c220a959098428a001a96fac6f3ab53bb4a62c96d4c",
+      "size": 546202734
+    },
+    "model-00015-of-00019.safetensors": {
+      "sha256": "6df523de99c2d776cc2b1f933b50b6b8af09f6e067d2faa564663468d93ff3d2",
+      "size": 571457251
+    },
+    "model-00016-of-00019.safetensors": {
+      "sha256": "e207f9a4a4ed2efa3b35dbdd9d88d4c92835c13d2a7e86a63199b8bfa7e1de8d",
+      "size": 546202720
+    },
+    "model-00017-of-00019.safetensors": {
+      "sha256": "3f1a67148bcc5e6902ec82a206b725ff7c1a124de3eaf128a4b72169ab25450b",
+      "size": 556851515
+    },
+    "model-00018-of-00019.safetensors": {
+      "sha256": "6e90f8ba45249afd937f698fa8b85f127086fb1295a6e18e3c7f975b51c6e393",
+      "size": 560808458
+    },
+    "model-00019-of-00019.safetensors": {
+      "sha256": "62154681754944fdcb237e77da9d9694aa09eeab453bdb3cb48fe556d85a05bd",
+      "size": 499049563
+    },
+    "model.safetensors.index.json": {
+      "sha256": "333ad3452e0b5552d2b163a7678f95e66a54be912e6466eb3edfa04b2e204fe3",
+      "size": 189789
+    },
+    "tokenizer.json": {
+      "sha256": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4",
+      "size": 19989343
+    },
+    "tokenizer_config.json": {
+      "sha256": "b2bed5e033438f09f22b0ce9522115b4807d9bbcc3b82bf23372cb74d93ed081",
+      "size": 1135
+    }
+  },
+  "legacy_variants": {
+    "config.json": [
+      {
+        "note": "pre-source-only production config.json: same as canonical except text_config also has mtp_num_hidden_layers=1 and mtp_use_dedicated_embeddings=false, which pinned mlx-lm ignores (no MTP weights are shipped)",
+        "sha256": "c61f2d5976fad86b2b893d5ecd5bfbcde80ec42a132514c0723a02582b1710c3",
+        "size": 4091
+      }
+    ]
+  },
+  "model": {
+    "name": "Qwen3.8-27B-3bit-g128-MLX",
+    "quantization": {
+      "bits": 3,
+      "group_size": 128,
+      "mode": "affine"
+    },
+    "source_repo": "Qwen/Qwen3.8-27B",
+    "source_revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
+  },
+  "schema_version": 1,
+  "toolchain": {
+    "mlx": "0.32.1",
+    "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
+    "python": "3.14.7",
+    "tokenizers": "0.22.2",
+    "transformers": "5.15.0"
+  }
+}
