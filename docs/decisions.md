@@ -58,6 +58,34 @@ MLX peak. All 19 shards, the index and the tokenizer files were
 byte-identical to production, covering all 1,847 tensors. Both configs
 produce identical pinned `TextModelArgs` and parameter trees.
 
+## The manifest is the oracle, not a second checkpoint
+
+**Decision:** the BF16 source is the authoritative upstream asset that must
+be recoverable. The g128 checkpoint is a reproducible artifact derived from
+it. Its identity is `tools/g128-reference-manifest.json`, which records the
+size and SHA-256 of all 25 files, the source revision, the quantization and
+the pinned toolchain. Historical or alternate MLX checkpoints no longer need
+to be kept as comparison oracles. A default build verifies itself against
+the manifest before it is published, and `--verify-output` verifies any
+existing directory.
+
+- **Canonical `config.json`:** the source-only builder's output, without
+  the MTP keys. The manifest was generated from the validated 2026-10-02
+  rebuild, which matches production byte for byte in every other file. If
+  the older production config were canonical, every correct future build
+  would fail. The production file was left unmodified. The manifest lists
+  its exact hash as a `legacy_variants` entry, and the generator asserted
+  that it differs from the canonical config only by
+  `mtp_num_hidden_layers: 1` and `mtp_use_dedicated_embeddings: false`.
+  Plain verification rejects that variant by name, and `--allow-legacy`
+  accepts it.
+- **Strictness:** any visible entry not in the manifest is a failure, and
+  hidden entries (`.DS_Store`) are ignored.
+- **Toolchain:** a unit test requires the manifest's toolchain (Python,
+  mlx, mlx-lm revision, transformers, tokenizers) to match `uv.lock`. An
+  upgrade therefore forces the manifest to be revalidated and regenerated
+  deliberately.
+
 ## g64 is not the default
 
 The original `lukaskremla/Qwen3.8-27B-3bit-MLX-TextOnly` uses group size

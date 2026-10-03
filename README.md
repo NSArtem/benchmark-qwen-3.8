@@ -140,29 +140,81 @@ uv run hf download Qwen/Qwen3.8-27B \
 Repeat `--include` for every pattern. If the patterns follow a single
 `--include`, `hf` reads them as filenames and skips the weights.
 
+The reproducibility chain is:
+
+```
+BF16 source (Qwen/Qwen3.8-27B @ 1d4bf0f…)  →  tools/build_g128.py  →  g128 checkpoint
+                                                                      ↓
+                                     tools/g128-reference-manifest.json (SHA-256)
+```
+
+The BF16 source is the asset to keep. The g128 checkpoint can always be
+rebuilt from it, and the committed manifest proves that a rebuild is the
+validated canonical checkpoint. No reference MLX checkpoint is needed.
+
 Build:
 
 ```sh
 SOURCE="$HOME/.cache/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
+OUTPUT="$HOME/models/Qwen3.8-27B-3bit-g128-MLX-rebuild"
 
 uv run python tools/build_g128.py --source "$SOURCE" --self-test
 
 uv run python tools/build_g128.py \
   --source "$SOURCE" \
-  --output "$HOME/models/Qwen3.8-27B-3bit-g128-MLX"
+  --output "$OUTPUT"
 ```
 
 `--self-test` checks the source, the derived config, the model mapping and
 the tokenizer files in a few seconds, without loading weights. The build
 quantizes one layer at a time (peak MLX memory 3.3 GiB) and writes into
-`<output>.partial`, renaming it only when complete. It refuses to overwrite
-an existing output.
+`<output>.partial`. It refuses to overwrite an existing output.
 
-The output is 1,847 tensors (498 quantized modules) in 19 shards, totaling
-10,930,715,648 bytes. A source-only rebuild on 2026-10-02 produced weight
-shards, index and tokenizer files byte-identical to the production
-checkpoint. `config.json` differed only by two dropped MTP keys (see
-[docs/decisions.md](docs/decisions.md)).
+When conversion finishes, the build checks `<output>.partial` against the
+committed manifest. It renames it to `<output>` only if every file matches
+(`PASS: canonical g128 manifest matched`). On a mismatch it prints each
+offending file, leaves the `.partial` directory for inspection and exits
+nonzero. A non-default `--shard-bytes` cannot produce the canonical files,
+so that build skips the check and says so.
+
+### Verifying a checkpoint
+
+```sh
+uv run python tools/build_g128.py --verify-output "$OUTPUT"
+```
+
+```
+PASS
+canonical g128 manifest verified
+25 files
+10,951,147,660 bytes
+SHA-256 all match
+```
+
+Verification uses only the standard library. It does not need the source,
+MLX, the network or another checkpoint. Every listed file must have the
+exact size and SHA-256. Any other visible file or directory fails the check.
+Hidden entries such as `.DS_Store` are ignored. Each failure names its file,
+for example:
+
+```
+FAIL model-00007-of-00019.safetensors: sha256 mismatch
+  expected sha256: …
+  actual sha256:   …
+```
+
+The exit status is 0 on PASS, 1 on any mismatch, and 2 if the manifest itself
+is unreadable or uses an unsupported schema.
+
+The manifest covers 25 files: 19 weight shards, the index, `config.json`,
+`generation_config.json`, `tokenizer.json`, `tokenizer_config.json` and
+`chat_template.jinja`. They total 10,951,147,660 bytes, and the tensor
+payload is 10,930,715,648 bytes (1,847 tensors, 498 quantized modules). The
+canonical `config.json` is the builder's output. The original production
+checkpoint (built before the source-only builder) differs only by two
+ignored MTP keys in `config.json`. The manifest records that file as a
+legacy variant, so a plain `--verify-output` reports it as legacy, and
+`--allow-legacy` accepts it. See [docs/decisions.md](docs/decisions.md).
 
 ## Limitations
 

@@ -123,6 +123,11 @@ builder and the pinned mlx-lm and transformers code.
    `mlx_lm.utils.save_model` computes it. Tokenizer files are re-serialized
    through `TokenizersBackend`. `generation_config.json` is copied. The
    output is checked to tokenize like the source `tokenizer.json`.
+6. **Verify identity.** The staging directory is hashed and compared with
+   `tools/g128-reference-manifest.json` (size and SHA-256 for every file;
+   extra visible files fail). Only a matching build is renamed to the final
+   path. `--verify-output DIR` runs the same check standalone using only the
+   standard library.
 
 ## Limitations
 
