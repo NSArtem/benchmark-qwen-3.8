@@ -8,6 +8,10 @@ requires-python = "==3.14.*"
 dependencies = [
     "mlx==0.32.1",
     "mlx-lm @ git+https://github.com/ml-explore/mlx-lm.git@254d153fdeb6f150edd4fc5a54f9828638481fa8",
+    # Imported directly by tools/build_g128.py and tests; the versions mlx-lm
+    # resolved to when g128 was validated.
+    "tokenizers==0.22.2",
+    "transformers==5.15.0",
 ]
 
 [project.scripts]

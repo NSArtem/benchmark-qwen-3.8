@@ -367,12 +367,16 @@ source = { editable = "." }
 dependencies = [
     { name = "mlx" },
     { name = "mlx-lm" },
+    { name = "tokenizers" },
+    { name = "transformers" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "mlx", specifier = "==0.32.1" },
     { name = "mlx-lm", git = "https://github.com/ml-explore/mlx-lm.git?rev=254d153fdeb6f150edd4fc5a54f9828638481fa8" },
+    { name = "tokenizers", specifier = "==0.22.2" },
+    { name = "transformers", specifier = "==5.15.0" },
 ]
 
 [[package]]
