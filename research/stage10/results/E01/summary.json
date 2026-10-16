@@ -89,6 +89,20 @@
       "swap_mib_before": 913.38,
       "swap_mib_after": 922.94,
       "safety_stop": false
+    },
+    {
+      "ctx": 24576,
+      "prefill_s": 362.8422681669981,
+      "prefill_tok_s": 67.73191040876445,
+      "ttft_s": 365.02906766699743,
+      "decode_tok_s": 7.624381884756839,
+      "peak_mlx_gib": 13.337174510583282,
+      "free_pct_before": 88.0,
+      "free_pct_after": 90.0,
+      "free_pct_min": 22.0,
+      "swap_mib_before": 451.38,
+      "swap_mib_after": 769.5,
+      "safety_stop": false
     }
   ],
   "gen_check": [

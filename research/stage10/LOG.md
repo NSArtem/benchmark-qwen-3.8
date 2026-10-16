@@ -440,3 +440,10 @@ cmd: replace E01–E06 gen_check.json and summary.gen_check; compare against e57
 commit: ffc4616
 result: OK
 facts: six 1024-token checks completed; six summaries changed only in gen_check; six committed 384-token archives equal original JSON; no safety stops.
+
+## 2026-10-16 15:58 AM1 E01 ladder 24576
+cmd: `uv run python -m stage10.ladder --exp E01 --model /Users/artem/models/Qwen3.8-27B-3bit-g128-MLX --loader mlx_lm --weights-gib 10.180244437418878 --ctx 24576`
+commit: 7991e6a
+result: OK
+wall: 6.4m, peak_mlx: 13.34 GiB, swap before/after: 0.44/0.75 GiB
+facts: {"ctx": 24576, "prefill_s": 362.8422681669981, "prefill_tok_s": 67.73191040876445, "ttft_s": 365.02906766699743, "decode_tok_s": 7.624381884756839, "generated_tokens": 128, "peak_mlx_gib": 13.337174510583282, "free_pct_before": 88.0, "swap_mib_before": 451.38, "free_pct_after": 90.0, "swap_mib_after": 769.5, "free_pct_min": 22.0, "safety_stop": false, "exit_code": 0, "wall_s": 386.8512651669953}
