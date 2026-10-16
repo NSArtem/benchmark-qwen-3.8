@@ -1614,6 +1614,20 @@
       "swap_mib_before": 527.0,
       "swap_mib_after": 569.06,
       "safety_stop": false
+    },
+    {
+      "ctx": 32768,
+      "prefill_s": 455.9929951249942,
+      "prefill_tok_s": 71.86075301665066,
+      "ttft_s": 459.334867957994,
+      "decode_tok_s": 3.3886104639916685,
+      "peak_mlx_gib": 14.046690991148353,
+      "free_pct_before": 90.0,
+      "free_pct_after": 90.0,
+      "free_pct_min": 23.0,
+      "swap_mib_before": 553.06,
+      "swap_mib_after": 564.19,
+      "safety_stop": false
     }
   ],
   "gen_check": [
@@ -1656,7 +1670,6 @@
     }
   ],
   "notes": [
-    "Attempt 1 built no decoder layers (code bug, see LOG.md); this summary is attempt 2.",
-    "Ladder: 24576 and 32768 not run because weights > 9.0 GiB."
+    "Attempt 1 built no decoder layers (code bug, see LOG.md); this summary is attempt 2."
   ]
 }

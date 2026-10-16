@@ -489,3 +489,17 @@ commit: 78564c4
 result: OK
 wall: 5.9m, peak_mlx: 13.34 GiB, swap before/after: 0.51/0.56 GiB
 facts: {"ctx": 24576, "prefill_s": 331.5693375839983, "prefill_tok_s": 74.12024338280082, "ttft_s": 334.1872618749985, "decode_tok_s": 7.679818219306462, "generated_tokens": 128, "peak_mlx_gib": 13.337174510583282, "free_pct_before": 90.0, "swap_mib_before": 527.0, "free_pct_after": 90.0, "swap_mib_after": 569.06, "free_pct_min": 22.0, "safety_stop": false, "exit_code": 0, "wall_s": 356.4816187079996}
+
+## 2026-10-16 16:55 AM1 E06 ladder 32768
+cmd: `uv run python -m stage10.ladder --exp E06 --model /Users/artem/models-stage10/E06 --loader candidate --weights-gib 10.180245843715966 --ctx 32768`
+commit: 4768991
+result: OK
+wall: 8.4m, peak_mlx: 14.05 GiB, swap before/after: 0.54/0.55 GiB
+facts: {"ctx": 32768, "prefill_s": 455.9929951249942, "prefill_tok_s": 71.86075301665066, "ttft_s": 459.334867957994, "decode_tok_s": 3.3886104639916685, "generated_tokens": 128, "peak_mlx_gib": 14.046690991148353, "free_pct_before": 90.0, "swap_mib_before": 553.06, "free_pct_after": 90.0, "swap_mib_after": 564.19, "free_pct_min": 23.0, "safety_stop": false, "exit_code": 0, "wall_s": 503.0309152089976}
+
+## 2026-10-16 16:55 AM1 step 5 complete
+cmd: `uv run python -m stage10.ladder`
+commit: 4768991
+result: OK
+wall: n/a, peak_mlx: n/a, swap before/after: n/a
+facts: E01,E03,E05,E06 each have 24576 and 32768 rows; eight independent guarded processes; zero safety stops. E02 and E04 not rerun; exact amendment note added. Superseded missing-length notes removed.

@@ -143,6 +143,6 @@
     }
   ],
   "notes": [
-    "Ladder: 24576 and 32768 not run because weights are 10.193 GiB > 9.0 GiB."
+    "24K/32K ladder not run (amendment 1)"
   ]
 }

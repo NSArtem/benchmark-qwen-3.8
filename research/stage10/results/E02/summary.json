@@ -145,6 +145,6 @@
   "notes": [
     "Pipeline check: 1847 of 1847 tensors byte-identical to production g128 (differing 0, missing 0, extra 0).",
     "Pipeline check: eval nll_mean minus E01 nll_mean = 0.0 in all, en, code, ru; threshold 0.002.",
-    "Ladder: 24576 and 32768 not run because weights are 10.180 GiB > 9.0 GiB."
+    "24K/32K ladder not run (amendment 1)"
   ]
 }

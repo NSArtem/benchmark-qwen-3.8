@@ -16,8 +16,8 @@ difference 0.0; argmax agreement 1.0). A3-sanitize PASS (layers 0 and 3,
 55/55 tensors byte-identical) after a user-authorized resume of the §7 STOP.
 
 Unit tests: 31 pass (`uv run python -m unittest discover -s tests`).
-Next: Amendment 1 step 5: E01/E03/E05 24K/32K and E06 24576 recorded; E06 32768 next.
+Next: Amendment 1 step 6: regenerate RESULTS.md and commit/push, then E07 full rebuild from layer 0.
 
 - [x] AM1 tools
 - [x] AM1 gen-check rerun
-- [ ] AM1 ladder 24K/32K
+- [x] AM1 ladder 24K/32K
