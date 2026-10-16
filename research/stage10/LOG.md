@@ -468,3 +468,10 @@ commit: 823e308
 result: OK
 wall: 9.5m, peak_mlx: 14.43 GiB, swap before/after: 0.57/0.47 GiB
 facts: {"ctx": 32768, "prefill_s": 508.17566716700094, "prefill_tok_s": 64.48163915969535, "ttft_s": 520.9899824169988, "decode_tok_s": 3.2854124241273666, "generated_tokens": 128, "peak_mlx_gib": 14.425536205992103, "free_pct_before": 90.0, "swap_mib_before": 584.69, "free_pct_after": 90.0, "swap_mib_after": 483.81, "free_pct_min": 22.0, "safety_stop": false, "exit_code": 0, "wall_s": 567.8165553340004}
+
+## 2026-10-16 16:30 AM1 E05 ladder 24576
+cmd: `uv run python -m stage10.ladder --exp E05 --model /Users/artem/models-stage10/E03 --loader candidate --rotate-dtype bfloat16 --weights-gib 10.19297650270164 --ctx 24576`
+commit: 8ee4c0d
+result: OK
+wall: 6.1m, peak_mlx: 13.47 GiB, swap before/after: 0.46/0.67 GiB
+facts: {"ctx": 24576, "prefill_s": 333.2947553749982, "prefill_tok_s": 73.73653381478785, "ttft_s": 335.8182301659981, "decode_tok_s": 5.539084311285164, "generated_tokens": 128, "peak_mlx_gib": 13.468054866418242, "free_pct_before": 90.0, "swap_mib_before": 467.81, "free_pct_after": 90.0, "swap_mib_after": 689.94, "free_pct_min": 23.0, "safety_stop": false, "exit_code": 0, "wall_s": 367.21140958400065}
