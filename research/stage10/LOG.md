@@ -538,3 +538,17 @@ commit: 2fcd2ea
 result: OK (build still running)
 wall: n/a, peak_mlx: n/a, swap before/after: n/a
 facts: Layers 0–47 completed; layer 47 wall 175.8 s; peak MLX so far 15.73 GiB. Watchdog attached; no SAFETY STOP or listed allocation/timeout errors in full log scans. Layer 48 in progress. No measurements run yet.
+
+## 2026-10-16 20:05 E07 build
+cmd: `uv run python -m stage10.build --exp E07`
+commit: 6779e2c
+result: OK
+wall: 189.1m, peak_mlx: 15.73 GiB, swap before/after: 0.52/0.65 GiB
+facts: checkpoint /Users/artem/models-stage10/E07, bytes 10944625162, gib 10.192976484075189, bpw 3.255301921496691; build wall 11344.905396666 s; min free 27.0%
+
+## 2026-10-16 20:05 E07 build metadata verification
+cmd: `uv run python`
+commit: 6779e2c
+result: OK
+wall: n/a, peak_mlx: 15.73 GiB, swap before/after: n/a
+facts: 498 modules; bits=3, group_size=128, block=1024, rotate_dtype=bfloat16 for all; 496 MSE pairs; Cholesky events 0; checkpoint bytes 10944625162, gib 10.192976484075189, bpw 3.255301921496691
