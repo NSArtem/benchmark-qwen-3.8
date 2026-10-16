@@ -14,3 +14,13 @@
   stream after filtering. The implementation numbers only articles that pass
   the 2000-character filter, then selects those ordinal ranges.
 
+## STOP — 2026-10-16
+
+- A3-loop passed: 4094 scored positions, max absolute log-probability
+  difference 0.0, argmax agreement 1.0.
+- A3-sanitize attempt 3 failed after two code fixes with
+  `ValueError: 'bfloat16' is not a valid PEP 3118 buffer format string` in
+  `_same_bytes`. No tensor comparisons were produced. TASK.md §7 says to stop
+  the whole task after two honest fix attempts; no further A3-sanitize run was
+  made.
+

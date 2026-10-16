@@ -10,3 +10,7 @@
 - [ ] A10 summary + make_table
 - [ ] E00 - [ ] E01 - [ ] E02 - [ ] E03 - [ ] E04 - [ ] E05 - [ ] E06 - [ ] E07
 - [ ] E08 - [ ] E09 - [ ] E10 - [ ] E11 - [ ] E12 - [ ] E13 - [ ] E14 - [ ] E15
+
+Recorded checks: A3-loop PASS (4094 positions; max absolute log-probability
+difference 0.0; argmax agreement 1.0). A3-sanitize STOP under TASK.md §7
+after two code fixes; see LOG.md and QUESTIONS.md.

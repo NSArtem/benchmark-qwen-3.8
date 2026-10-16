@@ -70,6 +70,20 @@ def preflight() -> HostState:
     return state
 
 
+def wait_for_preflight(*, interval_s: int = 900, max_wait_s: int = 3600) -> HostState:
+    """Retry a blocked preflight every 15 minutes for up to one hour."""
+    started = time.monotonic()
+    while True:
+        try:
+            return preflight()
+        except HostNotReady:
+            elapsed = time.monotonic() - started
+            remaining = max_wait_s - elapsed
+            if remaining <= 0:
+                raise
+            time.sleep(min(interval_s, remaining))
+
+
 def run_guarded(cmd: Sequence[str], log_path: str | Path) -> tuple[int, bool]:
     """Run one command with the repository memory watchdog attached.
 

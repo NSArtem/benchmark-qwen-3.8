@@ -58,3 +58,45 @@ commit: pending
 result: OK
 wall: approximately 1m23s; peak_mlx: n/a; swap before/after: n/a
 facts: Wikitext revision b08601e04326c79dfdd32d625aee71d232d685c3; Wikipedia revision b04c8d1ceb2f5cd4588862100d08de323dccfbaa. Six int32 arrays were written under `benchmarks/results/stage10/data/`, each 16x2048 (eval) or 32x2048 (calibration). Per-file SHA-256 and Python stdlib file lists are in `data_manifest.json`. No model weights were loaded.
+
+## 2026-10-16 A3-loop attempt 1
+cmd: `uv run python -m stage10.check_a3 --mode loop`
+commit: pending
+result: FAILED_ERROR
+wall: 35.1s; peak_mlx: not recorded; swap before/after: 0/553.9 MiB
+facts: preflight free=88%, swap=0 MiB. Watchdog minimum free sample was 33%; watchdog did not fire. Production checkpoint loaded. Comparison stopped at `AttributeError: module 'mlx.core' has no attribute 'log_softmax'` while scoring normal logits. No threshold result was produced.
+
+## 2026-10-16 A3-loop attempt 2
+cmd: `uv run python -m stage10.check_a3 --mode loop`
+commit: pending
+result: FAILED_ERROR
+wall: 35.1s; peak_mlx: not recorded; swap before/after: 545.9/634.4 MiB
+facts: preflight free=90%, swap=545.9 MiB. Watchdog minimum free sample was 31%; watchdog did not fire. Normal-call scoring completed. Manual pass stopped at `AttributeError: 'Qwen3_5TextModel' object has no attribute 'args'`; the `TextModel` wrapper owns `args`.
+
+## 2026-10-16 A3-loop pass
+cmd: `uv run python -m stage10.check_a3 --mode loop`
+commit: pending
+result: OK
+wall: 115.4s; peak_mlx: not recorded; swap before/after: 610.3/482.3 MiB
+facts: preflight free=89%, swap=610.3 MiB. Watchdog minimum free sample was 36%; watchdog did not fire. 2 sequences, 4094 scored positions, max absolute log-probability difference 0.0, argmax agreement 1.0. Result: `benchmarks/results/stage10/checks/a3_loop.json`.
+
+## 2026-10-16 A3-sanitize attempt 1
+cmd: `uv run python -m stage10.check_a3 --mode sanitize`
+commit: pending
+result: FAILED_ERROR
+wall: 5.0s; peak_mlx: not recorded; swap before/after: 482.3/482.3 MiB
+facts: preflight free=87%, swap=482.3 MiB; watchdog did not fire. Selective read failed on the BF16 source layer with `TypeError: data type 'bfloat16' not understood` in the installed safetensors MLX reader. No tensor comparisons were produced.
+
+## 2026-10-16 A3-sanitize attempt 2
+cmd: `uv run python -m stage10.check_a3 --mode sanitize`
+commit: pending
+result: FAILED_ERROR
+wall: 5.0s; peak_mlx: not recorded; swap before/after: 458.3/458.3 MiB
+facts: preflight free=87%, swap=458.3 MiB; watchdog did not fire. The source tensor reader loaded BF16 arrays; byte comparison stopped at NumPy conversion with `ValueError: 'bfloat16' is not a valid PEP 3118 buffer format string`. No tensor comparisons were produced.
+
+## 2026-10-16 A3-sanitize attempt 3 and task stop
+cmd: `uv run python -m stage10.check_a3 --mode sanitize`
+commit: pending
+result: FAILED_ERROR; STOP per TASK.md §7
+wall: 5.0s; peak_mlx: not recorded; swap before/after: 458.3/458.3 MiB
+facts: preflight free=87%, swap=458.3 MiB; watchdog did not fire. After two code fixes, byte comparison still raised `ValueError: 'bfloat16' is not a valid PEP 3118 buffer format string`. No tensor comparisons or dequantized differences were produced. A3-loop result remains 2 sequences, 4094 positions, max absolute log-probability difference 0.0, argmax agreement 1.0.
