@@ -1,0 +1,22 @@
+[project]
+name = "qwen38-stage10"
+version = "0.1.0"
+description = "Stage 10 quantization measurement tools for Qwen3.8-27B"
+requires-python = "==3.14.*"
+dependencies = [
+    "mlx==0.32.4",
+    "mlx-lm==0.32.1",
+    "numpy",
+    "safetensors",
+    "datasets",
+    "transformers",
+    "tokenizers",
+    "huggingface_hub",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["stage10"]
