@@ -293,3 +293,37 @@ commit: c9ddf8a
 result: OK
 wall: 6.0m, peak_mlx: 13.34 GiB, swap before/after: 0.83/0.82 GiB
 facts: trial of the GPTQ builder on layers 0-1 of the real BF16 source into git-ignored `benchmarks/results/stage10/smoke/E06/` (not a candidate). 96 calibration sequences, hidden (96, 2048, 5120). Layer 0 175.2 s, layer 1 173.6 s. Watchdog minimum free 35%; no SAFETY STOP. No Cholesky retries or RTN fallbacks. 16 per-module output MSE pairs recorded in `benchmarks/results/stage10/E06/smoke_build.json`.
+
+## 2026-10-16 08:39 E06 build
+cmd: `uv run python -m stage10.build --exp E06`
+commit: ff4a742
+result: OK
+wall: 0.2m, peak_mlx: 5.21 GiB, swap before/after: 0.82/0.82 GiB
+facts: checkpoint /Users/artem/models-stage10/E06, bytes 1033022233, gib 0.9620769256725907, bpw 0.30726403211742315; build wall 8.28055945900087 s; min free 85.0%
+
+## 2026-10-16 08:39 E06 eval
+cmd: `uv run python -m stage10.evaluate --exp E06 --model /Users/artem/models-stage10/E06 --loader candidate`
+commit: ff4a742
+result: FAILED_ERROR (exit 1)
+wall: 0.1m, peak_mlx: n/a, swap before/after: 0.82/0.82 GiB
+facts: error: language_model.model.layers.9.post_attention_layernorm.weight.[0m
+
+## 2026-10-16 08:39 E06 gen-check
+cmd: `uv run python -m stage10.gen_check --exp E06 --model /Users/artem/models-stage10/E06 --loader candidate`
+commit: ff4a742
+result: FAILED_ERROR (exit 1)
+wall: 0.1m, peak_mlx: n/a, swap before/after: 0.82/0.82 GiB
+facts: error: language_model.model.layers.9.post_attention_layernorm.weight.[0m
+
+## 2026-10-16 08:39 E06 ladder
+cmd: `uv run python -m stage10.ladder --exp E06 --model /Users/artem/models-stage10/E06 --loader candidate --weights-gib 0.9621`
+commit: ff4a742
+result: FAILED_ERROR (exit 1)
+wall: 0.1m, peak_mlx: n/a, swap before/after: 0.82/0.82 GiB
+facts: ctx 4096: decode None, prefill None tok/s, ttft None s, peak None GiB, min free 88.0%, safety_stop False, exit 1
+
+## 2026-10-16 08:45 E06 attempt 1 cause and fix
+cmd: none (code fix)
+commit: ff4a742 + uncommitted fix
+result: FAILED_ERROR (attempt 1 above)
+facts: E06 attempt 1 "build OK" wrote no decoder layers: `--smoke-layers` defaults to 0 and was passed as `max_layers=0`, so the layer loop ran `range(0)`; checkpoint 1,033,022,233 bytes (embed_tokens, lm_head, norm only). Eval and gen-check then failed at load with a missing key (`language_model.model.layers.9.post_attention_layernorm.weight`); the ladder failed at 4096 with exit 1. Fix: 0 now means all layers. `CandidateWriter.finish` now raises if any module listed in `config.json` lacks weight/scales/biases (and signs when rotated); unit test added (28 tests pass). Attempt-1 output moved, not deleted: `/Users/artem/models-stage10/E06.broken-0layers-20261016/`, `benchmarks/results/stage10/E06.broken-0layers/`.

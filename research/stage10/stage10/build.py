@@ -192,11 +192,11 @@ def _child(args) -> None:
     elif recipe.method == "gptq":
         from .gptq import build_gptq
 
-        params = build_gptq(args.exp, recipe_name, output, args.smoke_layers)
+        params = build_gptq(args.exp, recipe_name, output, args.smoke_layers or None)
     elif recipe.method == "awq":
         from .awq import build_awq
 
-        params = build_awq(args.exp, recipe_name, output, args.smoke_layers)
+        params = build_awq(args.exp, recipe_name, output, args.smoke_layers or None)
     else:
         raise ValueError(recipe.method)
     build = {

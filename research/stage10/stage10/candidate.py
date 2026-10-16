@@ -203,6 +203,15 @@ class CandidateWriter:
 
     def finish(self, config: dict[str, Any], tokenizer_dir: Path | None = PRODUCTION) -> None:
         self.flush()
+        written = {key for _name, keys in self.shards for key in keys}
+        missing = [
+            f"{record['path']}.{name}"
+            for record in config["stage10"]["modules"]
+            for name in ("weight", "scales", "biases") + (("signs",) if record["block"] else ())
+            if f"{record['path']}.{name}" not in written
+        ]
+        if missing:
+            raise ValueError(f"candidate is missing {len(missing)} module tensors, e.g. {missing[:3]}")
         weight_map = {}
         for name, keys in self.shards:
             final = name.replace(".safetensors", f"-of-{len(self.shards):05d}.safetensors")

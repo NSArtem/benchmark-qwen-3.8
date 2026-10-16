@@ -132,9 +132,23 @@ class CandidateTest(unittest.TestCase):
             writer = CandidateWriter(Path(tmp))
             for key, value in params.items():
                 writer.add(key, value)
-            writer.finish(config, tokenizer_dir=None)
+            # The writer refuses this candidate; write it past that guard so the
+            # loader's own strict check is what is tested here.
+            with self.assertRaises(ValueError):
+                writer.finish(config, tokenizer_dir=None)
+            writer.finish(candidate_config(TINY, "T0", "tiny", 0, []), tokenizer_dir=None)
+            (Path(tmp) / "config.json").write_text(json.dumps(config))
             with self.assertRaises(ValueError):
                 load_candidate(tmp)
+
+    def test_finish_rejects_missing_module_tensors(self):
+        path = "language_model.model.layers.0.mlp.down_proj"
+        config = candidate_config(TINY, "T0", "tiny", 0, [module_record(path, 3, 0)])
+        with tempfile.TemporaryDirectory() as tmp:
+            writer = CandidateWriter(Path(tmp))
+            writer.add("language_model.model.norm.weight", mx.ones((256,)))
+            with self.assertRaises(ValueError):
+                writer.finish(config, tokenizer_dir=None)
 
     def test_rotate_dtype_override(self):
         model = float_model()
