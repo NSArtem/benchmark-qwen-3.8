@@ -118,7 +118,7 @@ def fold_scales(sanitized: dict[str, Any], layer_idx: int, group: str, members: 
     mx.eval(*sanitized.values())
 
 
-def build_awq(exp_id: str, recipe_name: str, output: Path) -> dict:
+def build_awq(exp_id: str, recipe_name: str, output: Path, max_layers: int | None = None) -> dict:
     import mlx.core as mx
 
     from .build import RECIPES, _store_tensor, module_records
@@ -134,7 +134,7 @@ def build_awq(exp_id: str, recipe_name: str, output: Path) -> dict:
     records = module_records(model, recipe)
     by_path = {record["path"]: record for record in records}
     args = text_args(plan["config"])
-    log_path = Path(__file__).resolve().parents[3] / "benchmarks/results/stage10" / exp_id / "build_progress.log"
+    log_path = Path(__file__).resolve().parents[3] / "benchmarks/results/stage10" / exp_id / ("build_progress.log" if max_layers is None else "smoke_progress.log")
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
     def log(message: str) -> None:
@@ -155,7 +155,7 @@ def build_awq(exp_id: str, recipe_name: str, output: Path) -> dict:
     hidden = split_batches(calibration_embeddings(plan, model, tokens, recipe.rotate, recipe.seed))
     chosen: list[dict] = []
 
-    for layer_idx in range(args.num_hidden_layers):
+    for layer_idx in range(args.num_hidden_layers if max_layers is None else max_layers):
         t0 = time.monotonic()
         sanitized = cast_layer_weights(
             load_sanitized_layer(model, plan["source"], plan["weight_map"], layer_idx), cast_predicate

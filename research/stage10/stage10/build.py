@@ -176,6 +176,8 @@ def _child(args) -> None:
     recipe_name = EXPERIMENTS[args.exp]
     recipe = RECIPES[recipe_name]
     output = CANDIDATES / args.exp
+    if args.smoke_layers:
+        output = RESULTS / "smoke" / args.exp
     if args.compare_production:
         result = compare_with_production(output)
         write_json(RESULTS / args.exp / "production_compare.json", result)
@@ -183,16 +185,18 @@ def _child(args) -> None:
         return
     started = time.monotonic()
     mx.reset_peak_memory()
+    if args.smoke_layers and recipe.method == "rtn":
+        raise SystemExit("--smoke-layers applies to GPTQ and AWQ only")
     if recipe.method == "rtn":
         params = build_rtn(args.exp, recipe_name, output)
     elif recipe.method == "gptq":
         from .gptq import build_gptq
 
-        params = build_gptq(args.exp, recipe_name, output)
+        params = build_gptq(args.exp, recipe_name, output, args.smoke_layers)
     elif recipe.method == "awq":
         from .awq import build_awq
 
-        params = build_awq(args.exp, recipe_name, output)
+        params = build_awq(args.exp, recipe_name, output, args.smoke_layers)
     else:
         raise ValueError(recipe.method)
     build = {
@@ -209,6 +213,10 @@ def _child(args) -> None:
             **params,
         },
     }
+    if args.smoke_layers:
+        write_json(RESULTS / args.exp / "smoke_build.json", build)
+        print(json.dumps({k: v for k, v in build.items() if k != "params"}))
+        return
     write_json(RESULTS / args.exp / "build.json", build)
     write_json(RESULTS / args.exp / "checkpoint.json", checkpoint_size(output))
     print(json.dumps({k: v for k, v in build.items() if k != "params"}))
@@ -218,13 +226,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--exp", required=True, choices=sorted(EXPERIMENTS))
     parser.add_argument("--compare-production", action="store_true")
+    parser.add_argument("--smoke-layers", type=int, default=0, help="GPTQ/AWQ trial on the first N layers into benchmarks/results/stage10/smoke/")
     parser.add_argument("--child", action="store_true")
     args = parser.parse_args()
     if args.child:
         _child(args)
         return
     extra = ["--compare-production"] if args.compare_production else []
-    name = "compare" if args.compare_production else "build"
+    if args.smoke_layers:
+        extra += ["--smoke-layers", str(args.smoke_layers)]
+    name = "compare" if args.compare_production else ("smoke" if args.smoke_layers else "build")
     result = guarded_module(
         "stage10.build", ["--child", "--exp", args.exp, *extra], RESULTS / "logs" / f"{args.exp}_{name}.log"
     )
