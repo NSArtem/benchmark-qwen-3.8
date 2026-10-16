@@ -16,7 +16,7 @@ difference 0.0; argmax agreement 1.0). A3-sanitize PASS (layers 0 and 3,
 55/55 tensors byte-identical) after a user-authorized resume of the §7 STOP.
 
 Unit tests: 31 pass (`uv run python -m unittest discover -s tests`).
-Next: E07 build and 48-sequence eval complete; gen-check next, then five ladder lengths. Continue E08–E15 in order. E14 must be SKIPPED_UNSAFE with existing wired-limit grep evidence.
+Next: E07 build, eval and 1024-token gen-check complete; five ladder lengths next. Continue E08–E15 in order. E14 must be SKIPPED_UNSAFE with existing wired-limit grep evidence.
 
 - [x] AM1 tools
 - [x] AM1 gen-check rerun

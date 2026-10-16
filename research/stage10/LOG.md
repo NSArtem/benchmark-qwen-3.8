@@ -559,3 +559,10 @@ commit: 696d9e1
 result: OK
 wall: 21.7m, peak_mlx: 10.94 GiB, swap before/after: 0.60/0.41 GiB
 facts: all: nll 1.39118, delta 0.09749, top1 0.8612, kl_top32 0.14121; en: nll 1.95899, delta 0.08437, top1 0.8392, kl_top32 0.11839; code: nll 0.81096, delta 0.12658, top1 0.8777, kl_top32 0.20098; ru: nll 1.40359, delta 0.08151, top1 0.8667, kl_top32 0.10427
+
+## 2026-10-16 20:29 E07 gen-check
+cmd: `uv run python -m stage10.gen_check --exp E07 --model /Users/artem/models-stage10/E07 --loader candidate`
+commit: 3c099f4
+result: OK
+wall: 2.3m, peak_mlx: n/a, swap before/after: 0.40/0.40 GiB
+facts: P1: n 321, eos True, distinct4 0.884, max4 3; P2: n 448, eos True, distinct4 0.780, max4 7, has_187 True; P3: n 288, eos True, distinct4 0.975, max4 3; P4: n 207, eos True, distinct4 0.691, max4 6, json_valid True; P5: n 165, eos True, distinct4 1.000, max4 1
