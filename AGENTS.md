@@ -1,79 +1,117 @@
-# Project instructions
+# Agent instructions
 
-This repository maintains a single-user Qwen3.8-27B MLX runtime: the
-`qwen38-chat` CLI and the serialized OpenAI-compatible `qwen38-server`. See
-`README.md` for usage and `docs/` for architecture, decisions, and
-performance.
+This repository holds a single-user Qwen3.8-27B MLX runtime (the
+`qwen38-chat` CLI and the serialized OpenAI-compatible `qwen38-server`) and
+the research behind it. See `README.md` for usage and `docs/` for the
+architecture, the decisions, and the performance figures.
 
-The research phase is closed. Its history is preserved in git under tag
-`research-stage8-complete`. Do not restore research trees into HEAD. If you
-need old evidence, read it from the tag
-(`git show research-stage8-complete:<path>`).
+## Current stage: Stage 10 (quantization research)
 
-## Hardware and model
+**The active task is `TASK.md`. Read it fully before doing anything.** It
+asks you to build measurement tools, build new quantized checkpoints, and
+record numbers. Earlier stages declared weight-quantization research out of
+scope. Stage 10 lifts that restriction, for the experiments listed in
+`TASK.md` only.
 
-- MacBook Pro, Apple M3 Pro, 18 GB unified memory. Memory residency is the
-  binding constraint.
-- The only supported model is Qwen3.8-27B affine 3-bit, group 128, at
-  `/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX` (~10.18 GiB). Never modify
-  files under `/Users/artem/models/`.
-- Practical context is 12K–16K tokens.
+## How to work
 
-## Environment
+- Follow `TASK.md` literally and in order. Use the exact numbers it gives.
+- You collect data; you do not draw conclusions. Never write "better",
+  "worse", "recommend", or a verdict in any file. Write numbers, statuses,
+  commands, and error messages.
+- Do not add, remove, reorder, or "improve" experiments. Put new ideas in
+  `research/stage10/IDEAS.md` and do not run them.
+- If something is unclear or blocked, write it to
+  `research/stage10/QUESTIONS.md`, take the option that changes the least,
+  and move on. Stop only on the STOP rules in `TASK.md` §7.
+- Write a unit test before using new code on real weights, where `TASK.md`
+  asks for one. A failing test means you fix the code. You never weaken the
+  test.
+- Keep `research/stage10/PROGRESS.md` and `research/stage10/LOG.md` up to
+  date after every step, so that work can resume after an interruption.
+  When you start or resume, read PROGRESS.md and the end of LOG.md first.
 
-- Install with `uv sync --locked` and run with `uv run ...` from the
-  repository root.
-- Pins are exact and validated: Python 3.14.7, `mlx==0.32.1`, and `mlx-lm` at
-  `254d153fdeb6f150edd4fc5a54f9828638481fa8`. Do not upgrade, relock with
-  `--upgrade`, or loosen these pins as a side effect of other work. Any
-  runtime upgrade must be its own deliberate, re-validated change.
-- Do not add dependencies the runtime, tests, benchmark, or build tool do
-  not need.
+## Hardware and paths
 
-## System safety
+- MacBook Pro, Apple M3 Pro, 18 GB unified memory. Memory is the binding
+  constraint.
+- Production model (read-only):
+  `/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX` (~10.18 GiB). **Never
+  create, modify, or delete anything under `/Users/artem/models/`.**
+- BF16 source (read-only):
+  `$HOME/.cache/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0`.
+  Do not modify or delete it.
+- Stage 10 candidates: `/Users/artem/models-stage10/<EXP_ID>/`. Disk is not
+  a constraint; keep everything.
 
-- Never modify `sudo sysctl iogpu.wired_limit_mb`.
-- Never call `mx.set_wired_limit()`. Do not use mlx-lm's `stream_generate` /
-  `wired_limit` wrapper; the runtime calls `generate_step` directly.
-- Never run two heavy Qwen/MLX workloads at the same time.
+## System safety (overrides everything else)
+
+- Never change `iogpu.wired_limit_mb` (`sysctl`). Never call
+  `mx.set_wired_limit()`. Never use mlx-lm's `stream_generate` or its
+  `wired_limit` wrapper; call `generate_step` directly. Never set an
+  environment variable that raises a wired limit (for example
+  `ESCHA_MLX_WIRED_GB`).
+- Never run two heavy MLX workloads at the same time. Heavy means anything
+  that loads more than 2 GB of weights.
+- Before every heavy run, check memory (`memory_pressure -Q`,
+  `sysctl vm.swapusage`). Run every heavy job under
+  `tools/memory_watchdog.sh <pid> <log>`.
 - Stop immediately on Metal OOM, GPU timeout, WindowServer instability,
   major unresponsiveness, repeated failed allocations, or near-exhausted
-  swap. Check memory and swap before heavy runs (`memory_pressure -Q`,
-  `sysctl vm.swapusage`).
+  swap.
+- Never kill or close the user's applications to free memory.
 
-## Correctness invariants
+## Production runtime: frozen during Stage 10
 
-- Persistent chat is exact-suffix. The cache may only ever receive the exact
-  canonical suffix after the tokens it already holds. Recurrent
-  `ArraysCache` state cannot be trimmed.
-- Generated token IDs are authoritative. Decoded text is for API responses
-  only.
-- If cache reuse cannot be proven for a valid transcript, fresh-prefill. Do
-  not return an error just because a cache optimization missed.
-- Correctness comes before cache hit rate and before speed.
+- Do not modify `src/`, `tools/`, `tests/`, `docs/`, `benchmarks/*.py`,
+  `README.md`, the root `pyproject.toml`, or the root `uv.lock`. Exception:
+  you may *read* and *run* `tools/memory_watchdog.sh` and copy code from
+  `tools/build_g128.py`.
+- The production stack stays pinned (Python 3.14.7, `mlx==0.32.1`,
+  `mlx-lm` at `254d153fdeb6f150edd4fc5a54f9828638481fa8`). Production
+  checks: `uv run python -m unittest discover -s tests` and
+  `uv run qwen38-server --self-test`, both from the repository root.
+- Runtime invariants that any later production change must keep:
+  - persistent chat is exact-suffix, and recurrent `ArraysCache` state is
+    never trimmed;
+  - generated token IDs are authoritative;
+  - when cache reuse cannot be proven, fresh-prefill instead of erroring.
 
-## Validation
+## Research environment
 
-- Unit and regression tests use no weights and no Metal:
-  `uv run python -m unittest discover -s tests`.
-- Protocol check without loading the model:
-  `uv run qwen38-server --self-test`.
-- The real-model integration benchmark is `benchmarks/long_agent.py`. It
-  loads 27B; run it only on a healthy host and never concurrently with
-  another heavy MLX process.
-- Run a short real-model smoke only when a change touches generation or
-  cache code.
+- All Stage 10 code lives in `research/stage10/`, a separate uv project
+  with its own `pyproject.toml` and `uv.lock`. Run it with
+  `cd research/stage10 && uv run ...`. There you use the newest mlx and
+  mlx-lm releases (`TASK.md` §2). Pin them exactly and record them.
+- The reference runtime for E14 lives in its own uv project,
+  `research/stage10/escha/`.
+- Unit tests: `cd research/stage10 && uv run python -m unittest discover -s tests`.
+  They must not load 27B weights or need more than a few GB.
+- Older research evidence may exist under the git tag
+  `research-stage8-complete` on the local machine only (it is not on
+  GitHub). Read it with `git show research-stage8-complete:<path>` if you
+  need it. Do not restore it into HEAD.
 
-## Out of scope unless explicitly requested
+## Data hygiene
 
-Static weight quantization or DWQ research, MTP or speculative decoding,
-GGUF/llama.cpp, contexts of 20K and above, multi-user batching or concurrent
-serving, and wired-memory tuning.
+- Never commit model weights, Hugging Face caches, virtualenvs, `.npy`
+  arrays, or raw logs. Large outputs go to the git-ignored
+  `benchmarks/results/stage10/`.
+- What you commit: code, tests, `research/stage10/*.md`,
+  `data_manifest.json`, and `results/<EXP_ID>/summary.json` and
+  `gen_check.json`.
+- The root `.gitignore` ignores any path named `fixtures`, `long_agent.py`,
+  `pi_agent.py`, `pi_fixtures`, or `tool_smoke.py`, wherever it is. Do not
+  give Stage 10 files or directories these names. After every commit, check
+  `git status --ignored research/` for files that were silently ignored.
 
 ## Git
 
-- Start with `git status` and `git log --oneline -20`. Preserve unrelated
-  changes. Never `git reset --hard` or `git clean -fd`.
-- Never commit model weights, Hugging Face caches, virtualenvs, or large raw
-  traces. Write benchmark outputs to the git-ignored `benchmarks/results/`.
-- Use focused, logical commits.
+- Work directly on `main`. At the start of every session run
+  `git status` and `git log --oneline -20`.
+- Commit after each completed tool (Phase A item) and after each
+  experiment, with focused messages, for example
+  `stage10: add GPTQ builder` or `stage10: E07 results`.
+- Before pushing: `git pull --rebase origin main`, then
+  `git push origin main`. Never force-push, never `git reset --hard`, and
+  never `git clean -fd`. Preserve changes you did not make.
