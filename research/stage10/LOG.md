@@ -552,3 +552,10 @@ commit: 6779e2c
 result: OK
 wall: n/a, peak_mlx: 15.73 GiB, swap before/after: n/a
 facts: 498 modules; bits=3, group_size=128, block=1024, rotate_dtype=bfloat16 for all; 496 MSE pairs; Cholesky events 0; checkpoint bytes 10944625162, gib 10.192976484075189, bpw 3.255301921496691
+
+## 2026-10-16 20:27 E07 eval
+cmd: `uv run python -m stage10.evaluate --exp E07 --model /Users/artem/models-stage10/E07 --loader candidate`
+commit: 696d9e1
+result: OK
+wall: 21.7m, peak_mlx: 10.94 GiB, swap before/after: 0.60/0.41 GiB
+facts: all: nll 1.39118, delta 0.09749, top1 0.8612, kl_top32 0.14121; en: nll 1.95899, delta 0.08437, top1 0.8392, kl_top32 0.11839; code: nll 0.81096, delta 0.12658, top1 0.8777, kl_top32 0.20098; ru: nll 1.40359, delta 0.08151, top1 0.8667, kl_top32 0.10427
