@@ -18,6 +18,9 @@ are unsure, follow section 9 ("When something is unclear").
 Work until the Definition of Done (section 10) is met. This task is long
 (days of machine time). That is expected.
 
+**Resuming after 2026-10-16?** Phase A and E00–E06 are done. Read section
+12 (amendment 1) first and follow it before continuing the matrix.
+
 Read `AGENTS.md` first. Its safety rules override anything in this file.
 
 ## 1. Background (facts, no action needed)
@@ -314,8 +317,8 @@ One context length per process (`--ctx N`), always through `run_guarded`.
    2..128), `peak_mlx_gib` (`mx.get_peak_memory()`), free % and swap MiB
    before and after, the minimum free % seen by the watchdog, and
    `safety_stop` (bool).
-4. Context lengths: 4096, 8192, 16384 for every candidate. Add 24576 and
-   32768 only for candidates whose weights are ≤ 9.0 GiB.
+4. Context lengths: 4096, 8192, 16384, 24576, 32768 for every candidate
+   (amendment 1; the earlier ≤ 9.0 GiB limit is removed).
 5. Run the lengths in increasing order. After a safety stop, record it and
    skip the larger lengths for that candidate.
 6. Wait until `preflight()` passes before each run.
@@ -323,7 +326,7 @@ One context length per process (`--ctx N`), always through `run_guarded`.
 ### A9. Generation check (`stage10/gen_check.py`)
 
 Apply the chat template with `enable_thinking=False`. Decode greedily, at
-most 384 tokens. Use these five fixed prompts:
+most 1024 tokens (amendment 1; was 384). Use these five fixed prompts:
 
 - `P1`: `Write a Python function merge_intervals(intervals) that merges overlapping intervals. Include a docstring and three doctest examples.`
 - `P2`: `A train leaves at 14:35 and arrives at 18:10 the same day. It stops for 7 minutes at each of 4 stations. How many minutes is it actually moving? Explain step by step.`
@@ -382,7 +385,9 @@ Defaults for every recipe:
   and `lm_head`;
 - seed 0;
 - bf16 activations;
-- rotation compute dtype float32.
+- rotation compute dtype (runtime activation rotation, `rotate_dtype`):
+  float32 for E03 and E04; **bfloat16 for E07–E12** (amendment 1). Weight
+  folding at build time is always done in float32.
 
 | ID | Recipe | What |
 | --- | --- | --- |
@@ -573,7 +578,7 @@ facts: <numbers, errors, file paths; no opinions>
 - E00–E15 each have a `summary.json` with a final status.
 - `RESULTS.md` is regenerated from all summaries.
 - PROGRESS.md is fully checked, and everything is committed and pushed to
-  `main`.
+  branch `stage-10`.
 
 ## 11. PROGRESS.md checklist (copy this into PROGRESS.md at the start)
 
@@ -591,3 +596,51 @@ facts: <numbers, errors, file paths; no opinions>
 - [ ] E00 - [ ] E01 - [ ] E02 - [ ] E03 - [ ] E04 - [ ] E05 - [ ] E06 - [ ] E07
 - [ ] E08 - [ ] E09 - [ ] E10 - [ ] E11 - [ ] E12 - [ ] E13 - [ ] E14 - [ ] E15
 ```
+
+## 12. Amendment 1 (2026-10-16): resume instructions
+
+State at the time of this amendment: Phase A done; E00–E06 done with
+committed summaries; the E07 build was aborted by the user after layer 48
+(partial output in `/Users/artem/models-stage10/E07.aborted-layer48-20261016/`,
+leave it there). Work now lives on branch **`stage-10`**, not `main`.
+
+Changes to the task (already edited into the sections above):
+
+- A9: generation limit 1024 tokens instead of 384. With 384, every model
+  hit the limit on P2 before stating the final answer, so `p2_has_187`
+  carried no information.
+- A8: every candidate is measured at 4096, 8192, 16384, 24576 and 32768.
+  On the new stack the 16K peak is ~13 GiB, so the old ≤ 9.0 GiB limit for
+  24K/32K is removed. The safety-stop rule (A8 step 5) still applies.
+- Section 4 defaults: runtime `rotate_dtype` is bfloat16 for E07–E12.
+  E03/E04 keep float32; E05 already measured bfloat16 on E03's weights.
+
+Do these steps in order, then continue the matrix:
+
+1. `git fetch origin && git checkout stage-10 && git pull --rebase origin stage-10`.
+   Read PROGRESS.md and the end of LOG.md.
+2. Update the git-ignored `benchmarks/results/stage10/finish_exp.sh` (and
+   any other script) so that it pulls from and pushes to `stage-10`, never
+   `main`. Grep the Stage 10 code for `main` to make sure.
+3. Change `gen_check.py` to `max_tokens=1024`. Change `ladder.py` (or
+   `run_exp.py`) so the context list is always
+   4096, 8192, 16384, 24576, 32768. Make `rotate_dtype=bfloat16` the recipe
+   default for E07–E12 in the build and the candidate `config.json`.
+   Run the unit tests. Commit (`stage10: amendment 1 tool changes`).
+4. Rerun gen-check (1024 tokens) for E01, E02, E03, E04, E05 (with
+   `--rotate-dtype bfloat16`), and E06. Replace their `gen_check.json` and
+   the `gen_check` part of their `summary.json`. Keep the old files as
+   `gen_check_384.json` next to them.
+5. Run the missing ladder lengths 24576 and 32768 for E01, E03, E05 (with
+   `--rotate-dtype bfloat16`), and E06, in this order, each length in its
+   own guarded process. Append them to the `ladder` list of each summary.
+   Remove the "24576 and 32768 not run" note from those summaries. E02 and
+   E04 are not rerun (E02 is byte-identical to E01; E04 has the same layout
+   as E03); add the note `"24K/32K ladder not run (amendment 1)"` to them.
+6. Regenerate RESULTS.md, update PROGRESS.md (add the lines
+   `- [ ] AM1 tools`, `- [ ] AM1 gen-check rerun`, `- [ ] AM1 ladder 24K/32K`
+   and check them off as you go), LOG.md, commit, push to `stage-10`.
+7. Continue with E07 (full rebuild from layer 0), then E08–E15 in order,
+   with the amended settings. For E14, record `SKIPPED_UNSAFE` with the
+   grep output already found (every escha-mlx generation path calls
+   `mx.set_wired_limit`); do not run it.

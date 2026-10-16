@@ -7,7 +7,8 @@ architecture, the decisions, and the performance figures.
 
 ## Current stage: Stage 10 (quantization research)
 
-**The active task is `TASK.md`. Read it fully before doing anything.** It
+**The active task is `TASK.md`. Read it fully before doing anything,
+including its section 12 (amendment 1).** It
 asks you to build measurement tools, build new quantized checkpoints, and
 record numbers. Earlier stages declared weight-quantization research out of
 scope. Stage 10 lifts that restriction, for the experiments listed in
@@ -107,11 +108,12 @@ scope. Stage 10 lifts that restriction, for the experiments listed in
 
 ## Git
 
-- Work directly on `main`. At the start of every session run
-  `git status` and `git log --oneline -20`.
+- Work on branch **`stage-10`**. Never commit to or push `main`. At the
+  start of every session run `git checkout stage-10`, `git status`, and
+  `git log --oneline -20`.
 - Commit after each completed tool (Phase A item) and after each
   experiment, with focused messages, for example
   `stage10: add GPTQ builder` or `stage10: E07 results`.
-- Before pushing: `git pull --rebase origin main`, then
-  `git push origin main`. Never force-push, never `git reset --hard`, and
+- Before pushing: `git pull --rebase origin stage-10`, then
+  `git push origin stage-10`. Never force-push, never `git reset --hard`, and
   never `git clean -fd`. Preserve changes you did not make.
