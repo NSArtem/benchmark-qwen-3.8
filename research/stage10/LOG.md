@@ -362,3 +362,15 @@ commit: 779dd9b
 result: FAILED_ERROR (aborted by user, not a code or memory failure)
 wall: about 2h25m until stop; peak_mlx: 15.73 GiB (build progress log); swap before/after: n/a
 facts: user asked to stop all runs and wrap up. E07 GPTQ build (rotation + 3-bit) completed layers 0-48 of 64 (about 176 s per layer) before the stop; no eval, gen-check, or ladder ran. No SAFETY STOP. Partial output moved, not deleted: `/Users/artem/models-stage10/E07.aborted-layer48-20261016/` (shards only, no index or config), `benchmarks/results/stage10/E07.aborted/`. E07 must be rebuilt from layer 0 on resume.
+
+## 2026-10-16 15:29 AM1 step 1 resume and synchronization
+cmd: `git fetch origin && git checkout stage-10 && git pull --rebase origin stage-10`; `git status`; `git log --oneline -20`; read AGENTS.md, TASK.md, PROGRESS.md, LOG.md
+commit: e57b5b5
+result: OK
+facts: initial sandbox fetch returned `cannot open '.git/FETCH_HEAD': Operation not permitted`; rerun with sandbox escalation exited 0; branch stage-10, clean tree, origin up to date. Phase A and E00–E06 retained. E07 aborted checkpoint retained.
+
+## 2026-10-16 15:29 AM1 step 2 branch targets
+cmd: inspect Stage 10 Python and shell scripts; replace finish_exp.sh git remote branch targets; `rg -n '\bmain\b' research/stage10/stage10 benchmarks/results/stage10 -g '*.py' -g '*.sh'`
+commit: e57b5b5
+result: OK
+facts: git-ignored finish_exp.sh now checks current branch stage-10, pulls origin stage-10 and pushes origin stage-10. Python main functions and Hugging Face dataset revision main retained.
