@@ -4,14 +4,14 @@ version = "0.1.0"
 description = "Serialized Qwen3.8-27B MLX runtime: exact-suffix persistent chat CLI and OpenAI-compatible agent server"
 requires-python = "==3.14.*"
 # Exact pins are part of the validated runtime; do not upgrade casually.
-# mlx-lm reports metadata version 0.31.3 at this commit.
+# mlx-lm v0.32.0.
 dependencies = [
-    "mlx==0.32.1",
-    "mlx-lm @ git+https://github.com/ml-explore/mlx-lm.git@254d153fdeb6f150edd4fc5a54f9828638481fa8",
+    "mlx==0.32.3",
+    "mlx-lm @ git+https://github.com/ml-explore/mlx-lm.git@a9bd8af5c02118882af735cef60705d2efce9fd0",
     # Imported directly by tools/build_g128.py and tests; the versions mlx-lm
     # resolved to when g128 was validated.
-    "tokenizers==0.22.2",
-    "transformers==5.15.0",
+    "tokenizers==0.23.3",
+    "transformers==5.19.0",
 ]
 
 [project.scripts]

@@ -7,7 +7,7 @@
     "quantized_modules": 498,
     "retained_source_tensors": 851,
     "tensor_count": 1847,
-    "total_bytes": 10951147660,
+    "total_bytes": 10951147976,
     "total_files": 25,
     "total_parameters": 26895993856,
     "weight_payload_bytes": 10930715648,
@@ -111,8 +111,8 @@
       "size": 19989343
     },
     "tokenizer_config.json": {
-      "sha256": "b2bed5e033438f09f22b0ce9522115b4807d9bbcc3b82bf23372cb74d93ed081",
-      "size": 1135
+      "sha256": "9897635512f07ca84acb0c6f2f414a660c0696f3cd78618351bf2ebf3c67f50f",
+      "size": 1451
     }
   },
   "legacy_variants": {
@@ -121,6 +121,13 @@
         "note": "pre-source-only production config.json: same as canonical except text_config also has mtp_num_hidden_layers=1 and mtp_use_dedicated_embeddings=false, which pinned mlx-lm ignores (no MTP weights are shipped)",
         "sha256": "c61f2d5976fad86b2b893d5ecd5bfbcde80ec42a132514c0723a02582b1710c3",
         "size": 4091
+      }
+    ],
+    "tokenizer_config.json": [
+      {
+        "note": "transformers 5.15 production tokenizer_config.json: same as canonical except it lacks extra_special_tokens, which transformers 5.19 save_pretrained writes; encode, decode, chat template and EOS ids are unchanged",
+        "sha256": "b2bed5e033438f09f22b0ce9522115b4807d9bbcc3b82bf23372cb74d93ed081",
+        "size": 1135
       }
     ]
   },
@@ -136,10 +143,10 @@
   },
   "schema_version": 1,
   "toolchain": {
-    "mlx": "0.32.1",
-    "mlx_lm_revision": "254d153fdeb6f150edd4fc5a54f9828638481fa8",
-    "python": "3.14.7",
-    "tokenizers": "0.22.2",
-    "transformers": "5.15.0"
+    "mlx": "0.32.3",
+    "mlx_lm_revision": "a9bd8af5c02118882af735cef60705d2efce9fd0",
+    "python": "3.14.8",
+    "tokenizers": "0.23.3",
+    "transformers": "5.19.0"
   }
 }

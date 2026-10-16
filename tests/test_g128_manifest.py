@@ -324,12 +324,14 @@ class CommittedManifestTests(unittest.TestCase):
         self.assertEqual(expected["retained_source_tensors"], build.RETAINED_SOURCE_TENSORS)
         self.assertEqual(expected["total_parameters"], 26_895_993_856)
 
-    def test_only_documented_legacy_variant(self) -> None:
+    def test_only_documented_legacy_variants(self) -> None:
         legacy = self.manifest["legacy_variants"]
-        self.assertEqual(list(legacy), ["config.json"])
+        self.assertEqual(sorted(legacy), ["config.json", "tokenizer_config.json"])
         self.assertEqual(len(legacy["config.json"]), 1)
         for key in build.MTP_TEXT_CONFIG_KEYS:
             self.assertIn(key, legacy["config.json"][0]["note"])
+        self.assertEqual(len(legacy["tokenizer_config.json"]), 1)
+        self.assertIn("extra_special_tokens", legacy["tokenizer_config.json"][0]["note"])
 
 
 @unittest.skipUnless(os.environ.get("QWEN38_G128_VERIFY"), "set QWEN38_G128_VERIFY to a checkpoint")

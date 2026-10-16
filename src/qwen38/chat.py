@@ -49,7 +49,7 @@ def _require_mlx() -> tuple[Any, Any, Any, Any, Any]:
     return mx, load, generate_step, make_prompt_cache, make_sampler
 
 
-PINNED_MLX_LM_REVISION = "254d153fdeb6f150edd4fc5a54f9828638481fa8"
+PINNED_MLX_LM_REVISION = "a9bd8af5c02118882af735cef60705d2efce9fd0"
 DEFAULT_PREFILL_STEP_SIZE = 2048
 DEFAULT_MAX_TOKENS = 512
 MAX_ASSISTANT_VARIANTS = 4096

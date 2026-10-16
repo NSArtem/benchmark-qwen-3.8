@@ -458,7 +458,7 @@ def write_tokenizer_assets(source: Path, output: Path) -> list[str]:
     with a regex lacking ``\\p{M}`` (which changes Devanagari and Thai
     tokenization), so the tokenizer is loaded as ``TokenizersBackend``, which
     keeps the source ``tokenizer.json`` intact.  ``tool_parser_type`` is what
-    pinned ``mlx_lm`` infers from the chat template.
+    pinned ``mlx_lm`` infers from the tokenizer.
     """
 
     from mlx_lm.tokenizer_utils import _infer_tool_parser
@@ -466,7 +466,7 @@ def write_tokenizer_assets(source: Path, output: Path) -> list[str]:
 
     tokenizer = TokenizersBackend.from_pretrained(source, local_files_only=True)
     tokenizer.init_kwargs.pop("local_files_only", None)
-    if tool_parser_type := _infer_tool_parser(tokenizer.chat_template):
+    if tool_parser_type := _infer_tool_parser(tokenizer):
         tokenizer.init_kwargs["tool_parser_type"] = tool_parser_type
     tokenizer.save_pretrained(output)
     shutil.copyfile(source / "generation_config.json", output / "generation_config.json")
@@ -478,6 +478,12 @@ def _normalized_tokenizer_json(path: Path) -> dict[str, Any]:
     merges = data["model"].get("merges", [])
     data["model"]["merges"] = [m if isinstance(m, str) else " ".join(m) for m in merges]
     return data
+
+
+def _split_patterns(data: dict[str, Any]) -> list[Any]:
+    pre = data.get("pre_tokenizer") or {}
+    steps = pre.get("pretokenizers", [pre])
+    return [(s.get("pattern"), s.get("behavior"), s.get("invert")) for s in steps if s.get("type") == "Split"]
 
 
 def verify_tokenizer_assets(source: Path, output: Path) -> dict[str, Any]:
@@ -500,8 +506,22 @@ def verify_tokenizer_assets(source: Path, output: Path) -> dict[str, Any]:
         raise ValueError("written tokenizer.json differs from the source tokenizer.json")
 
     runtime = AutoTokenizer.from_pretrained(output, local_files_only=True)
-    if type(runtime).__name__ != "TokenizersBackend":
-        raise ValueError(f"runtime tokenizer class is {type(runtime).__name__}")
+    # Pinned transformers maps ``qwen3_5`` to ``Qwen3_5Tokenizer``, which
+    # rebuilds the normalizer and pre-tokenizer in code.  Only ByteLevel
+    # offset and decoder flags may differ from the source; the split regex
+    # (with ``\\p{M}``), normalizer, vocab, merges and added tokens may not.
+    expected = _normalized_tokenizer_json(source / "tokenizer.json")
+    actual = json.loads(runtime.backend_tokenizer.to_str())
+    actual["model"]["merges"] = [
+        m if isinstance(m, str) else " ".join(m) for m in actual["model"]["merges"]
+    ]
+    for key in ("normalizer", "added_tokens", "post_processor"):
+        if actual.get(key) != expected.get(key):
+            raise ValueError(f"runtime tokenizer {key} differs from source")
+    if actual["model"] != expected["model"]:
+        raise ValueError("runtime tokenizer vocab or merges differ from source")
+    if not _split_patterns(expected) or _split_patterns(actual) != _split_patterns(expected):
+        raise ValueError("runtime pre-tokenizer split regex differs from source")
     reference = Tokenizer.from_file(str(source / "tokenizer.json"))
     for text in TOKENIZER_PROBES:
         expected = reference.encode(text, add_special_tokens=False).ids
@@ -516,6 +536,7 @@ def verify_tokenizer_assets(source: Path, output: Path) -> dict[str, Any]:
         raise ValueError(f"tokenizer eos {runtime.eos_token_id} not in {eos_ids}")
     return {
         "tokenizer_class": config.get("tokenizer_class"),
+        "runtime_tokenizer_class": type(runtime).__name__,
         "tool_parser_type": config.get("tool_parser_type"),
         "probes_match_source": len(TOKENIZER_PROBES),
         "eos_token_id": runtime.eos_token_id,

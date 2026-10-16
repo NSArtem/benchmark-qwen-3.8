@@ -40,5 +40,59 @@ class LongAgentFixtureTests(unittest.TestCase):
         )
 
 
+class HarnessInjectionTests(unittest.TestCase):
+    """An expected tool request the model misses twice is completed at most once."""
+
+    PATH = "long_dependency_audit.txt"
+
+    def setUp(self) -> None:
+        self.bench = _load_benchmark()
+        self.replies: list[str] = []
+        self.sent: list[list[dict]] = []
+
+        def fake_request_json(_base_url, _path, payload, **_kwargs):
+            self.sent.append([dict(m) for m in payload["messages"]])
+            text = self.replies.pop(0)
+            return 200, {
+                "choices": [{"message": {"content": text}, "finish_reason": "stop"}],
+                "usage": {},
+                "x_qwen38_metrics": {},
+            }, None
+
+        self.bench.request_json = fake_request_json
+        self.runner = self.bench.SessionRunner("http://unused", "s", 32)
+
+    def test_cut_off_request_is_completed_once(self) -> None:
+        self.replies = ["TOOL_CALL read_file long_dependency", "TOOL", "synthesis"]
+        self.runner.expected_turn("inspect", "", self.PATH)
+        self.assertEqual(self.replies, [])
+        self.assertTrue(self.sent[-1][-1]["content"].startswith(f"read_file {self.PATH} returned:\n"))
+        summary = self.runner.summary()
+        self.assertTrue(summary["injected_tool_after_invalid"])
+        self.assertEqual(summary["invalid_tool_calls"], 1)
+        self.assertEqual(summary["recovered_invalid_tool_calls"], 1)
+        self.assertEqual(summary["missing_expected_tool_requests"], 2)
+        self.assertEqual(summary["recovered_missing_tool_requests"], 2)
+        self.assertEqual(summary["valid_tool_calls"], 0)
+
+        # A second miss is not completed and stays unrecovered.
+        self.replies = ["TOOL", "TOOL"]
+        self.runner.expected_turn("inspect_again", "", self.PATH)
+        summary = self.runner.summary()
+        self.assertEqual(len(summary["harness_tool_injections"]), 1)
+        self.assertEqual(summary["missing_expected_tool_requests"], 4)
+        self.assertEqual(summary["recovered_missing_tool_requests"], 2)
+        self.assertFalse(summary["task_success"])
+
+    def test_valid_request_for_another_file_is_not_overridden(self) -> None:
+        self.replies = ["TOOL_CALL read_file retry.py", "TOOL_CALL read_file retry.py", "answer"]
+        self.runner.expected_turn("inspect", "", self.PATH)
+        summary = self.runner.summary()
+        self.assertFalse(summary["injected_tool_after_invalid"])
+        self.assertEqual(summary["valid_tool_calls"], 1)
+        self.assertEqual(summary["recovered_missing_tool_requests"], 0)
+        self.assertTrue(self.sent[-1][-1]["content"].startswith("read_file retry.py returned:\n"))
+
+
 if __name__ == "__main__":
     unittest.main()
