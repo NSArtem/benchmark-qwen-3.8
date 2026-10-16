@@ -503,3 +503,10 @@ commit: 4768991
 result: OK
 wall: n/a, peak_mlx: n/a, swap before/after: n/a
 facts: E01,E03,E05,E06 each have 24576 and 32768 rows; eight independent guarded processes; zero safety stops. E02 and E04 not rerun; exact amendment note added. Superseded missing-length notes removed.
+
+## 2026-10-16 16:55 AM1 step 6 table and progress
+cmd: `uv run python -m stage10.make_table`
+commit: e917e85
+result: OK
+wall: n/a, peak_mlx: n/a, swap before/after: n/a
+facts: RESULTS.md regenerated from seven summaries. AM1 tools, gen-check rerun, ladder 24K/32K checked. Summary contexts and exact E02/E04 notes verified. Unit tests 31 pass at step 3; code unchanged since that run.
