@@ -27,3 +27,21 @@ cmd: `UV_CACHE_DIR=/private/tmp/stage10-uv-cache UV_PROJECT_ENVIRONMENT=/Users/a
 commit: pending
 result: PARTIAL
 facts: 2 tests passed. Tests used the existing Python 3.14.7 root environment because the isolated Stage 10 dependencies could not be resolved. BF16 tokenizer file exists; datasets cache is empty and shell network resolution failed, so token arrays and `data_manifest.json` were not generated. Russian eligible-article ordinal interpretation is recorded in QUESTIONS.md.
+
+## 2026-10-16 Stage 10 environment resolution
+cmd: `UV_CACHE_DIR=/private/tmp/stage10-uv-cache uv lock --python 3.14.7`; `uv sync --python 3.14.7`
+commit: pending
+result: OK
+facts: managed network escalation allowed PyPI access. Resolved Python 3.14.7, mlx 0.32.4, mlx-lm 0.32.1, numpy 2.5.4, safetensors 0.8.0, datasets 5.1.0, transformers 5.20.0, tokenizers 0.23.3, huggingface-hub 2.2.0. Details in README.md.
+
+## 2026-10-16 A2 test in locked environment
+cmd: `uv run python -m unittest discover -s tests`
+commit: pending
+result: OK
+facts: Python 3.14.7; mlx 0.32.4; mlx-lm 0.32.1 from package metadata. 2 tests passed.
+
+## 2026-10-16 MLX device probe
+cmd: `uv run python -c 'import mlx_lm'` in default sandbox
+commit: n/a
+result: FAILED_ERROR
+facts: MLX raised `[metal::load_device] No Metal device available. This typically occurs in headless, sandboxed, or virtualized macOS sessions where the GPU is not accessible.` No model weights were loaded.
