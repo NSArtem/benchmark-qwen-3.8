@@ -327,3 +327,31 @@ cmd: none (code fix)
 commit: ff4a742 + uncommitted fix
 result: FAILED_ERROR (attempt 1 above)
 facts: E06 attempt 1 "build OK" wrote no decoder layers: `--smoke-layers` defaults to 0 and was passed as `max_layers=0`, so the layer loop ran `range(0)`; checkpoint 1,033,022,233 bytes (embed_tokens, lm_head, norm only). Eval and gen-check then failed at load with a missing key (`language_model.model.layers.9.post_attention_layernorm.weight`); the ladder failed at 4096 with exit 1. Fix: 0 now means all layers. `CandidateWriter.finish` now raises if any module listed in `config.json` lacks weight/scales/biases (and signs when rotated); unit test added (28 tests pass). Attempt-1 output moved, not deleted: `/Users/artem/models-stage10/E06.broken-0layers-20261016/`, `benchmarks/results/stage10/E06.broken-0layers/`.
+
+## 2026-10-16 11:43 E06 build
+cmd: `uv run python -m stage10.build --exp E06`
+commit: c10ac4e
+result: OK
+wall: 183.3m, peak_mlx: 14.06 GiB, swap before/after: 0.82/0.74 GiB
+facts: checkpoint /Users/artem/models-stage10/E06, bytes 10930955741, gib 10.180245843715966, bpw 3.251254653469237; build wall 10996.347780874998 s; min free 25.0%
+
+## 2026-10-16 12:05 E06 eval
+cmd: `uv run python -m stage10.evaluate --exp E06 --model /Users/artem/models-stage10/E06 --loader candidate`
+commit: c10ac4e
+result: OK
+wall: 21.3m, peak_mlx: 10.88 GiB, swap before/after: 0.73/0.67 GiB
+facts: all: nll 1.41942, delta 0.12572, top1 0.8486, kl_top32 0.16905; en: nll 1.98117, delta 0.10655, top1 0.8309, kl_top32 0.13838; code: nll 0.83909, delta 0.15470, top1 0.8690, kl_top32 0.23366; ru: nll 1.43800, delta 0.11592, top1 0.8460, kl_top32 0.13511
+
+## 2026-10-16 12:07 E06 gen-check
+cmd: `uv run python -m stage10.gen_check --exp E06 --model /Users/artem/models-stage10/E06 --loader candidate`
+commit: c10ac4e
+result: OK
+wall: 2.1m, peak_mlx: n/a, swap before/after: 0.67/0.67 GiB
+facts: P1: n 353, eos True, distinct4 0.794, max4 4; P2: n 384, eos False, distinct4 0.819, max4 7, has_187 False; P3: n 265, eos True, distinct4 0.985, max4 2; P4: n 187, eos True, distinct4 0.674, max4 6, json_valid True; P5: n 204, eos True, distinct4 1.000, max4 1
+
+## 2026-10-16 12:14 E06 ladder
+cmd: `uv run python -m stage10.ladder --exp E06 --model /Users/artem/models-stage10/E06 --loader candidate --weights-gib 10.1802`
+commit: c10ac4e
+result: OK
+wall: 7.0m, peak_mlx: 12.99 GiB, swap before/after: 0.67/0.67 GiB
+facts: ctx 4096: decode 11.808492976491477, prefill 81.53982761996545 tok/s, ttft 50.503060584000195 s, peak 11.66203604079783 GiB, min free 28.0%, safety_stop False, exit 0; ctx 8192: decode 11.47984017060301, prefill 80.13725627914152 tok/s, ttft 102.5301384580016 s, peak 12.079651927575469 GiB, min free 26.0%, safety_stop False, exit 0; ctx 16384: decode 10.970119521505568, prefill 77.43463859905228 tok/s, ttft 211.92474758400203 s, peak 12.989091014489532 GiB, min free 23.0%, safety_stop False, exit 0
