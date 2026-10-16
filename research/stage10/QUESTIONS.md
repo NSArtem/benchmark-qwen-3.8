@@ -4,7 +4,7 @@
   network escalation was approved; `uv.lock` was generated and the exact
   Stage 10 environment installed with no version changes.
 
-- `import mlx_lm` failed in the default sandbox with
+- Resolved 2026-10-16 (recheck: Metal available, gpu:0, Apple M3 Pro): `import mlx_lm` failed in the default sandbox with
   `[metal::load_device] No Metal device available`. No model weights were
   loaded. Run future MLX checks in an execution context with Metal access,
   through the required preflight and watchdog.

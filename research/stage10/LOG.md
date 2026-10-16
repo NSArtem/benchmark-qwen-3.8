@@ -132,3 +132,10 @@ commit: 841fd33 + uncommitted check_a3.py fixes
 result: OK
 wall: 5.0s; peak_mlx: not recorded; swap before/after: 322.25/322.25 MiB
 facts: preflight free=86%, swap=322.25 MiB; watchdog minimum free sample 86%; watchdog did not fire. Layers 0 and 3: 55 of 55 tensors byte-identical to production g128 (mlx 0.32.4 `mx.quantize`, affine, bits 3, group 128). Mismatches: none. Result: `benchmarks/results/stage10/checks/a3_sanitize.json`.
+
+## 2026-10-16 recheck of earlier failures (user report: network outage and failed permission elevation)
+cmd: PyPI JSON for mlx and mlx-lm; `uv run python -m stage10.data --output-dir <scratch>/data --manifest <scratch>/manifest.json`; `uv run python -m unittest discover -s tests`; MLX Metal probe `import mlx_lm; mx.metal.is_available()`
+commit: c402dbf
+result: OK
+wall: data rebuild 1m00s; peak_mlx: n/a; swap before/after: n/a
+facts: PyPI latest is still mlx 0.32.4 (uploaded 2026-10-14T21:15:37) and mlx-lm 0.32.1 (uploaded 2026-10-15T21:22:28), matching the pins. A2 rebuild into scratch: all 6 arrays have SHA-256 equal to data_manifest.json, dataset revisions equal, and the whole manifest is equal apart from file paths. Unit tests: 2 passed. Metal probe: `import mlx_lm` OK, default device gpu:0, `mx.metal.is_available()` True, device Apple M3 Pro, 1024x1024 matmul OK. Earlier FAILED_ERROR entries for the dependency lock (DNS for pypi.org), the A2 PARTIAL run, and the MLX device probe (sandbox) do not reproduce.
