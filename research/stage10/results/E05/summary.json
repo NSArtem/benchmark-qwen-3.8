@@ -94,17 +94,17 @@
   "gen_check": [
     {
       "id": "P1",
-      "n_tokens": 384,
-      "hit_eos": false,
-      "distinct4": 0.8241469816272966,
+      "n_tokens": 398,
+      "hit_eos": true,
+      "distinct4": 0.810126582278481,
       "max4": 4
     },
     {
       "id": "P2",
-      "n_tokens": 384,
-      "hit_eos": false,
-      "distinct4": 0.7821522309711286,
-      "max4": 5,
+      "n_tokens": 543,
+      "hit_eos": true,
+      "distinct4": 0.7851851851851852,
+      "max4": 9,
       "p2_has_187": false
     },
     {

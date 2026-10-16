@@ -420,3 +420,10 @@ cmd: compare E01–E03 summaries and gen_check_384.json with e57b5b5 via git sho
 commit: 017dde9
 result: OK
 facts: each summary differs only in gen_check; each archived generation check equals its original JSON.
+
+## 2026-10-16 15:48 E05 gen-check
+cmd: `uv run python -m stage10.gen_check --exp E05 --model /Users/artem/models-stage10/E03 --loader candidate --rotate-dtype bfloat16`
+commit: 220bbe6
+result: OK
+wall: 2.5m, peak_mlx: n/a, swap before/after: 0.45/0.45 GiB
+facts: P1: n 398, eos True, distinct4 0.810, max4 4; P2: n 543, eos True, distinct4 0.785, max4 9, has_187 False; P3: n 307, eos True, distinct4 0.997, max4 2; P4: n 192, eos True, distinct4 0.677, max4 6, json_valid True; P5: n 166, eos True, distinct4 0.988, max4 2
