@@ -237,3 +237,31 @@ commit: 7bbba9c
 result: OK
 wall: 7.3m, peak_mlx: 13.05 GiB, swap before/after: 0.84/0.90 GiB
 facts: ctx 4096: decode 11.304597086762953, prefill 77.36876480873356 tok/s, ttft 53.2888493749997 s, peak 12.022460035979748 GiB, min free 27.0%, safety_stop False, exit 0; ctx 8192: decode 10.96150321572529, prefill 76.12508755247953 tok/s, ttft 107.92865650000022 s, peak 12.364073803648353 GiB, min free 26.0%, safety_stop False, exit 0; ctx 16384: decode 10.518600041943598, prefill 73.64465327582593 tok/s, ttft 222.83997699999964 s, peak 13.051222851499915 GiB, min free 22.0%, safety_stop False, exit 0
+
+## 2026-10-16 07:29 E04 build
+cmd: `uv run python -m stage10.build --exp E04`
+commit: 3b908f1
+result: OK
+wall: 1.5m, peak_mlx: 3.79 GiB, swap before/after: 0.86/0.85 GiB
+facts: checkpoint /Users/artem/models-stage10/E04, bytes 10944625182, gib 10.19297650270164, bpw 3.255301921496691; build wall 88.87195320799947 s; min free 85.0%
+
+## 2026-10-16 07:51 E04 eval
+cmd: `uv run python -m stage10.evaluate --exp E04 --model /Users/artem/models-stage10/E04 --loader candidate`
+commit: 3b908f1
+result: OK
+wall: 22.5m, peak_mlx: 11.24 GiB, swap before/after: 0.85/0.91 GiB
+facts: all: nll 1.46942, delta 0.17572, top1 0.8189, kl_top32 0.23725; en: nll 2.02691, delta 0.15229, top1 0.7960, kl_top32 0.20886; code: nll 0.90242, delta 0.21803, top1 0.8378, kl_top32 0.31417; ru: nll 1.47892, delta 0.15684, top1 0.8227, kl_top32 0.18873
+
+## 2026-10-16 07:53 E04 gen-check
+cmd: `uv run python -m stage10.gen_check --exp E04 --model /Users/artem/models-stage10/E04 --loader candidate`
+commit: 3b908f1
+result: OK
+wall: 2.2m, peak_mlx: n/a, swap before/after: 0.91/0.91 GiB
+facts: P1: n 310, eos True, distinct4 0.824, max4 3; P2: n 384, eos False, distinct4 0.732, max4 6, has_187 False; P3: n 307, eos True, distinct4 0.997, max4 2; P4: n 186, eos True, distinct4 0.667, max4 6, json_valid True; P5: n 181, eos True, distinct4 0.978, max4 2
+
+## 2026-10-16 08:00 E04 ladder
+cmd: `uv run python -m stage10.ladder --exp E04 --model /Users/artem/models-stage10/E04 --loader candidate --weights-gib 10.1930`
+commit: 3b908f1
+result: OK
+wall: 7.3m, peak_mlx: 13.05 GiB, swap before/after: 0.91/0.83 GiB
+facts: ctx 4096: decode 11.316451322225605, prefill 77.25078136475955 tok/s, ttft 53.37301549999938 s, peak 12.022460035979748 GiB, min free 28.0%, safety_stop False, exit 0; ctx 8192: decode 10.965046988402067, prefill 76.02146812395354 tok/s, ttft 108.0670163750001 s, peak 12.364073803648353 GiB, min free 27.0%, safety_stop False, exit 0; ctx 16384: decode 10.518338656154915, prefill 73.64559103000332 tok/s, ttft 222.9085820420005 s, peak 13.051222851499915 GiB, min free 22.0%, safety_stop False, exit 0

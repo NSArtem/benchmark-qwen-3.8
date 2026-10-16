@@ -1,0 +1,44 @@
+[
+  {
+    "id": "P1",
+    "n_tokens": 310,
+    "hit_eos": true,
+    "distinct4": 0.8241042345276873,
+    "max4": 3,
+    "text": "```python\ndef merge_intervals(intervals):\n    \"\"\"\n    Merge overlapping intervals.\n\n    Args:\n        intervals: A list of [start, end] pairs.\n\n    Returns:\n        A list of merged, non-overlapping intervals.\n\n    Examples:\n        >>> merge_intervals([[1, 3], [2, 6], [8, 10], [15, 18]])\n        [[1, 6], [8, 10], [15, 18]]\n        >>> merge_intervals([[1, 4], [4, 5]])\n        [[1, 5]]\n        >>> merge_intervals([[1, 2], [3, 4], [5, 6]])\n        [[1, 2], [3, 4], [5, 6]]\n    \"\"\"\n    if not intervals:\n        return []\n\n    # Sort intervals by start time\n    intervals = sorted(intervals, key=lambda x: x[0])\n\n    merged = [intervals[0]]\n\n    for interval in intervals[1:]:\n        last = merged[-1]\n        if interval[0] <= last[1]:\n            # Overlapping: extend the last merged interval\n            last[1] = max(last[1], interval[1])\n        else:\n            # No overlap: add as a new interval\n            merged.append(interval)\n\n    return merged\n```"
+  },
+  {
+    "id": "P2",
+    "n_tokens": 384,
+    "hit_eos": false,
+    "distinct4": 0.7322834645669292,
+    "max4": 6,
+    "p2_has_187": false,
+    "text": "To determine how many minutes the train is actually moving, we need to calculate the total travel time and then subtract the time spent stopped at stations.\n\n**Step 1: Calculate the total travel time.**\n\nThe train leaves at 14:35 and arrives at 18:10. We can calculate the difference between these two times:\n\n1.  From 14:35 to 18:35 would be 4 hours.\n2.  However, the arrival time is 18:10, which is 25 minutes earlier than 18:35.\n3.  So, the total time is 4 hours minus 25 minutes.\n    *   4 hours = 3 hours and 60 minutes.\n    *   3 hours and 60 minutes minus 25 minutes = 3 hours and 35 minutes.\n\nAlternatively, we can count forward:\n*   From 14:35 to 15:35 is 1 hour.\n*   From 15:35 to 16:35 is 2 hours.\n*   From 16:35 to 17:35 is 3 hours.\n*   From 17:35 to 18:10 is 35 minutes.\n*   Total time = 3 hours and 35 minutes.\n\n**Step 2: Convert total travel time into minutes.**\n\n*   3 hours = $3 \\times 60 = 180$ minutes.\n*   35 minutes = 35 minutes.\n*   Total travel time = $180 + 35 = 215$ minutes.\n\n**Step 3: Calculate the total stop"
+  },
+  {
+    "id": "P3",
+    "n_tokens": 307,
+    "hit_eos": true,
+    "distinct4": 0.9967105263157895,
+    "max4": 2,
+    "text": "Imagine the water cycle as a giant, never-ending recycling trip that water takes around our planet. It’s a simple process with three main stages: evaporation, condensation, and precipitation.\n\nFirst, let’s talk about evaporation. When the sun shines on oceans, lakes, and rivers, the water heats up and turns into invisible gas called water vapor. Think of it like steam rising from a hot cup of coffee. This vapor floats up into the sky, mixing with the air.\n\nNext comes condensation. As the water vapor rises higher, it gets colder. Just like how your breath fogs up on a cold day, the gas cools down and turns back into tiny liquid droplets. These droplets clump together to form clouds. This is why clouds are often white or gray—they’re just billions of tiny water droplets floating around.\n\nFinally, we have precipitation. When the clouds get too heavy with water droplets, they can’t hold them up anymore. The water falls back to Earth as rain, snow, sleet, or hail. This is the part you can see and feel!\n\nOnce the water lands, it flows into streams, rivers, and eventually back into the ocean. Then, the sun heats it up again, and the whole process starts over. It’s a perfect loop that ensures we always have fresh water for drinking, farming, and playing. So next time you see a cloud, remember: it’s just water taking a long, cool trip up and down!"
+  },
+  {
+    "id": "P4",
+    "n_tokens": 186,
+    "hit_eos": true,
+    "distinct4": 0.6666666666666666,
+    "max4": 6,
+    "p4_json_valid": true,
+    "text": "[\n  {\n    \"title\": \"The Whispering Void\",\n    \"author\": \"Elena Voss\",\n    \"year\": 2021,\n    \"genres\": [\n      \"Science Fiction\",\n      \"Mystery\"\n    ]\n  },\n  {\n    \"title\": \"Shadows of the Crimson Sky\",\n    \"author\": \"J. R. Thorne\",\n    \"year\": 2019,\n    \"genres\": [\n      \"Fantasy\",\n      \"Adventure\"\n    ]\n  },\n  {\n    \"title\": \"Echoes of Time\",\n    \"author\": \"Lara Bennett\",\n    \"year\": 2023,\n    \"genres\": [\n      \"Historical Fiction\",\n      \"Romance\"\n    ]\n  }\n]"
+  },
+  {
+    "id": "P5",
+    "n_tokens": 181,
+    "hit_eos": true,
+    "distinct4": 0.9775280898876404,
+    "max4": 2,
+    "text": "Квантование нейросетей — это процесс сжатия модели, при котором числа с высоким разрядом (например, 32-битные) заменяются на числа с низким разрядом (например, 8-битные). Представьте, что вместо точного измерения температуры в десятых долях градуса вы используете целые значения, чтобы упростить процесс. Это позволяет значительно уменьшить размер модели и ускорить её работу, так как процессору проще оперировать с меньшими числами. В результате нейросеть занимает меньше памяти и требует меньше энергии для запуска. Это особенно важно для работы на мобильных устройствах и в облачных сервисах, где ресурсы ограничены. Хотя точность модели может немного снизиться, на практике она остаётся практически неизменной. Таким образом, квантование делает искусственный интеллект более доступным и эффективным."
+  }
+]
