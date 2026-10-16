@@ -1,0 +1,148 @@
+{
+  "exp_id": "E03",
+  "recipe": "had3",
+  "status": "OK",
+  "stack": {
+    "python": "3.14.7",
+    "mlx": "0.32.4",
+    "mlx_lm": "0.32.1"
+  },
+  "git_commit": "7bbba9c",
+  "date": "2026-10-16",
+  "checkpoint": {
+    "path": "/Users/artem/models-stage10/E03",
+    "bytes": 10944625182,
+    "gib": 10.19297650270164,
+    "bpw": 3.255301921496691,
+    "payload_bytes": 10944322560
+  },
+  "build": {
+    "wall_s": 89.59930183300003,
+    "peak_mlx_gib": 3.794107723981142,
+    "params": {
+      "layout": "uniform3",
+      "rotate": true,
+      "method": "rtn",
+      "seed": 0,
+      "group_size": 128,
+      "block": 1024,
+      "rotate_dtype": "float32"
+    }
+  },
+  "eval": {
+    "all": {
+      "nll_mean": 1.4695613033762585,
+      "ppl": 4.347327564744737,
+      "delta_nll": 0.1758636719453337,
+      "top1_agree": 0.8203468490473864,
+      "kl_top32": 0.23791198106536038
+    },
+    "en": {
+      "nll_mean": 2.0285415578657204,
+      "ppl": 7.602989748269368,
+      "delta_nll": 0.15391713637052407,
+      "top1_agree": 0.7956155349291646,
+      "kl_top32": 0.2077724342099753
+    },
+    "code": {
+      "nll_mean": 0.8973301647055365,
+      "ppl": 2.4530451342150097,
+      "delta_nll": 0.2129444992419971,
+      "top1_agree": 0.8448644357596483,
+      "kl_top32": 0.3089080089137307
+    },
+    "ru": {
+      "nll_mean": 1.4828121875575186,
+      "ppl": 4.405316854981363,
+      "delta_nll": 0.1607293802234797,
+      "top1_agree": 0.8205605764533463,
+      "kl_top32": 0.19705550007237518
+    }
+  },
+  "ladder": [
+    {
+      "ctx": 4096,
+      "prefill_s": 52.94126137499916,
+      "prefill_tok_s": 77.36876480873356,
+      "ttft_s": 53.2888493749997,
+      "decode_tok_s": 11.304597086762953,
+      "peak_mlx_gib": 12.022460035979748,
+      "free_pct_before": 89.0,
+      "free_pct_after": 89.0,
+      "free_pct_min": 27.0,
+      "swap_mib_before": 861.12,
+      "swap_mib_after": 933.38,
+      "safety_stop": false
+    },
+    {
+      "ctx": 8192,
+      "prefill_s": 107.61235570799909,
+      "prefill_tok_s": 76.12508755247953,
+      "ttft_s": 107.92865650000022,
+      "decode_tok_s": 10.96150321572529,
+      "peak_mlx_gib": 12.364073803648353,
+      "free_pct_before": 89.0,
+      "free_pct_after": 90.0,
+      "free_pct_min": 26.0,
+      "swap_mib_before": 933.38,
+      "swap_mib_after": 925.38,
+      "safety_stop": false
+    },
+    {
+      "ctx": 16384,
+      "prefill_s": 222.473720375001,
+      "prefill_tok_s": 73.64465327582593,
+      "ttft_s": 222.83997699999964,
+      "decode_tok_s": 10.518600041943598,
+      "peak_mlx_gib": 13.051222851499915,
+      "free_pct_before": 90.0,
+      "free_pct_after": 89.0,
+      "free_pct_min": 22.0,
+      "swap_mib_before": 925.38,
+      "swap_mib_after": 917.38,
+      "safety_stop": false
+    }
+  ],
+  "gen_check": [
+    {
+      "id": "P1",
+      "n_tokens": 378,
+      "hit_eos": true,
+      "distinct4": 0.856,
+      "max4": 4
+    },
+    {
+      "id": "P2",
+      "n_tokens": 384,
+      "hit_eos": false,
+      "distinct4": 0.7821522309711286,
+      "max4": 5,
+      "p2_has_187": false
+    },
+    {
+      "id": "P3",
+      "n_tokens": 306,
+      "hit_eos": true,
+      "distinct4": 1.0,
+      "max4": 1
+    },
+    {
+      "id": "P4",
+      "n_tokens": 188,
+      "hit_eos": true,
+      "distinct4": 0.6702702702702703,
+      "max4": 6,
+      "p4_json_valid": true
+    },
+    {
+      "id": "P5",
+      "n_tokens": 166,
+      "hit_eos": true,
+      "distinct4": 0.9877300613496932,
+      "max4": 2
+    }
+  ],
+  "notes": [
+    "Ladder: 24576 and 32768 not run because weights are 10.193 GiB > 9.0 GiB."
+  ]
+}
