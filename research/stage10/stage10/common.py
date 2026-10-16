@@ -123,3 +123,32 @@ def run_guarded(cmd: Sequence[str], log_path: str | Path) -> tuple[int, bool]:
     )
     watchdog_fired = "SAFETY STOP" in log.read_text(encoding="utf-8", errors="replace")
     return exit_code, watchdog_fired
+
+
+def watchdog_min_free(log_path: str | Path) -> float | None:
+    """Lowest ``free=N%`` sample the watchdog wrote to ``log_path``."""
+    text = Path(log_path).read_text(encoding="utf-8", errors="replace")
+    values = [float(value) for value in re.findall(r"\bfree=([0-9]+(?:\.[0-9]+)?)%", text)]
+    return min(values) if values else None
+
+
+def guarded_module(module: str, args: Sequence[str], log_path: str | Path) -> dict:
+    """Wait for preflight, run ``python -m module args...`` under the watchdog."""
+    import sys
+
+    before = wait_for_preflight()
+    started = time.monotonic()
+    exit_code, fired = run_guarded([sys.executable, "-m", module, *args], log_path)
+    wall = time.monotonic() - started
+    after = host_check()
+    return {
+        "exit_code": exit_code,
+        "safety_stop": fired,
+        "wall_s": wall,
+        "free_pct_before": before.free_pct,
+        "swap_mib_before": before.swap_used_mib,
+        "free_pct_after": after.free_pct,
+        "swap_mib_after": after.swap_used_mib,
+        "free_pct_min": watchdog_min_free(log_path),
+        "log_path": str(log_path),
+    }

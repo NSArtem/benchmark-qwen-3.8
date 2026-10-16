@@ -257,3 +257,18 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+DOMAINS = ("en", "code", "ru")
+
+
+def load_split(split: str, data_dir: Path = DEFAULT_OUTPUT) -> np.ndarray:
+    """Return the token windows of one split, domains concatenated in DOMAINS order."""
+    arrays = [np.load(data_dir / f"{domain}_{split}.npy", allow_pickle=False) for domain in DOMAINS]
+    return np.concatenate(arrays, axis=0).astype(np.int32)
+
+
+def domain_rows(split: str = "eval") -> dict[str, slice]:
+    """Row ranges of each domain inside ``load_split(split)``."""
+    count = EVAL_WINDOWS if split == "eval" else CALIBRATION_WINDOWS
+    return {domain: slice(i * count, (i + 1) * count) for i, domain in enumerate(DOMAINS)}
