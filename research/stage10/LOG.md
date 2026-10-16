@@ -100,3 +100,15 @@ commit: pending
 result: FAILED_ERROR; STOP per TASK.md §7
 wall: 5.0s; peak_mlx: not recorded; swap before/after: 458.3/458.3 MiB
 facts: preflight free=87%, swap=458.3 MiB; watchdog did not fire. After two code fixes, byte comparison still raised `ValueError: 'bfloat16' is not a valid PEP 3118 buffer format string`. No tensor comparisons or dequantized differences were produced. A3-loop result remains 2 sequences, 4094 positions, max absolute log-probability difference 0.0, argmax agreement 1.0.
+
+## 2026-10-16 pre-push rebase
+cmd: `git pull --rebase origin main`
+commit: no change
+result: OK
+facts: fetched origin/main; local main was up to date.
+
+## 2026-10-16 Stage 10 checkpoint commits
+cmd: `git log --oneline`
+commit: 707264c
+result: OK
+facts: token set builder/tests 33ac42d; pinned research stack 6022df5; token data manifest 7c16904; A3 tools, check log, progress, and STOP question 707264c.
