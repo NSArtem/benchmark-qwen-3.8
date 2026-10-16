@@ -1,0 +1,137 @@
+{
+  "exp_id": "E05",
+  "recipe": "had3-rotbf16",
+  "status": "OK",
+  "stack": {
+    "python": "3.14.7",
+    "mlx": "0.32.4",
+    "mlx_lm": "0.32.1"
+  },
+  "git_commit": "c9ddf8a",
+  "date": "2026-10-16",
+  "checkpoint": {
+    "path": "/Users/artem/models-stage10/E03",
+    "bytes": 10944625182,
+    "gib": 10.19297650270164,
+    "bpw": 3.255301921496691,
+    "payload_bytes": 10944322560
+  },
+  "build": null,
+  "eval": {
+    "all": {
+      "nll_mean": 1.4690616270110188,
+      "ppl": 4.345155850530998,
+      "delta_nll": 0.17536399558009408,
+      "top1_agree": 0.8201534766324703,
+      "kl_top32": 0.23794353102767185
+    },
+    "en": {
+      "nll_mean": 2.0272053782976016,
+      "ppl": 7.592837572786294,
+      "delta_nll": 0.15258095680240524,
+      "top1_agree": 0.7951880801172447,
+      "kl_top32": 0.20782348128711262
+    },
+    "code": {
+      "nll_mean": 0.8968800803074094,
+      "ppl": 2.4519413052989187,
+      "delta_nll": 0.21249441484387,
+      "top1_agree": 0.8449865657059111,
+      "kl_top32": 0.30885085090698183
+    },
+    "ru": {
+      "nll_mean": 1.4830994224280454,
+      "ppl": 4.40658239734308,
+      "delta_nll": 0.16101661509400644,
+      "top1_agree": 0.820285784074255,
+      "kl_top32": 0.19715626088892116
+    }
+  },
+  "ladder": [
+    {
+      "ctx": 4096,
+      "prefill_s": 50.93167641599939,
+      "prefill_tok_s": 80.42146436619757,
+      "ttft_s": 51.20377441600067,
+      "decode_tok_s": 11.492334060465497,
+      "peak_mlx_gib": 11.757788751274347,
+      "free_pct_before": 90.0,
+      "free_pct_after": 89.0,
+      "free_pct_min": 27.0,
+      "swap_mib_before": 868.31,
+      "swap_mib_after": 868.31,
+      "safety_stop": false
+    },
+    {
+      "ctx": 8192,
+      "prefill_s": 103.5361492910015,
+      "prefill_tok_s": 79.12212358772726,
+      "ttft_s": 103.86475112500011,
+      "decode_tok_s": 11.185322865939362,
+      "peak_mlx_gib": 12.21053228341043,
+      "free_pct_before": 89.0,
+      "free_pct_after": 89.0,
+      "free_pct_min": 26.0,
+      "swap_mib_before": 868.31,
+      "swap_mib_after": 868.31,
+      "safety_stop": false
+    },
+    {
+      "ctx": 16384,
+      "prefill_s": 214.23285199999918,
+      "prefill_tok_s": 76.47753296025795,
+      "ttft_s": 214.57155166699886,
+      "decode_tok_s": 10.682675801560592,
+      "peak_mlx_gib": 12.745719050988555,
+      "free_pct_before": 89.0,
+      "free_pct_after": 89.0,
+      "free_pct_min": 23.0,
+      "swap_mib_before": 868.31,
+      "swap_mib_after": 860.31,
+      "safety_stop": false
+    }
+  ],
+  "gen_check": [
+    {
+      "id": "P1",
+      "n_tokens": 384,
+      "hit_eos": false,
+      "distinct4": 0.8241469816272966,
+      "max4": 4
+    },
+    {
+      "id": "P2",
+      "n_tokens": 384,
+      "hit_eos": false,
+      "distinct4": 0.7821522309711286,
+      "max4": 5,
+      "p2_has_187": false
+    },
+    {
+      "id": "P3",
+      "n_tokens": 307,
+      "hit_eos": true,
+      "distinct4": 0.9967105263157895,
+      "max4": 2
+    },
+    {
+      "id": "P4",
+      "n_tokens": 192,
+      "hit_eos": true,
+      "distinct4": 0.6772486772486772,
+      "max4": 6,
+      "p4_json_valid": true
+    },
+    {
+      "id": "P5",
+      "n_tokens": 166,
+      "hit_eos": true,
+      "distinct4": 0.9877300613496932,
+      "max4": 2
+    }
+  ],
+  "notes": [
+    "No build: E03 checkpoint loaded with rotate_dtype=bfloat16; checkpoint fields are E03's.",
+    "Ladder: 24576 and 32768 not run because weights are 10.193 GiB > 9.0 GiB."
+  ]
+}

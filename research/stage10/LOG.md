@@ -265,3 +265,24 @@ commit: 3b908f1
 result: OK
 wall: 7.3m, peak_mlx: 13.05 GiB, swap before/after: 0.91/0.83 GiB
 facts: ctx 4096: decode 11.316451322225605, prefill 77.25078136475955 tok/s, ttft 53.37301549999938 s, peak 12.022460035979748 GiB, min free 28.0%, safety_stop False, exit 0; ctx 8192: decode 10.965046988402067, prefill 76.02146812395354 tok/s, ttft 108.0670163750001 s, peak 12.364073803648353 GiB, min free 27.0%, safety_stop False, exit 0; ctx 16384: decode 10.518338656154915, prefill 73.64559103000332 tok/s, ttft 222.9085820420005 s, peak 13.051222851499915 GiB, min free 22.0%, safety_stop False, exit 0
+
+## 2026-10-16 08:23 E05 eval
+cmd: `uv run python -m stage10.evaluate --exp E05 --model /Users/artem/models-stage10/E03 --loader candidate --rotate-dtype bfloat16`
+commit: 844c5d0
+result: OK
+wall: 21.7m, peak_mlx: 10.94 GiB, swap before/after: 0.81/0.86 GiB
+facts: all: nll 1.46906, delta 0.17536, top1 0.8202, kl_top32 0.23794; en: nll 2.02721, delta 0.15258, top1 0.7952, kl_top32 0.20782; code: nll 0.89688, delta 0.21249, top1 0.8450, kl_top32 0.30885; ru: nll 1.48310, delta 0.16102, top1 0.8203, kl_top32 0.19716
+
+## 2026-10-16 08:25 E05 gen-check
+cmd: `uv run python -m stage10.gen_check --exp E05 --model /Users/artem/models-stage10/E03 --loader candidate --rotate-dtype bfloat16`
+commit: 844c5d0
+result: OK
+wall: 2.2m, peak_mlx: n/a, swap before/after: 0.86/0.85 GiB
+facts: P1: n 384, eos False, distinct4 0.824, max4 4; P2: n 384, eos False, distinct4 0.782, max4 5, has_187 False; P3: n 307, eos True, distinct4 0.997, max4 2; P4: n 192, eos True, distinct4 0.677, max4 6, json_valid True; P5: n 166, eos True, distinct4 0.988, max4 2
+
+## 2026-10-16 08:32 E05 ladder
+cmd: `uv run python -m stage10.ladder --exp E05 --model /Users/artem/models-stage10/E03 --loader candidate --rotate-dtype bfloat16 --weights-gib 10.1930`
+commit: 844c5d0
+result: OK
+wall: 7.0m, peak_mlx: 12.75 GiB, swap before/after: 0.85/0.84 GiB
+facts: ctx 4096: decode 11.492334060465497, prefill 80.42146436619757 tok/s, ttft 51.20377441600067 s, peak 11.757788751274347 GiB, min free 27.0%, safety_stop False, exit 0; ctx 8192: decode 11.185322865939362, prefill 79.12212358772726 tok/s, ttft 103.86475112500011 s, peak 12.21053228341043 GiB, min free 26.0%, safety_stop False, exit 0; ctx 16384: decode 10.682675801560592, prefill 76.47753296025795 tok/s, ttft 214.57155166699886 s, peak 12.745719050988555 GiB, min free 23.0%, safety_stop False, exit 0
