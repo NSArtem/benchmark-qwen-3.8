@@ -1,0 +1,44 @@
+[
+  {
+    "id": "P1",
+    "n_tokens": 384,
+    "hit_eos": false,
+    "distinct4": 0.8241469816272966,
+    "max4": 4,
+    "text": "```python\ndef merge_intervals(intervals):\n    \"\"\"\n    Merges overlapping intervals in a list of intervals.\n    \n    Each interval is represented as a list [start, end] where start <= end.\n    The function returns a new list of merged intervals with no overlaps.\n    \n    >>> merge_intervals([[1, 3], [2, 4], [5, 6]])\n    [[1, 4], [5, 6]]\n    >>> merge_intervals([[1, 10], [3, 7], [21, 23]])\n    [[1, 10], [21, 23]]\n    >>> merge_intervals([[8, 10], [1, 3], [4, 7], [14, 18], [19, 21], [20, 21]])\n    [[1, 3], [4, 7], [8, 10], [14, 21]]\n    \"\"\"\n    if not intervals:\n        return []\n    \n    # Sort intervals by start time\n    sorted_intervals = sorted(intervals, key=lambda x: x[0])\n    \n    merged = []\n    current_start, current_end = sorted_intervals[0]\n    \n    for i in range(1, len(sorted_intervals)):\n        start, end = sorted_intervals[i]\n        \n        if start <= current_end:\n            # Overlapping or adjacent, extend the current interval\n            current_end = max(current_end, end)\n        else:\n            # No overlap, add the current interval to merged list\n            merged.append([current_start, current_end])\n            current_start, current_end = start, end\n    \n    # Don't forget the last interval\n    merged.append"
+  },
+  {
+    "id": "P2",
+    "n_tokens": 384,
+    "hit_eos": false,
+    "distinct4": 0.7821522309711286,
+    "max4": 5,
+    "p2_has_187": false,
+    "text": "To determine how many minutes the train is actually moving, we need to calculate the total travel time and then subtract the time spent stopped at stations.\n\n### Step 1: Calculate the Total Travel Time\n\nFirst, find the total duration between the departure and arrival times.\n\n*   **Departure Time:** 14:35\n*   **Arrival Time:** 18:10\n\nLet's break this down by hours and minutes:\n\n1.  From 14:35 to 15:35 is **1 hour**.\n2.  From 15:35 to 16:35 is **1 hour**.\n3.  From 16:35 to 17:35 is **1 hour**.\n    *   *Subtotal so far: 3 hours.*\n4.  Now, calculate the remaining time from 17:35 to 18:10.\n    *   From 17:35 to 18:00 is **15 minutes**.\n    *   From 18:00 to 18:10 is **10 minutes**.\n    *   *Remaining time: 25 minutes.*\n\n**Total Travel Time** = 3 hours + 25 minutes.\n\nTo make the subtraction easier, let's convert this entirely into minutes:\n$$3 \\text{ hours} \\times 60 \\text{ minutes/hour} = 180 \\text{ minutes}$$\n$$180 \\text{ minutes} + 25 \\text{ minutes} = 205 \\text{ minutes}$$\n\nSo, the total time from departure to arrival is **205 minutes**.\n\n### Step 2: Calculate Total Stop Time\n\nThe train"
+  },
+  {
+    "id": "P3",
+    "n_tokens": 307,
+    "hit_eos": true,
+    "distinct4": 0.9967105263157895,
+    "max4": 2,
+    "text": "Have you ever wondered where the water in your bathtub comes from? It’s part of a giant, never-ending loop called the water cycle. Think of it as Earth’s recycling system, but for water.\n\nIt usually starts with the sun. When the sun shines on oceans, lakes, and rivers, the water gets warm and turns into invisible water vapor. This process is called evaporation. The vapor floats up into the sky, just like steam rising from a hot cup of tea.\n\nAs this water vapor rises, it cools down. When it gets cold enough, it turns back into tiny droplets, forming clouds. This is called condensation. The clouds travel across the sky, sometimes moving very far away. When the clouds get too heavy with water, they release it back to Earth as rain, snow, sleet, or hail. This is precipitation.\n\nNow, the water lands on the ground. Some of it soaks into the soil to become groundwater, which plants use to grow. The rest runs off into streams and rivers, eventually flowing back into the oceans. Once it’s back in the ocean, the sun heats it up again, and the whole process starts over.\n\nThis cycle is incredibly important. It cleans the water, distributes it around the planet, and keeps our ecosystems healthy. So, the next time you drink a glass of water, remember that it’s part of a journey that has been going on for billions of years. You’re literally drinking the same water that dinosaurs drank!"
+  },
+  {
+    "id": "P4",
+    "n_tokens": 192,
+    "hit_eos": true,
+    "distinct4": 0.6772486772486772,
+    "max4": 6,
+    "p4_json_valid": true,
+    "text": "{\n  \"books\": [\n    {\n      \"title\": \"The Echoes of Aether\",\n      \"author\": \"Elara Vance\",\n      \"year\": 2021,\n      \"genres\": [\n        \"Fantasy\",\n        \"Adventure\"\n      ]\n    },\n    {\n      \"title\": \"Neon Shadows\",\n      \"author\": \"Kaelen Thorne\",\n      \"year\": 2023,\n      \"genres\": [\n        \"Sci-Fi\",\n        \"Noir\"\n      ]\n    },\n    {\n      \"title\": \"The Last Cartographer\",\n      \"author\": \"Julian Reed\",\n      \"year\": 2019,\n      \"genres\": [\n        \"Mystery\",\n        \"Historical Fiction\"\n      ]\n    }\n  ]\n}"
+  },
+  {
+    "id": "P5",
+    "n_tokens": 166,
+    "hit_eos": true,
+    "distinct4": 0.9877300613496932,
+    "max4": 2,
+    "text": "Квантование нейросетей — это процесс упрощения математических вычислений внутри модели. Обычно нейросети используют очень точные числа с длинными дробными частями, но квантование заменяет их на более простые и короткие значения. Это похоже на то, как если бы вместо точного веса в 1.23456789 граммов мы записали просто 1.2 грамма. Благодаря этому модель становится значительно меньше по размеру и быстрее работает. При этом качество её работы часто остаётся достаточно высоким, хотя и не идеальным. Такой подход позволяет запускать сложные нейросети на обычных устройствах, вроде смартфонов или ноутбуков. В итоге квантование делает ИИ более доступным и экономичным в использовании."
+  }
+]

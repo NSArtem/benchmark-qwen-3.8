@@ -1,0 +1,44 @@
+[
+  {
+    "id": "P1",
+    "n_tokens": 384,
+    "hit_eos": false,
+    "distinct4": 0.8241469816272966,
+    "max4": 4,
+    "text": "```python\ndef merge_intervals(intervals):\n    \"\"\"\n    Merge overlapping intervals.\n    \n    Given a list of intervals, merge any overlapping intervals and return\n    the resulting list of non-overlapping intervals.\n    \n    An interval is represented as a list [start, end]. Two intervals overlap\n    if they share any common points.\n    \n    Args:\n        intervals: A list of intervals, where each interval is a list of two\n                   numbers [start, end].\n    \n    Returns:\n        A list of merged non-overlapping intervals, sorted by start value.\n    \n    Examples:\n        >>> merge_intervals([[1, 3], [2, 6], [8, 10], [15, 17]])\n        [[1, 6], [8, 10], [15, 17]]\n        \n        >>> merge_intervals([[1, 4], [0, 0]])\n        [[0, 0], [1, 4]]\n        \n        >>> merge_intervals([[1, 4], [0, 0], [2, 6]])\n        [[0, 0], [1, 6]]\n    \"\"\"\n    if not intervals:\n        return []\n    \n    # Sort intervals by start value\n    sorted_intervals = sorted(intervals, key=lambda x: x[0])\n    \n    # Initialize the result with the first interval\n    merged = [sorted_intervals[0]]\n    \n    # Iterate through the remaining intervals\n    for current in sorted_intervals[1:]:\n        last = merged[-1]\n        # If the current interval starts before the last interval ends, they overlap\n        if current[0] <= last[1]:\n            # Merge by extending the end of the last interval if needed\n           "
+  },
+  {
+    "id": "P2",
+    "n_tokens": 384,
+    "hit_eos": false,
+    "distinct4": 0.8661417322834646,
+    "max4": 5,
+    "p2_has_187": false,
+    "text": "To determine how many minutes the train is actually moving, we need to calculate the total duration of the journey and then subtract the time spent stopped at the stations.\n\n**Step 1: Calculate the total duration of the journey**\nFirst, we find the total time elapsed between the departure and arrival times.\n*   Departure time: 14:35\n*   Arrival time: 18:10\n\nLet's calculate the difference in hours and minutes:\n*   From 14:35 to 18:35 is exactly 4 hours.\n*   However, the arrival is at 18:10, which is 25 minutes earlier than 18:35.\n*   So, the total duration is 4 hours minus 25 minutes.\n\nAlternatively, we can convert the times into minutes since midnight to make the subtraction easier:\n*   14:35 = $(14 \\times 60) + 35 = 840 + 35 = 875$ minutes\n*   18:10 = $(18 \\times 60) + 10 = 1080 + 10 = 1090$ minutes\n\nTotal duration = $1090 - 875 = 215$ minutes.\n\n**Step 2: Calculate the total time spent stopped**\nThe problem states that the train stops for 7 minutes at each of 4 stations.\n*   Number of stops: 4\n*   Duration of each stop: 7 minutes\n\nTotal stop time = $4 \\times 7 = 28$ minutes.\n\n**Step 3: Calculate the time actually moving**\nThe time actually moving is the total duration minus the total"
+  },
+  {
+    "id": "P3",
+    "n_tokens": 289,
+    "hit_eos": true,
+    "distinct4": 0.9965034965034965,
+    "max4": 2,
+    "text": "Have you ever wondered where all the rain comes from? It’s a never-ending loop called the water cycle, and it’s nature’s amazing recycling system!\n\nImagine a drop of water in a puddle. First, the sun warms the water, turning it into invisible water vapor. This is called **evaporation**. The vapor rises high into the sky, where the air is colder. As it cools down, the vapor turns back into tiny water droplets, forming clouds. This process is called **condensation**.\n\nWhen those droplets get too heavy, they fall back to Earth as rain, snow, or hail. This is **precipitation**. Some of that water soaks into the ground, becoming groundwater that feeds rivers and streams. Other water flows over the surface into lakes and oceans.\n\nBut the story doesn’t end there. The water in the ocean gets heated by the sun again, evaporates, and starts the whole process over. It’s a giant, global conveyor belt.\n\nThis cycle is vital for life. It cleans our water, fills our rivers, and helps plants grow. Without it, we’d have no drinking water, and crops would dry up. So, the next time it rains, remember: that water might have been in the ocean, then the sky, then your glass, and back to the ocean again. It’s a beautiful, endless journey that keeps our planet alive."
+  },
+  {
+    "id": "P4",
+    "n_tokens": 188,
+    "hit_eos": true,
+    "distinct4": 0.6756756756756757,
+    "max4": 6,
+    "p4_json_valid": true,
+    "text": "```json\n[\n  {\n    \"title\": \"The Last Lighthouse\",\n    \"author\": \"Elena Voss\",\n    \"year\": 2019,\n    \"genres\": [\n      \"Mystery\",\n      \"Fantasy\"\n    ]\n  },\n  {\n    \"title\": \"Echoes of the Void\",\n    \"author\": \"Marcus Thorne\",\n    \"year\": 2021,\n    \"genres\": [\n      \"Science Fiction\",\n      \"Thriller\"\n    ]\n  },\n  {\n    \"title\": \"Whispers in the Willow\",\n    \"author\": \"Sarah Lin\",\n    \"year\": 2023,\n    \"genres\": [\n      \"Romance\",\n      \"Historical Fiction\"\n    ]\n  }\n]\n```"
+  },
+  {
+    "id": "P5",
+    "n_tokens": 273,
+    "hit_eos": true,
+    "distinct4": 0.9962962962962963,
+    "max4": 2,
+    "text": "Квантование нейросетей — это процесс «сжатия» модели, при котором её внутренние параметры (веса) переводятся из формата с высокой точностью (например, 32-битные числа) в более простые и компактные (например, 8-битные или 4-битные). Представьте, что вы записываете сложную мелоду не на дорогом студийном оборудовании, а на простом кассете: качество немного страдает, но файл становится в разы меньше. Главная цель этого приёма — сделать так, чтобы огромные языковые модели или другие ИИ-приложения занимали меньше памяти на вашем компьютере или телефоне.\n\nБлагодаря квантованию, программа начинает работать быстрее, так как процессору проще оперировать с упрощёнными числами. Это позволяет запускать мощные модели даже на устройствах со скромными характеристиками, например, на ноутбуках без мощных видеокарт. Да, при таком сжатии модель может стать чуть «глупее» и допускать больше ошибок, но современные методы квантования минимизируют эту потерю качества. В итоге вы получаете быстрый и лёгкий инструмент, который работает на вашем железе, а не требует покупки дорогого серверного оборудования."
+  }
+]

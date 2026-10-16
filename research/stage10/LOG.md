@@ -380,3 +380,16 @@ cmd: `uv run python -m unittest discover -s tests -p test_amendment.py`; `uv run
 commit: 2d20c8d
 result: OK
 facts: three amendment tests failed against previous settings, then passed after implementation; all 31 tests pass in 0.342 s. Gen-check max_tokens=1024; all sizes receive contexts 4096,8192,16384,24576,32768; --ctx driver preserves existing ladder rows and skips larger contexts after a safety stop. Recipe metadata and candidate module records use bfloat16 for E07–E12; E03/E04 float32 retained; weight folding unchanged. Initial test-file write used an incorrect relative path and wrote no file; initial sandbox uv command could not acquire its cache lock; escalated commands succeeded. No heavy MLX processes found; host free 87%, swap used 191.25 MiB.
+
+## 2026-10-16 15:31 AM1 step 4 preserve 384-token generation checks
+cmd: copy E01–E06 gen_check.json to gen_check_384.json in committed results and raw results
+commit: 64e8661
+result: OK
+facts: 12 archive files retained; rerun order E01,E02,E03,E04,E05,E06.
+
+## 2026-10-16 15:34 E01 gen-check
+cmd: `uv run python -m stage10.gen_check --exp E01 --model /Users/artem/models/Qwen3.8-27B-3bit-g128-MLX --loader mlx_lm`
+commit: 64e8661
+result: OK
+wall: 2.8m, peak_mlx: n/a, swap before/after: 0.18/1.51 GiB
+facts: P1: n 434, eos True, distinct4 0.842, max4 4; P2: n 457, eos True, distinct4 0.861, max4 5, has_187 True; P3: n 289, eos True, distinct4 0.997, max4 2; P4: n 188, eos True, distinct4 0.676, max4 6, json_valid True; P5: n 273, eos True, distinct4 0.996, max4 2
