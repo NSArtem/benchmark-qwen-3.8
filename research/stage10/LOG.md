@@ -510,3 +510,10 @@ commit: e917e85
 result: OK
 wall: n/a, peak_mlx: n/a, swap before/after: n/a
 facts: RESULTS.md regenerated from seven summaries. AM1 tools, gen-check rerun, ladder 24K/32K checked. Summary contexts and exact E02/E04 notes verified. Unit tests 31 pass at step 3; code unchanged since that run.
+
+## 2026-10-16 16:55 AM1 step 7 E07 rebuild start
+cmd: `uv run python -m stage10.run_exp --exp E07 --steps build`
+commit: 8b3db50
+result: STARTED
+wall: n/a, peak_mlx: n/a, swap before/after: n/a
+facts: Target E07 absent; aborted-layer48 checkpoint retained; no active MLX workload in process inventory; host free 90%, swap check recorded in session. Rebuild begins at layer 0 with runtime rotate_dtype=bfloat16 and float32 weight folding.
