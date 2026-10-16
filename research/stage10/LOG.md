@@ -286,3 +286,10 @@ commit: 844c5d0
 result: OK
 wall: 7.0m, peak_mlx: 12.75 GiB, swap before/after: 0.85/0.84 GiB
 facts: ctx 4096: decode 11.492334060465497, prefill 80.42146436619757 tok/s, ttft 51.20377441600067 s, peak 11.757788751274347 GiB, min free 27.0%, safety_stop False, exit 0; ctx 8192: decode 11.185322865939362, prefill 79.12212358772726 tok/s, ttft 103.86475112500011 s, peak 12.21053228341043 GiB, min free 26.0%, safety_stop False, exit 0; ctx 16384: decode 10.682675801560592, prefill 76.47753296025795 tok/s, ttft 214.57155166699886 s, peak 12.745719050988555 GiB, min free 23.0%, safety_stop False, exit 0
+
+## 2026-10-16 08:38 E06 GPTQ smoke (2 layers)
+cmd: `uv run python -m stage10.build --exp E06 --smoke-layers 2`
+commit: c9ddf8a
+result: OK
+wall: 6.0m, peak_mlx: 13.34 GiB, swap before/after: 0.83/0.82 GiB
+facts: trial of the GPTQ builder on layers 0-1 of the real BF16 source into git-ignored `benchmarks/results/stage10/smoke/E06/` (not a candidate). 96 calibration sequences, hidden (96, 2048, 5120). Layer 0 175.2 s, layer 1 173.6 s. Watchdog minimum free 35%; no SAFETY STOP. No Cholesky retries or RTN fallbacks. 16 per-module output MSE pairs recorded in `benchmarks/results/stage10/E06/smoke_build.json`.
