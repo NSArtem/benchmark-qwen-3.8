@@ -517,3 +517,10 @@ commit: 8b3db50
 result: STARTED
 wall: n/a, peak_mlx: n/a, swap before/after: n/a
 facts: Target E07 absent; aborted-layer48 checkpoint retained; no active MLX workload in process inventory; host free 90%, swap check recorded in session. Rebuild begins at layer 0 with runtime rotate_dtype=bfloat16 and float32 weight folding.
+
+## 2026-10-16 17:43 E07 build progress layers 0–15
+cmd: `tail benchmarks/results/stage10/E07/build_progress.log`
+commit: 93c780d
+result: OK (build still running)
+wall: n/a, peak_mlx: n/a, swap before/after: n/a
+facts: Layers 0–15 completed; layer 15 wall 174.9 s; peak MLX so far 15.73 GiB. Watchdog attached; no SAFETY STOP or listed allocation/timeout errors in full log scans. Layer 16 in progress. Candidate output and aborted output retained. No measurements run yet.
