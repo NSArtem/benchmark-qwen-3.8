@@ -447,3 +447,10 @@ commit: 7991e6a
 result: OK
 wall: 6.4m, peak_mlx: 13.34 GiB, swap before/after: 0.44/0.75 GiB
 facts: {"ctx": 24576, "prefill_s": 362.8422681669981, "prefill_tok_s": 67.73191040876445, "ttft_s": 365.02906766699743, "decode_tok_s": 7.624381884756839, "generated_tokens": 128, "peak_mlx_gib": 13.337174510583282, "free_pct_before": 88.0, "swap_mib_before": 451.38, "free_pct_after": 90.0, "swap_mib_after": 769.5, "free_pct_min": 22.0, "safety_stop": false, "exit_code": 0, "wall_s": 386.8512651669953}
+
+## 2026-10-16 16:07 AM1 E01 ladder 32768
+cmd: `uv run python -m stage10.ladder --exp E01 --model /Users/artem/models/Qwen3.8-27B-3bit-g128-MLX --loader mlx_lm --weights-gib 10.180244437418878 --ctx 32768`
+commit: 08d1689
+result: OK
+wall: 8.5m, peak_mlx: 14.05 GiB, swap before/after: 0.63/0.60 GiB
+facts: {"ctx": 32768, "prefill_s": 456.5111460830012, "prefill_tok_s": 71.7791893607834, "ttft_s": 459.9592417499953, "decode_tok_s": 3.301872557928048, "generated_tokens": 128, "peak_mlx_gib": 14.046690991148353, "free_pct_before": 89.0, "swap_mib_before": 641.5, "free_pct_after": 90.0, "swap_mib_after": 617.12, "free_pct_min": 23.0, "safety_stop": false, "exit_code": 0, "wall_s": 507.5491046249954}

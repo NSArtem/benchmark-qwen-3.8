@@ -103,6 +103,20 @@
       "swap_mib_before": 451.38,
       "swap_mib_after": 769.5,
       "safety_stop": false
+    },
+    {
+      "ctx": 32768,
+      "prefill_s": 456.5111460830012,
+      "prefill_tok_s": 71.7791893607834,
+      "ttft_s": 459.9592417499953,
+      "decode_tok_s": 3.301872557928048,
+      "peak_mlx_gib": 14.046690991148353,
+      "free_pct_before": 89.0,
+      "free_pct_after": 90.0,
+      "free_pct_min": 23.0,
+      "swap_mib_before": 641.5,
+      "swap_mib_after": 617.12,
+      "safety_stop": false
     }
   ],
   "gen_check": [
@@ -145,7 +159,6 @@
     }
   ],
   "notes": [
-    "Production checkpoint loaded with mlx_lm.load on the Stage 10 stack.",
-    "Ladder: 24576 and 32768 not run because weights are 10.180 GiB > 9.0 GiB."
+    "Production checkpoint loaded with mlx_lm.load on the Stage 10 stack."
   ]
 }
