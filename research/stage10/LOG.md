@@ -400,3 +400,10 @@ commit: 9c3dd02
 result: OK
 wall: 2.6m, peak_mlx: n/a, swap before/after: 1.47/0.52 GiB
 facts: P1: n 434, eos True, distinct4 0.842, max4 4; P2: n 457, eos True, distinct4 0.861, max4 5, has_187 True; P3: n 289, eos True, distinct4 0.997, max4 2; P4: n 188, eos True, distinct4 0.676, max4 6, json_valid True; P5: n 273, eos True, distinct4 0.996, max4 2
+
+## 2026-10-16 15:43 E03 gen-check
+cmd: `uv run python -m stage10.gen_check --exp E03 --model /Users/artem/models-stage10/E03 --loader candidate`
+commit: 5bc63d9
+result: OK
+wall: 2.5m, peak_mlx: n/a, swap before/after: 0.50/0.47 GiB
+facts: P1: n 378, eos True, distinct4 0.856, max4 4; P2: n 543, eos True, distinct4 0.785, max4 9, has_187 False; P3: n 306, eos True, distinct4 1.000, max4 1; P4: n 188, eos True, distinct4 0.670, max4 6, json_valid True; P5: n 166, eos True, distinct4 0.988, max4 2
