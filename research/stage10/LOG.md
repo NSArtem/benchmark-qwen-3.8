@@ -112,3 +112,23 @@ cmd: `git log --oneline`
 commit: 707264c
 result: OK
 facts: token set builder/tests 33ac42d; pinned research stack 6022df5; token data manifest 7c16904; A3 tools, check log, progress, and STOP question 707264c.
+
+## 2026-10-16 A3-sanitize resume authorized by user
+cmd: none
+commit: 841fd33
+result: OK
+facts: The user authorized lifting the A3-sanitize STOP and resuming TASK.md. Fix: `_same_bytes` compared `str(dtype) == "bfloat16"`, but `str(mx.bfloat16)` is `mlx.core.bfloat16`; it now compares dtype objects and views every array as uint8 before NumPy conversion.
+
+## 2026-10-16 A3-sanitize attempt 4
+cmd: `uv run python -m stage10.check_a3 --mode sanitize`
+commit: 841fd33 + uncommitted check_a3.py fix
+result: FAILED_ERROR
+wall: 5.0s; peak_mlx: not recorded; swap before/after: 322.25/322.25 MiB
+facts: preflight free=86%, swap=322.25 MiB; watchdog did not fire. `ValueError: [quantize] The matrix to be quantized must have at least 2 dimension but it has only 1.` Cause: for keys without `.weight` (e.g. `A_log`), `key.replace(".weight", ".scales")` returns the key itself, which is in the production map. Fix: a tensor is treated as quantized only if its key ends in `.weight` and the `.scales` key exists.
+
+## 2026-10-16 A3-sanitize attempt 5
+cmd: `uv run python -m stage10.check_a3 --mode sanitize`
+commit: 841fd33 + uncommitted check_a3.py fixes
+result: OK
+wall: 5.0s; peak_mlx: not recorded; swap before/after: 322.25/322.25 MiB
+facts: preflight free=86%, swap=322.25 MiB; watchdog minimum free sample 86%; watchdog did not fire. Layers 0 and 3: 55 of 55 tensors byte-identical to production g128 (mlx 0.32.4 `mx.quantize`, affine, bits 3, group 128). Mismatches: none. Result: `benchmarks/results/stage10/checks/a3_sanitize.json`.

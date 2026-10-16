@@ -83,15 +83,12 @@ def _same_bytes(left, right) -> bool:
     import mlx.core as mx
 
     mx.eval(left, right)
-    left_dtype = str(left.dtype)
-    right_dtype = str(right.dtype)
-    if left_dtype != right_dtype or left.shape != right.shape:
+    if left.dtype != right.dtype or left.shape != right.shape:
         return False
-    if left_dtype == "bfloat16":
-        left = left.view(mx.uint16)
-        right = right.view(mx.uint16)
-    lhs = np.asarray(left)
-    rhs = np.asarray(right)
+    # str(mx.bfloat16) is "mlx.core.bfloat16" and NumPy has no bfloat16, so
+    # compare raw bytes for every dtype.
+    lhs = np.asarray(left.view(mx.uint8))
+    rhs = np.asarray(right.view(mx.uint8))
     return lhs.tobytes() == rhs.tobytes()
 
 
@@ -131,7 +128,7 @@ def _check_a3_sanitize() -> dict:
                 weight = weight.astype(mx.bfloat16)
             scale_key = key.replace(".weight", ".scales")
             bias_key = key.replace(".weight", ".biases")
-            quantized = scale_key in production_map
+            quantized = key.endswith(".weight") and scale_key in production_map
             if quantized:
                 qweight, scales, biases = mx.quantize(
                     weight, group_size=128, bits=3, mode="affine"

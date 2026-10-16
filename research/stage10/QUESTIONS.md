@@ -14,7 +14,7 @@
   stream after filtering. The implementation numbers only articles that pass
   the 2000-character filter, then selects those ordinal ranges.
 
-## STOP — 2026-10-16
+## STOP — 2026-10-16 (resolved: user authorized resume; A3-sanitize PASS 55/55)
 
 - A3-loop passed: 4094 scored positions, max absolute log-probability
   difference 0.0, argmax agreement 1.0.

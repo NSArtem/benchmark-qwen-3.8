@@ -1,6 +1,6 @@
 - [x] A1 common helpers
 - [x] A2 token sets + data_manifest.json
-- [ ] A3 layerwise + check A3-loop + check A3-sanitize
+- [x] A3 layerwise + check A3-loop + check A3-sanitize
 - [ ] A4 BF16 reference (= E00)
 - [ ] A5 qformat + tests (pack 2/3/4, rotation)
 - [ ] A6 candidate loader + test
@@ -12,5 +12,5 @@
 - [ ] E08 - [ ] E09 - [ ] E10 - [ ] E11 - [ ] E12 - [ ] E13 - [ ] E14 - [ ] E15
 
 Recorded checks: A3-loop PASS (4094 positions; max absolute log-probability
-difference 0.0; argmax agreement 1.0). A3-sanitize STOP under TASK.md §7
-after two code fixes; see LOG.md and QUESTIONS.md.
+difference 0.0; argmax agreement 1.0). A3-sanitize PASS (layers 0 and 3,
+55/55 tensors byte-identical) after a user-authorized resume of the §7 STOP.
