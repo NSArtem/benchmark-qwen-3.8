@@ -113,11 +113,11 @@
     },
     {
       "id": "P2",
-      "n_tokens": 384,
-      "hit_eos": false,
-      "distinct4": 0.7322834645669292,
-      "max4": 6,
-      "p2_has_187": false
+      "n_tokens": 530,
+      "hit_eos": true,
+      "distinct4": 0.7552182163187856,
+      "max4": 8,
+      "p2_has_187": true
     },
     {
       "id": "P3",

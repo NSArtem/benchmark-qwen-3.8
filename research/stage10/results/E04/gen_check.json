@@ -9,12 +9,12 @@
   },
   {
     "id": "P2",
-    "n_tokens": 384,
-    "hit_eos": false,
-    "distinct4": 0.7322834645669292,
-    "max4": 6,
-    "p2_has_187": false,
-    "text": "To determine how many minutes the train is actually moving, we need to calculate the total travel time and then subtract the time spent stopped at stations.\n\n**Step 1: Calculate the total travel time.**\n\nThe train leaves at 14:35 and arrives at 18:10. We can calculate the difference between these two times:\n\n1.  From 14:35 to 18:35 would be 4 hours.\n2.  However, the arrival time is 18:10, which is 25 minutes earlier than 18:35.\n3.  So, the total time is 4 hours minus 25 minutes.\n    *   4 hours = 3 hours and 60 minutes.\n    *   3 hours and 60 minutes minus 25 minutes = 3 hours and 35 minutes.\n\nAlternatively, we can count forward:\n*   From 14:35 to 15:35 is 1 hour.\n*   From 15:35 to 16:35 is 2 hours.\n*   From 16:35 to 17:35 is 3 hours.\n*   From 17:35 to 18:10 is 35 minutes.\n*   Total time = 3 hours and 35 minutes.\n\n**Step 2: Convert total travel time into minutes.**\n\n*   3 hours = $3 \\times 60 = 180$ minutes.\n*   35 minutes = 35 minutes.\n*   Total travel time = $180 + 35 = 215$ minutes.\n\n**Step 3: Calculate the total stop"
+    "n_tokens": 530,
+    "hit_eos": true,
+    "distinct4": 0.7552182163187856,
+    "max4": 8,
+    "p2_has_187": true,
+    "text": "To determine how many minutes the train is actually moving, we need to calculate the total travel time and then subtract the time spent stopped at stations.\n\n**Step 1: Calculate the total travel time.**\n\nThe train leaves at 14:35 and arrives at 18:10. We can calculate the difference between these two times:\n\n1.  From 14:35 to 18:35 would be 4 hours.\n2.  However, the arrival time is 18:10, which is 25 minutes earlier than 18:35.\n3.  So, the total time is 4 hours minus 25 minutes.\n    *   4 hours = 3 hours and 60 minutes.\n    *   3 hours and 60 minutes minus 25 minutes = 3 hours and 35 minutes.\n\nAlternatively, we can count forward:\n*   From 14:35 to 15:35 is 1 hour.\n*   From 15:35 to 16:35 is 2 hours.\n*   From 16:35 to 17:35 is 3 hours.\n*   From 17:35 to 18:10 is 35 minutes.\n*   Total time = 3 hours and 35 minutes.\n\n**Step 2: Convert total travel time into minutes.**\n\n*   3 hours = $3 \\times 60 = 180$ minutes.\n*   35 minutes = 35 minutes.\n*   Total travel time = $180 + 35 = 215$ minutes.\n\n**Step 3: Calculate the total stoppage time.**\n\nThe train stops for 7 minutes at each of 4 stations.\n*   Total stoppage time = $4 \\text{ stations} \\times 7 \\text{ minutes/station} = 28$ minutes.\n\n**Step 4: Calculate the time actually moving.**\n\nSubtract the total stoppage time from the total travel time.\n*   Moving time = Total travel time - Total stoppage time\n*   Moving time = $215 \\text{ minutes} - 28 \\text{ minutes}$\n*   Moving time = $187$ minutes.\n\n**Answer:**\nThe train is actually moving for **187** minutes."
   },
   {
     "id": "P3",

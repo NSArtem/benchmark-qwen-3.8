@@ -407,3 +407,16 @@ commit: 5bc63d9
 result: OK
 wall: 2.5m, peak_mlx: n/a, swap before/after: 0.50/0.47 GiB
 facts: P1: n 378, eos True, distinct4 0.856, max4 4; P2: n 543, eos True, distinct4 0.785, max4 9, has_187 False; P3: n 306, eos True, distinct4 1.000, max4 1; P4: n 188, eos True, distinct4 0.670, max4 6, json_valid True; P5: n 166, eos True, distinct4 0.988, max4 2
+
+## 2026-10-16 15:46 E04 gen-check
+cmd: `uv run python -m stage10.gen_check --exp E04 --model /Users/artem/models-stage10/E04 --loader candidate`
+commit: 017dde9
+result: OK
+wall: 2.4m, peak_mlx: n/a, swap before/after: 0.46/0.45 GiB
+facts: P1: n 310, eos True, distinct4 0.824, max4 3; P2: n 530, eos True, distinct4 0.755, max4 8, has_187 True; P3: n 307, eos True, distinct4 0.997, max4 2; P4: n 186, eos True, distinct4 0.667, max4 6, json_valid True; P5: n 181, eos True, distinct4 0.978, max4 2
+
+## 2026-10-16 15:46 AM1 intermediate archive verification
+cmd: compare E01–E03 summaries and gen_check_384.json with e57b5b5 via git show
+commit: 017dde9
+result: OK
+facts: each summary differs only in gen_check; each archived generation check equals its original JSON.
