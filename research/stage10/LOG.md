@@ -355,3 +355,10 @@ commit: c10ac4e
 result: OK
 wall: 7.0m, peak_mlx: 12.99 GiB, swap before/after: 0.67/0.67 GiB
 facts: ctx 4096: decode 11.808492976491477, prefill 81.53982761996545 tok/s, ttft 50.503060584000195 s, peak 11.66203604079783 GiB, min free 28.0%, safety_stop False, exit 0; ctx 8192: decode 11.47984017060301, prefill 80.13725627914152 tok/s, ttft 102.5301384580016 s, peak 12.079651927575469 GiB, min free 26.0%, safety_stop False, exit 0; ctx 16384: decode 10.970119521505568, prefill 77.43463859905228 tok/s, ttft 211.92474758400203 s, peak 12.989091014489532 GiB, min free 23.0%, safety_stop False, exit 0
+
+## 2026-10-16 14:41 E07 build aborted by user
+cmd: `uv run python -m stage10.run_exp --exp E07` (stopped with pkill on user request)
+commit: 779dd9b
+result: FAILED_ERROR (aborted by user, not a code or memory failure)
+wall: about 2h25m until stop; peak_mlx: 15.73 GiB (build progress log); swap before/after: n/a
+facts: user asked to stop all runs and wrap up. E07 GPTQ build (rotation + 3-bit) completed layers 0-48 of 64 (about 176 s per layer) before the stop; no eval, gen-check, or ladder ran. No SAFETY STOP. Partial output moved, not deleted: `/Users/artem/models-stage10/E07.aborted-layer48-20261016/` (shards only, no index or config), `benchmarks/results/stage10/E07.aborted/`. E07 must be rebuilt from layer 0 on resume.
