@@ -524,3 +524,10 @@ commit: 93c780d
 result: OK (build still running)
 wall: n/a, peak_mlx: n/a, swap before/after: n/a
 facts: Layers 0–15 completed; layer 15 wall 174.9 s; peak MLX so far 15.73 GiB. Watchdog attached; no SAFETY STOP or listed allocation/timeout errors in full log scans. Layer 16 in progress. Candidate output and aborted output retained. No measurements run yet.
+
+## 2026-10-16 18:31 E07 build progress layers 0–31
+cmd: `tail benchmarks/results/stage10/E07/build_progress.log`
+commit: c7968e8
+result: OK (build still running)
+wall: n/a, peak_mlx: n/a, swap before/after: n/a
+facts: Layers 0–31 completed; layer 31 wall 181.1 s; peak MLX so far 15.73 GiB. Watchdog attached; no SAFETY STOP or listed allocation/timeout errors in full log scans. Layer 32 in progress. No measurements run yet.
