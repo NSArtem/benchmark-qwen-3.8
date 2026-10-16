@@ -115,6 +115,20 @@
       "swap_mib_before": 593.12,
       "swap_mib_after": 640.88,
       "safety_stop": false
+    },
+    {
+      "ctx": 32768,
+      "prefill_s": 508.17566716700094,
+      "prefill_tok_s": 64.48163915969535,
+      "ttft_s": 520.9899824169988,
+      "decode_tok_s": 3.2854124241273666,
+      "peak_mlx_gib": 14.425536205992103,
+      "free_pct_before": 90.0,
+      "free_pct_after": 90.0,
+      "free_pct_min": 22.0,
+      "swap_mib_before": 584.69,
+      "swap_mib_after": 483.81,
+      "safety_stop": false
     }
   ],
   "gen_check": [
@@ -156,7 +170,5 @@
       "max4": 2
     }
   ],
-  "notes": [
-    "Ladder: 24576 and 32768 not run because weights are 10.193 GiB > 9.0 GiB."
-  ]
+  "notes": []
 }

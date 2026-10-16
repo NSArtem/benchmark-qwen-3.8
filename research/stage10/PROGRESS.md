@@ -16,7 +16,7 @@ difference 0.0; argmax agreement 1.0). A3-sanitize PASS (layers 0 and 3,
 55/55 tensors byte-identical) after a user-authorized resume of the §7 STOP.
 
 Unit tests: 31 pass (`uv run python -m unittest discover -s tests`).
-Next: Amendment 1 step 5: E01 24K/32K and E03 24576 recorded; E03 32768 next, then E05 and E06 24576/32768 in order.
+Next: Amendment 1 step 5: E01 and E03 24K/32K recorded; E05 24576 next, then E05 32768 and E06 24576/32768.
 
 - [x] AM1 tools
 - [x] AM1 gen-check rerun
