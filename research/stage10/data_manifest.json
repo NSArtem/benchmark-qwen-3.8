@@ -1,0 +1,217 @@
+{
+  "sequence_length": 2048,
+  "eval_windows_per_domain": 16,
+  "calibration_windows_per_domain": 32,
+  "tokenizer_source": "/Users/artem/.cache/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "datasets": {
+    "en": {
+      "repo": "Salesforce/wikitext",
+      "config": "wikitext-2-raw-v1",
+      "revision": "b08601e04326c79dfdd32d625aee71d232d685c3",
+      "eval_split": "test",
+      "calibration_split": "train"
+    },
+    "code": {
+      "python": "3.14.7",
+      "stdlib_root": "/Users/artem/.local/share/uv/python/cpython-3.14.7-macos-aarch64-none/lib/python3.14",
+      "eval_files": [
+        "asyncio/__init__.py",
+        "asyncio/__main__.py",
+        "asyncio/base_events.py",
+        "asyncio/base_futures.py",
+        "asyncio/base_subprocess.py",
+        "asyncio/base_tasks.py",
+        "asyncio/constants.py",
+        "asyncio/coroutines.py",
+        "asyncio/events.py",
+        "asyncio/exceptions.py",
+        "asyncio/format_helpers.py",
+        "asyncio/futures.py",
+        "asyncio/graph.py",
+        "asyncio/locks.py",
+        "asyncio/log.py",
+        "asyncio/mixins.py",
+        "asyncio/proactor_events.py",
+        "asyncio/protocols.py",
+        "asyncio/queues.py",
+        "asyncio/runners.py",
+        "asyncio/selector_events.py",
+        "asyncio/sslproto.py",
+        "asyncio/staggered.py",
+        "asyncio/streams.py",
+        "asyncio/subprocess.py",
+        "asyncio/taskgroups.py",
+        "asyncio/tasks.py",
+        "asyncio/threads.py",
+        "asyncio/timeouts.py",
+        "asyncio/tools.py",
+        "asyncio/transports.py",
+        "asyncio/trsock.py",
+        "asyncio/unix_events.py",
+        "asyncio/windows_events.py",
+        "asyncio/windows_utils.py",
+        "email/__init__.py",
+        "email/_encoded_words.py",
+        "email/_header_value_parser.py",
+        "email/_parseaddr.py",
+        "email/_policybase.py",
+        "email/base64mime.py",
+        "email/charset.py",
+        "email/contentmanager.py",
+        "email/encoders.py",
+        "email/errors.py",
+        "email/feedparser.py",
+        "email/generator.py",
+        "email/header.py",
+        "email/headerregistry.py",
+        "email/iterators.py",
+        "email/message.py",
+        "email/mime/__init__.py",
+        "email/mime/application.py",
+        "email/mime/audio.py",
+        "email/mime/base.py",
+        "email/mime/image.py",
+        "email/mime/message.py",
+        "email/mime/multipart.py",
+        "email/mime/nonmultipart.py",
+        "email/mime/text.py",
+        "email/parser.py",
+        "email/policy.py",
+        "email/quoprimime.py",
+        "email/utils.py",
+        "json/__init__.py",
+        "json/__main__.py",
+        "json/decoder.py",
+        "json/encoder.py",
+        "json/scanner.py",
+        "json/tool.py"
+      ],
+      "calibration_files": [
+        "concurrent/__init__.py",
+        "concurrent/futures/__init__.py",
+        "concurrent/futures/_base.py",
+        "concurrent/futures/interpreter.py",
+        "concurrent/futures/process.py",
+        "concurrent/futures/thread.py",
+        "concurrent/interpreters/__init__.py",
+        "concurrent/interpreters/_crossinterp.py",
+        "concurrent/interpreters/_queues.py",
+        "http/__init__.py",
+        "http/client.py",
+        "http/cookiejar.py",
+        "http/cookies.py",
+        "http/server.py",
+        "logging/__init__.py",
+        "logging/config.py",
+        "logging/handlers.py",
+        "unittest/__init__.py",
+        "unittest/__main__.py",
+        "unittest/_log.py",
+        "unittest/async_case.py",
+        "unittest/case.py",
+        "unittest/loader.py",
+        "unittest/main.py",
+        "unittest/mock.py",
+        "unittest/result.py",
+        "unittest/runner.py",
+        "unittest/signals.py",
+        "unittest/suite.py",
+        "unittest/util.py",
+        "xml/__init__.py",
+        "xml/dom/NodeFilter.py",
+        "xml/dom/__init__.py",
+        "xml/dom/domreg.py",
+        "xml/dom/expatbuilder.py",
+        "xml/dom/minicompat.py",
+        "xml/dom/minidom.py",
+        "xml/dom/pulldom.py",
+        "xml/dom/xmlbuilder.py",
+        "xml/etree/ElementInclude.py",
+        "xml/etree/ElementPath.py",
+        "xml/etree/ElementTree.py",
+        "xml/etree/__init__.py",
+        "xml/etree/cElementTree.py",
+        "xml/parsers/__init__.py",
+        "xml/parsers/expat.py",
+        "xml/sax/__init__.py",
+        "xml/sax/_exceptions.py",
+        "xml/sax/expatreader.py",
+        "xml/sax/handler.py",
+        "xml/sax/saxutils.py",
+        "xml/sax/xmlreader.py"
+      ]
+    },
+    "ru": {
+      "repo": "wikimedia/wikipedia",
+      "config": "20231101.ru",
+      "revision": "b04c8d1ceb2f5cd4588862100d08de323dccfbaa",
+      "split": "train",
+      "streaming": true,
+      "min_characters": 2000,
+      "eval_eligible_article_ordinals": [
+        0,
+        1999
+      ],
+      "calibration_eligible_article_ordinals": [
+        10000,
+        11999
+      ]
+    }
+  },
+  "arrays": {
+    "en_eval": {
+      "path": "en_eval.npy",
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "int32",
+      "sha256": "b0e7c5b195039957ae59cf8ad522bb649d3fc9e8969503b5bd5439987ab40060"
+    },
+    "en_calibration": {
+      "path": "en_calibration.npy",
+      "shape": [
+        32,
+        2048
+      ],
+      "dtype": "int32",
+      "sha256": "301f3f471691127299967aa8c742039650d8499b2c8670d60274ca24e488793c"
+    },
+    "code_eval": {
+      "path": "code_eval.npy",
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "int32",
+      "sha256": "659cf6be27ccd3f8091fc1a19bca509603455ce0420ab2600ce6e45e32039e80"
+    },
+    "code_calibration": {
+      "path": "code_calibration.npy",
+      "shape": [
+        32,
+        2048
+      ],
+      "dtype": "int32",
+      "sha256": "c192cafa45b6539b55747f73b2de053e6b4e1b3f90c8a7ba926391c649aa759b"
+    },
+    "ru_eval": {
+      "path": "ru_eval.npy",
+      "shape": [
+        16,
+        2048
+      ],
+      "dtype": "int32",
+      "sha256": "33485e94ad7979c1e6fa3471fdd07dccc0fb6e07f8763f3dc416bdb42ef1ce78"
+    },
+    "ru_calibration": {
+      "path": "ru_calibration.npy",
+      "shape": [
+        32,
+        2048
+      ],
+      "dtype": "int32",
+      "sha256": "65831ddd7f70a90aca2d4cf1981da1927d756ba53e2497b3dc7e80ca63395ed6"
+    }
+  }
+}

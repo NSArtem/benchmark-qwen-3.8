@@ -45,3 +45,16 @@ cmd: `uv run python -c 'import mlx_lm'` in default sandbox
 commit: n/a
 result: FAILED_ERROR
 facts: MLX raised `[metal::load_device] No Metal device available. This typically occurs in headless, sandboxed, or virtualized macOS sessions where the GPU is not accessible.` No model weights were loaded.
+
+## 2026-10-16 Stage 10 stack commit
+cmd: `git commit -m 'stage10: pin research stack'`
+commit: 6022df5
+result: OK
+facts: `uv.lock`, README resolved versions, and environment notes committed. Post-commit `git status --ignored research/` showed only `.venv/` and Python `__pycache__/` entries ignored.
+
+## 2026-10-16 A2 token arrays
+cmd: `uv run python -m stage10.data`
+commit: pending
+result: OK
+wall: approximately 1m23s; peak_mlx: n/a; swap before/after: n/a
+facts: Wikitext revision b08601e04326c79dfdd32d625aee71d232d685c3; Wikipedia revision b04c8d1ceb2f5cd4588862100d08de323dccfbaa. Six int32 arrays were written under `benchmarks/results/stage10/data/`, each 16x2048 (eval) or 32x2048 (calibration). Per-file SHA-256 and Python stdlib file lists are in `data_manifest.json`. No model weights were loaded.

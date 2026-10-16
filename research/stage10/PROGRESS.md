@@ -1,5 +1,5 @@
 - [x] A1 common helpers
-- [ ] A2 token sets + data_manifest.json
+- [x] A2 token sets + data_manifest.json
 - [ ] A3 layerwise + check A3-loop + check A3-sanitize
 - [ ] A4 BF16 reference (= E00)
 - [ ] A5 qformat + tests (pack 2/3/4, rotation)
