@@ -15,3 +15,15 @@ cmd: `UV_CACHE_DIR=/private/tmp/stage10-uv-cache uv lock --python 3.14.7`
 commit: n/a
 result: FAILED_ERROR
 facts: uv selected CPython 3.14.7; package index request failed after 3 retries because DNS lookup for pypi.org failed. No lockfile was generated. Details recorded in QUESTIONS.md.
+
+## 2026-10-16 A1 commit
+cmd: `git commit -m 'stage10: add common helpers'`
+commit: c17cb5a
+result: OK
+facts: A1 helpers and Stage 10 project skeleton committed; `git status --ignored research/` showed no ignored Stage 10 files.
+
+## 2026-10-16 A2 token set tool and unit tests
+cmd: `UV_CACHE_DIR=/private/tmp/stage10-uv-cache UV_PROJECT_ENVIRONMENT=/Users/artem/projects/benchmark-qwen-3.8/.venv uv run --offline --no-sync --python /Users/artem/projects/benchmark-qwen-3.8/.venv/bin/python -m unittest discover -s tests`
+commit: pending
+result: PARTIAL
+facts: 2 tests passed. Tests used the existing Python 3.14.7 root environment because the isolated Stage 10 dependencies could not be resolved. BF16 tokenizer file exists; datasets cache is empty and shell network resolution failed, so token arrays and `data_manifest.json` were not generated. Russian eligible-article ordinal interpretation is recorded in QUESTIONS.md.
