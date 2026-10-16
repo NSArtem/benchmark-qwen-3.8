@@ -174,3 +174,38 @@ commit: c5b19b1
 result: OK
 wall: 7.0m, peak_mlx: 12.99 GiB, swap before/after: 0.88/0.90 GiB
 facts: ctx 4096: decode 11.693055049211454, prefill 81.58771953039313 tok/s, ttft 50.52468066700021 s, peak 11.66203604079783 GiB, min free 27.0%, safety_stop False, exit 0; ctx 8192: decode 11.368501664269736, prefill 80.19223347029012 tok/s, ttft 102.49436033300026 s, peak 12.079651927575469 GiB, min free 26.0%, safety_stop False, exit 0; ctx 16384: decode 10.869989332111558, prefill 77.18084924720054 tok/s, ttft 213.28563587500048 s, peak 12.989091014489532 GiB, min free 23.0%, safety_stop False, exit 0
+
+## 2026-10-16 06:21 E02 build
+cmd: `uv run python -m stage10.build --exp E02`
+commit: 2d7d7ed
+result: OK
+wall: 1.4m, peak_mlx: 3.77 GiB, swap before/after: 0.88/0.83 GiB
+facts: checkpoint /Users/artem/models-stage10/E02, bytes 10930955741, gib 10.180245843715966, bpw 3.251254653469237; build wall 84.41322570800003 s; min free 85.0%
+
+## 2026-10-16 06:22 E02 pipeline tensor check
+cmd: `uv run python -m stage10.build --exp E02 --compare-production`
+commit: 2d7d7ed
+result: OK
+wall: 0.6m, peak_mlx: n/a, swap before/after: 0.83/0.83 GiB
+facts: production tensors 1847, E02 tensors 1847, byte-identical 1847, differing 0, missing 0, extra 0. Result: `benchmarks/results/stage10/E02/production_compare.json`.
+
+## 2026-10-16 06:43 E02 eval
+cmd: `uv run python -m stage10.evaluate --exp E02 --model /Users/artem/models-stage10/E02 --loader candidate`
+commit: 2d7d7ed
+result: OK
+wall: 21.3m, peak_mlx: 10.92 GiB, swap before/after: 0.83/0.71 GiB
+facts: all: nll 1.50181, delta 0.20812, top1 0.8123, kl_top32 0.25379; en: nll 2.04591, delta 0.17128, top1 0.7902, kl_top32 0.21099; code: nll 0.93751, delta 0.25313, top1 0.8353, kl_top32 0.33756; ru: nll 1.52202, delta 0.19994, top1 0.8115, kl_top32 0.21282
+
+## 2026-10-16 06:46 E02 gen-check
+cmd: `uv run python -m stage10.gen_check --exp E02 --model /Users/artem/models-stage10/E02 --loader candidate`
+commit: 2d7d7ed
+result: OK
+wall: 2.3m, peak_mlx: n/a, swap before/after: 0.71/0.70 GiB
+facts: P1: n 384, eos False, distinct4 0.824, max4 4; P2: n 384, eos False, distinct4 0.866, max4 5, has_187 False; P3: n 289, eos True, distinct4 0.997, max4 2; P4: n 188, eos True, distinct4 0.676, max4 6, json_valid True; P5: n 273, eos True, distinct4 0.996, max4 2
+
+## 2026-10-16 06:53 E02 ladder
+cmd: `uv run python -m stage10.ladder --exp E02 --model /Users/artem/models-stage10/E02 --loader candidate --weights-gib 10.1802`
+commit: 2d7d7ed
+result: OK
+wall: 7.0m, peak_mlx: 12.99 GiB, swap before/after: 0.70/0.92 GiB
+facts: ctx 4096: decode 11.776275068433325, prefill 81.42543318324037 tok/s, ttft 50.64763016699999 s, peak 11.662051299586892 GiB, min free 26.0%, safety_stop False, exit 0; ctx 8192: decode 11.454975038313723, prefill 80.06202969940696 tok/s, ttft 102.62221416699958 s, peak 12.079651927575469 GiB, min free 25.0%, safety_stop False, exit 0; ctx 16384: decode 10.950167479901182, prefill 77.29806309460777 tok/s, ttft 212.94924874999924 s, peak 12.989091014489532 GiB, min free 22.0%, safety_stop False, exit 0

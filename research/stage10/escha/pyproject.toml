@@ -1,0 +1,12 @@
+[project]
+name = "qwen38-stage10-escha"
+version = "0.1.0"
+description = "Stage 10 E14 reference runtime (escha-mlx), isolated from the Stage 10 stack"
+requires-python = "==3.14.*"
+dependencies = [
+    "escha-mlx @ git+https://github.com/EschaLabs/escha-mlx@69f72187d93d74e281eeb1044f3ef95dfce671de",
+    "numpy",
+]
+
+[tool.uv]
+package = false

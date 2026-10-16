@@ -1,0 +1,150 @@
+{
+  "exp_id": "E02",
+  "recipe": "rtn3",
+  "status": "OK",
+  "stack": {
+    "python": "3.14.7",
+    "mlx": "0.32.4",
+    "mlx_lm": "0.32.1"
+  },
+  "git_commit": "2d7d7ed",
+  "date": "2026-10-16",
+  "checkpoint": {
+    "path": "/Users/artem/models-stage10/E02",
+    "bytes": 10930955741,
+    "gib": 10.180245843715966,
+    "bpw": 3.251254653469237,
+    "payload_bytes": 10930715648
+  },
+  "build": {
+    "wall_s": 84.41322570800003,
+    "peak_mlx_gib": 3.774301815778017,
+    "params": {
+      "layout": "uniform3",
+      "rotate": false,
+      "method": "rtn",
+      "seed": 0,
+      "group_size": 128,
+      "block": 0,
+      "rotate_dtype": "float32"
+    }
+  },
+  "eval": {
+    "all": {
+      "nll_mean": 1.5018145544601562,
+      "ppl": 4.489828721916829,
+      "delta_nll": 0.20811692302923146,
+      "top1_agree": 0.8123371600716496,
+      "kl_top32": 0.25378958644170907
+    },
+    "en": {
+      "nll_mean": 2.0459070131437453,
+      "ppl": 7.736172166539706,
+      "delta_nll": 0.17128259164854898,
+      "top1_agree": 0.7902418172936004,
+      "kl_top32": 0.21099290306368718
+    },
+    "code": {
+      "nll_mean": 0.9375149408782116,
+      "ppl": 2.5536276112170424,
+      "delta_nll": 0.25312927541467223,
+      "top1_agree": 0.8353077674645824,
+      "kl_top32": 0.33755999711128554
+    },
+    "ru": {
+      "nll_mean": 1.5220217093585116,
+      "ppl": 4.581478255956546,
+      "delta_nll": 0.19993890202447262,
+      "top1_agree": 0.811461895456766,
+      "kl_top32": 0.21281585915015458
+    }
+  },
+  "ladder": [
+    {
+      "ctx": 4096,
+      "prefill_s": 50.303693082999416,
+      "prefill_tok_s": 81.42543318324037,
+      "ttft_s": 50.64763016699999,
+      "decode_tok_s": 11.776275068433325,
+      "peak_mlx_gib": 11.662051299586892,
+      "free_pct_before": 88.0,
+      "free_pct_after": 89.0,
+      "free_pct_min": 26.0,
+      "swap_mib_before": 715.88,
+      "swap_mib_after": 945.0,
+      "safety_stop": false
+    },
+    {
+      "ctx": 8192,
+      "prefill_s": 102.32066349999968,
+      "prefill_tok_s": 80.06202969940696,
+      "ttft_s": 102.62221416699958,
+      "decode_tok_s": 11.454975038313723,
+      "peak_mlx_gib": 12.079651927575469,
+      "free_pct_before": 89.0,
+      "free_pct_after": 88.0,
+      "free_pct_min": 25.0,
+      "swap_mib_before": 945.0,
+      "swap_mib_after": 929.0,
+      "safety_stop": false
+    },
+    {
+      "ctx": 16384,
+      "prefill_s": 211.95873924999978,
+      "prefill_tok_s": 77.29806309460777,
+      "ttft_s": 212.94924874999924,
+      "decode_tok_s": 10.950167479901182,
+      "peak_mlx_gib": 12.989091014489532,
+      "free_pct_before": 88.0,
+      "free_pct_after": 89.0,
+      "free_pct_min": 22.0,
+      "swap_mib_before": 929.0,
+      "swap_mib_after": 945.0,
+      "safety_stop": false
+    }
+  ],
+  "gen_check": [
+    {
+      "id": "P1",
+      "n_tokens": 384,
+      "hit_eos": false,
+      "distinct4": 0.8241469816272966,
+      "max4": 4
+    },
+    {
+      "id": "P2",
+      "n_tokens": 384,
+      "hit_eos": false,
+      "distinct4": 0.8661417322834646,
+      "max4": 5,
+      "p2_has_187": false
+    },
+    {
+      "id": "P3",
+      "n_tokens": 289,
+      "hit_eos": true,
+      "distinct4": 0.9965034965034965,
+      "max4": 2
+    },
+    {
+      "id": "P4",
+      "n_tokens": 188,
+      "hit_eos": true,
+      "distinct4": 0.6756756756756757,
+      "max4": 6,
+      "p4_json_valid": true
+    },
+    {
+      "id": "P5",
+      "n_tokens": 273,
+      "hit_eos": true,
+      "distinct4": 0.9962962962962963,
+      "max4": 2
+    }
+  ],
+  "notes": [
+    "Pipeline check: 1847 of 1847 tensors byte-identical to production g128 (differing 0, missing 0, extra 0).",
+    "Pipeline check: eval nll_mean minus E01 nll_mean = 0.0 in all, en, code, ru; threshold 0.002.",
+    "Ladder: 24576 and 32768 not run because weights are 10.180 GiB > 9.0 GiB."
+  ]
+}
