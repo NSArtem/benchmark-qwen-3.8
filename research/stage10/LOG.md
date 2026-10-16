@@ -139,3 +139,17 @@ commit: c402dbf
 result: OK
 wall: data rebuild 1m00s; peak_mlx: n/a; swap before/after: n/a
 facts: PyPI latest is still mlx 0.32.4 (uploaded 2026-10-14T21:15:37) and mlx-lm 0.32.1 (uploaded 2026-10-15T21:22:28), matching the pins. A2 rebuild into scratch: all 6 arrays have SHA-256 equal to data_manifest.json, dataset revisions equal, and the whole manifest is equal apart from file paths. Unit tests: 2 passed. Metal probe: `import mlx_lm` OK, default device gpu:0, `mx.metal.is_available()` True, device Apple M3 Pro, 1024x1024 matmul OK. Earlier FAILED_ERROR entries for the dependency lock (DNS for pypi.org), the A2 PARTIAL run, and the MLX device probe (sandbox) do not reproduce.
+
+## 2026-10-16 E13/E14 reference downloads
+cmd: `uv run hf download prism-ml/Ternary-Bonsai-2-27B-mlx-2bit --revision fcba37d2117a7077eac6b613b2668d14d9779edd --local-dir /Users/artem/models-stage10/E13`; `uv run hf download EschaLabs/Qwen3.8-27B-Escha-W2 --revision 561dae0aeea1efbdafe122f2e385fdeaa99127e7 --local-dir /Users/artem/models-stage10/E14`
+commit: 375ac0e
+result: OK
+wall: about 9m total; peak_mlx: n/a; swap before/after: n/a
+facts: both exit 0. E13 repo sha fcba37d2117a7077eac6b613b2668d14d9779edd, model.safetensors 8,595,477,990 bytes, config model_type `prism_hadamard_qwen35`, schema_version 2. E14 repo sha 561dae0aeea1efbdafe122f2e385fdeaa99127e7, two safetensors shards, 10 GiB directory. escha-mlx github.com/EschaLabs/escha-mlx HEAD 69f72187d93d74e281eeb1044f3ef95dfce671de (cloned to a scratch directory for inspection only; pyproject pins `mlx>=0.32.0,<0.40`, `mlx-lm>=0.31.3,<0.32`). No model weights loaded.
+
+## 2026-10-16 A4 BF16 reference (E00)
+cmd: `uv run python -m stage10.reference`
+commit: 6f2639f (reference.py committed later in 1c7a916 without changes)
+result: OK
+wall: 21m06s (child 1265.6 s), peak_mlx: 5.08 GiB, swap before/after: 0.31/0.23 GiB
+facts: preflight free 85%, swap 314.25 MiB; watchdog minimum free 43%; no SAFETY STOP. 48 eval sequences (en, code, ru; 16 each), sequence batch 4. Outputs in `benchmarks/results/stage10/reference/`: nll [48,2047] float32, top1 [48,2047] int32, top32_ids [48,2047,32] int32, top32_logp [48,2047,32] float32; all finite; top1 is inside top32 at every position. nll_mean all 1.29370 (ppl 3.64624), en 1.87462, code 0.68439, ru 1.32208.
