@@ -103,6 +103,20 @@
       "swap_mib_before": 467.81,
       "swap_mib_after": 689.94,
       "safety_stop": false
+    },
+    {
+      "ctx": 32768,
+      "prefill_s": 463.95019208299345,
+      "prefill_tok_s": 70.62827122213653,
+      "ttft_s": 467.35429174999445,
+      "decode_tok_s": 3.3148260151698783,
+      "peak_mlx_gib": 14.174796199426055,
+      "free_pct_before": 90.0,
+      "free_pct_after": 90.0,
+      "free_pct_min": 23.0,
+      "swap_mib_before": 665.94,
+      "swap_mib_after": 551.0,
+      "safety_stop": false
     }
   ],
   "gen_check": [
@@ -145,7 +159,6 @@
     }
   ],
   "notes": [
-    "No build: E03 checkpoint loaded with rotate_dtype=bfloat16; checkpoint fields are E03's.",
-    "Ladder: 24576 and 32768 not run because weights are 10.193 GiB > 9.0 GiB."
+    "No build: E03 checkpoint loaded with rotate_dtype=bfloat16; checkpoint fields are E03's."
   ]
 }
