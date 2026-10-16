@@ -53,3 +53,6 @@
   prompt-progress callback (all prompt tokens but the last are in the
   cache); `ttft_s` is the time to the first yielded token.
 - A9 `n_tokens` counts generated tokens excluding the EOS token.
+- AWQ: `mean(|X|)` is clamped below at 1e-8 before `** α`, so an all-zero
+  input channel cannot make `s / sqrt(max(s) * min(s))` divide by zero.
+  Folded tensors are scaled in float32 and stored in their original dtype.
