@@ -1,0 +1,137 @@
+{
+  "exp_id": "E01",
+  "recipe": "prod-g128",
+  "status": "OK",
+  "stack": {
+    "python": "3.14.7",
+    "mlx": "0.32.4",
+    "mlx_lm": "0.32.1"
+  },
+  "git_commit": "c5b19b1",
+  "date": "2026-10-16",
+  "checkpoint": {
+    "path": "/Users/artem/models/Qwen3.8-27B-3bit-g128-MLX",
+    "bytes": 10930954231,
+    "gib": 10.180244437418878,
+    "bpw": 3.251254653469237,
+    "payload_bytes": 10930715648
+  },
+  "build": null,
+  "eval": {
+    "all": {
+      "nll_mean": 1.5018145544601562,
+      "ppl": 4.489828721916829,
+      "delta_nll": 0.20811692302923146,
+      "top1_agree": 0.8123371600716496,
+      "kl_top32": 0.25378958644170907
+    },
+    "en": {
+      "nll_mean": 2.0459070131437453,
+      "ppl": 7.736172166539706,
+      "delta_nll": 0.17128259164854898,
+      "top1_agree": 0.7902418172936004,
+      "kl_top32": 0.21099290306368718
+    },
+    "code": {
+      "nll_mean": 0.9375149408782116,
+      "ppl": 2.5536276112170424,
+      "delta_nll": 0.25312927541467223,
+      "top1_agree": 0.8353077674645824,
+      "kl_top32": 0.33755999711128554
+    },
+    "ru": {
+      "nll_mean": 1.5220217093585116,
+      "ppl": 4.581478255956546,
+      "delta_nll": 0.19993890202447262,
+      "top1_agree": 0.811461895456766,
+      "kl_top32": 0.21281585915015458
+    }
+  },
+  "ladder": [
+    {
+      "ctx": 4096,
+      "prefill_s": 50.20363387499947,
+      "prefill_tok_s": 81.58771953039313,
+      "ttft_s": 50.52468066700021,
+      "decode_tok_s": 11.693055049211454,
+      "peak_mlx_gib": 11.66203604079783,
+      "free_pct_before": 90.0,
+      "free_pct_after": 90.0,
+      "free_pct_min": 27.0,
+      "swap_mib_before": 903.5,
+      "swap_mib_after": 945.38,
+      "safety_stop": false
+    },
+    {
+      "ctx": 8192,
+      "prefill_s": 102.15453100000013,
+      "prefill_tok_s": 80.19223347029012,
+      "ttft_s": 102.49436033300026,
+      "decode_tok_s": 11.368501664269736,
+      "peak_mlx_gib": 12.079651927575469,
+      "free_pct_before": 90.0,
+      "free_pct_after": 89.0,
+      "free_pct_min": 26.0,
+      "swap_mib_before": 945.38,
+      "swap_mib_after": 913.38,
+      "safety_stop": false
+    },
+    {
+      "ctx": 16384,
+      "prefill_s": 212.28063904200008,
+      "prefill_tok_s": 77.18084924720054,
+      "ttft_s": 213.28563587500048,
+      "decode_tok_s": 10.869989332111558,
+      "peak_mlx_gib": 12.989091014489532,
+      "free_pct_before": 89.0,
+      "free_pct_after": 89.0,
+      "free_pct_min": 23.0,
+      "swap_mib_before": 913.38,
+      "swap_mib_after": 922.94,
+      "safety_stop": false
+    }
+  ],
+  "gen_check": [
+    {
+      "id": "P1",
+      "n_tokens": 384,
+      "hit_eos": false,
+      "distinct4": 0.8241469816272966,
+      "max4": 4
+    },
+    {
+      "id": "P2",
+      "n_tokens": 384,
+      "hit_eos": false,
+      "distinct4": 0.8661417322834646,
+      "max4": 5,
+      "p2_has_187": false
+    },
+    {
+      "id": "P3",
+      "n_tokens": 289,
+      "hit_eos": true,
+      "distinct4": 0.9965034965034965,
+      "max4": 2
+    },
+    {
+      "id": "P4",
+      "n_tokens": 188,
+      "hit_eos": true,
+      "distinct4": 0.6756756756756757,
+      "max4": 6,
+      "p4_json_valid": true
+    },
+    {
+      "id": "P5",
+      "n_tokens": 273,
+      "hit_eos": true,
+      "distinct4": 0.9962962962962963,
+      "max4": 2
+    }
+  ],
+  "notes": [
+    "Production checkpoint loaded with mlx_lm.load on the Stage 10 stack.",
+    "Ladder: 24576 and 32768 not run because weights are 10.180 GiB > 9.0 GiB."
+  ]
+}

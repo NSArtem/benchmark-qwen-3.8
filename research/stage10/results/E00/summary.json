@@ -1,0 +1,65 @@
+{
+  "exp_id": "E00",
+  "recipe": "bf16-ref",
+  "status": "OK",
+  "stack": {
+    "python": "3.14.7",
+    "mlx": "0.32.4",
+    "mlx_lm": "0.32.1"
+  },
+  "git_commit": "c5b19b1",
+  "date": "2026-10-16",
+  "checkpoint": {
+    "path": "/Users/artem/.cache/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+    "bytes": 55563006776,
+    "gib": 51.7470825240016,
+    "bpw": 16.000002741226087,
+    "payload_bytes": 53791996928
+  },
+  "build": {
+    "wall_s": 1265.596846125,
+    "peak_mlx_gib": 5.082361510023475,
+    "params": {
+      "sequence_batch_size": 4,
+      "source_revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
+    }
+  },
+  "eval": {
+    "all": {
+      "nll_mean": 1.2936976314309248,
+      "ppl": 3.64624412673874,
+      "delta_nll": 0.0,
+      "top1_agree": 1.0,
+      "kl_top32": 0.0
+    },
+    "en": {
+      "nll_mean": 1.8746244214951964,
+      "ppl": 6.5183705006880395,
+      "delta_nll": 0.0,
+      "top1_agree": 1.0,
+      "kl_top32": 0.0
+    },
+    "code": {
+      "nll_mean": 0.6843856654635394,
+      "ppl": 1.9825535102540977,
+      "delta_nll": 0.0,
+      "top1_agree": 1.0,
+      "kl_top32": 0.0
+    },
+    "ru": {
+      "nll_mean": 1.322082807334039,
+      "ppl": 3.751226328042639,
+      "delta_nll": 0.0,
+      "top1_agree": 1.0,
+      "kl_top32": 0.0
+    }
+  },
+  "ladder": null,
+  "gen_check": null,
+  "notes": [
+    "A4 reference only; no ladder and no gen-check by TASK.md section 4.",
+    "checkpoint.bytes is the size of all 18 BF16 source shards (includes visual and mtp tensors); bpw and payload_bytes count the 851 retained text tensors only.",
+    "eval is the reference compared with itself.",
+    "E00 sanity check: reference nll_mean minus E01 nll_mean: en -0.17128, code -0.25313, ru -0.19994; threshold +0.01."
+  ]
+}
