@@ -16,8 +16,8 @@ difference 0.0; argmax agreement 1.0). A3-sanitize PASS (layers 0 and 3,
 55/55 tensors byte-identical) after a user-authorized resume of the §7 STOP.
 
 Unit tests: 31 pass (`uv run python -m unittest discover -s tests`).
-Next: Amendment 1 step 4: E01–E05 gen-check updated; E06 pending, then step 5 ladders.
+Next: Amendment 1 step 5: run 24576 and 32768 for E01, E03, E05, E06 in order; E05 uses bfloat16 rotation.
 
 - [x] AM1 tools
-- [ ] AM1 gen-check rerun
+- [x] AM1 gen-check rerun
 - [ ] AM1 ladder 24K/32K

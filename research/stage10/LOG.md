@@ -427,3 +427,16 @@ commit: 220bbe6
 result: OK
 wall: 2.5m, peak_mlx: n/a, swap before/after: 0.45/0.45 GiB
 facts: P1: n 398, eos True, distinct4 0.810, max4 4; P2: n 543, eos True, distinct4 0.785, max4 9, has_187 False; P3: n 307, eos True, distinct4 0.997, max4 2; P4: n 192, eos True, distinct4 0.677, max4 6, json_valid True; P5: n 166, eos True, distinct4 0.988, max4 2
+
+## 2026-10-16 15:51 E06 gen-check
+cmd: `uv run python -m stage10.gen_check --exp E06 --model /Users/artem/models-stage10/E06 --loader candidate`
+commit: ffc4616
+result: OK
+wall: 2.3m, peak_mlx: n/a, swap before/after: 0.44/0.44 GiB
+facts: P1: n 353, eos True, distinct4 0.794, max4 4; P2: n 494, eos True, distinct4 0.804, max4 7, has_187 True; P3: n 265, eos True, distinct4 0.985, max4 2; P4: n 187, eos True, distinct4 0.674, max4 6, json_valid True; P5: n 204, eos True, distinct4 1.000, max4 1
+
+## 2026-10-16 15:51 AM1 step 4 complete
+cmd: replace E01–E06 gen_check.json and summary.gen_check; compare against e57b5b5
+commit: ffc4616
+result: OK
+facts: six 1024-token checks completed; six summaries changed only in gen_check; six committed 384-token archives equal original JSON; no safety stops.

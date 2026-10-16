@@ -1612,11 +1612,11 @@
     },
     {
       "id": "P2",
-      "n_tokens": 384,
-      "hit_eos": false,
-      "distinct4": 0.8188976377952756,
+      "n_tokens": 494,
+      "hit_eos": true,
+      "distinct4": 0.8044806517311609,
       "max4": 7,
-      "p2_has_187": false
+      "p2_has_187": true
     },
     {
       "id": "P3",

@@ -9,12 +9,12 @@
   },
   {
     "id": "P2",
-    "n_tokens": 384,
-    "hit_eos": false,
-    "distinct4": 0.8188976377952756,
+    "n_tokens": 494,
+    "hit_eos": true,
+    "distinct4": 0.8044806517311609,
     "max4": 7,
-    "p2_has_187": false,
-    "text": "Here is the step-by-step calculation to determine how many minutes the train is actually moving.\n\n### Step 1: Calculate the total elapsed time\nFirst, we determine the total time from departure to arrival.\n*   **Departure time:** 14:35\n*   **Arrival time:** 18:10\n\nLet's calculate the difference:\n1.  From 14:35 to 18:35 is exactly 4 hours.\n2.  However, the train arrives at 18:10, which is 25 minutes earlier than 18:35.\n3.  So, 4 hours minus 25 minutes.\n    *   4 hours = 240 minutes.\n    *   $240 - 25 = 215$ minutes.\n\nAlternatively, calculating directly:\n*   From 14:35 to 15:00 is 25 minutes.\n*   From 15:00 to 18:00 is 3 hours ($3 \\times 60 = 180$ minutes).\n*   From 18:00 to 18:10 is 10 minutes.\n*   Total: $25 + 180 + 10 = 215$ minutes.\n\n**Total elapsed time = 215 minutes.**\n\n### Step 2: Calculate the total stop time\nThe problem states that the train stops for 7 minutes at each of 4 stations.\n*   Number of stops: 4\n*   Duration per stop: 7 minutes\n\nTotal stop time = $4 \\times 7 = 28$ minutes.\n\n### Step 3: Calculate the time actually"
+    "p2_has_187": true,
+    "text": "Here is the step-by-step calculation to determine how many minutes the train is actually moving.\n\n### Step 1: Calculate the total elapsed time\nFirst, we determine the total time from departure to arrival.\n*   **Departure time:** 14:35\n*   **Arrival time:** 18:10\n\nLet's calculate the difference:\n1.  From 14:35 to 18:35 is exactly 4 hours.\n2.  However, the train arrives at 18:10, which is 25 minutes earlier than 18:35.\n3.  So, 4 hours minus 25 minutes.\n    *   4 hours = 240 minutes.\n    *   $240 - 25 = 215$ minutes.\n\nAlternatively, calculating directly:\n*   From 14:35 to 15:00 is 25 minutes.\n*   From 15:00 to 18:00 is 3 hours ($3 \\times 60 = 180$ minutes).\n*   From 18:00 to 18:10 is 10 minutes.\n*   Total: $25 + 180 + 10 = 215$ minutes.\n\n**Total elapsed time = 215 minutes.**\n\n### Step 2: Calculate the total stop time\nThe problem states that the train stops for 7 minutes at each of 4 stations.\n*   Number of stops: 4\n*   Duration per stop: 7 minutes\n\nTotal stop time = $4 \\times 7 = 28$ minutes.\n\n### Step 3: Calculate the time actually moving\nThe time the train is actually moving is the total elapsed time minus the time spent stopped.\n\n$$ \\text{Moving Time} = \\text{Total Elapsed Time} - \\text{Total Stop Time} $$\n$$ \\text{Moving Time} = 215 \\text{ minutes} - 28 \\text{ minutes} $$\n$$ \\text{Moving Time} = 187 \\text{ minutes} $$\n\n### Final Conclusion\nThe train is actually moving for **187 minutes**."
   },
   {
     "id": "P3",
