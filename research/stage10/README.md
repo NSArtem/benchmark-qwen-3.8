@@ -10,3 +10,22 @@ transformers 5.20.0; tokenizers 0.23.3; huggingface-hub 2.2.0.
 Heavy commands must call `preflight()` and run through
 `stage10.common.run_guarded`. Large arrays and process logs belong in the
 git-ignored `benchmarks/results/stage10/` directory in the repository.
+
+## Commands
+
+- Unit tests: `uv run python -m unittest discover -s tests`
+- A3 checks: `uv run python -m stage10.check_a3 --mode loop|sanitize`
+- A4 BF16 reference (E00): `uv run python -m stage10.reference`
+- Build one candidate: `uv run python -m stage10.build --exp E02`
+  (`--compare-production` counts tensors byte-identical to production g128)
+- A7 eval / A9 gen-check / A8 ladder for one model:
+  `uv run python -m stage10.evaluate|gen_check --exp E01 --model <dir> --loader mlx_lm|candidate [--rotate-dtype bfloat16]`;
+  `uv run python -m stage10.ladder ... --weights-gib <GiB>`
+- Whole experiment (build, eval, gen-check, ladder; LOG.md entries appended):
+  `uv run python -m stage10.run_exp --exp E03 [--steps build,eval,gen,ladder]`
+- Summary and table: `uv run python -m stage10.summary --exp E03 --recipe had3 --status OK`;
+  `uv run python -m stage10.make_table`
+
+Every heavy step runs in a child process under `tools/memory_watchdog.sh`
+after `preflight()`. Per-run outputs go to `benchmarks/results/stage10/<EXP_ID>/`;
+candidates go to `/Users/artem/models-stage10/<EXP_ID>/`.
