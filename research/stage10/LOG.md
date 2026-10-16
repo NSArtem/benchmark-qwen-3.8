@@ -594,3 +594,10 @@ commit: efcb459
 result: OK (build still running)
 wall: n/a, peak_mlx: n/a, swap before/after: n/a
 facts: Layers 0–15 completed; layer 15 wall 172.2 s; peak MLX so far 15.59 GiB. Watchdog attached; no SAFETY STOP or listed allocation/timeout errors in full log scans. Layer 16 in progress. No measurements run yet.
+
+## 2026-10-16 22:27 E08 build progress layers 0–31
+cmd: `tail benchmarks/results/stage10/E08/build_progress.log`
+commit: 5ab5cff
+result: OK (build still running)
+wall: n/a, peak_mlx: n/a, swap before/after: n/a
+facts: Layers 0–31 completed; layer 31 wall 174.2 s; peak MLX so far 15.73 GiB. Watchdog attached; no SAFETY STOP or listed allocation/timeout errors in full log scans. Layer 32 in progress. No measurements run yet.
