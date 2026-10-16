@@ -566,3 +566,17 @@ commit: 3c099f4
 result: OK
 wall: 2.3m, peak_mlx: n/a, swap before/after: 0.40/0.40 GiB
 facts: P1: n 321, eos True, distinct4 0.884, max4 3; P2: n 448, eos True, distinct4 0.780, max4 7, has_187 True; P3: n 288, eos True, distinct4 0.975, max4 3; P4: n 207, eos True, distinct4 0.691, max4 6, json_valid True; P5: n 165, eos True, distinct4 1.000, max4 1
+
+## 2026-10-16 20:52 E07 ladder
+cmd: `uv run python -m stage10.ladder --exp E07 --model /Users/artem/models-stage10/E07 --loader candidate --weights-gib 10.1930`
+commit: 55efa13
+result: OK
+wall: 21.8m, peak_mlx: 14.17 GiB, swap before/after: 0.40/0.61 GiB
+facts: ctx 4096: decode 11.435061115165544, prefill 80.34880443906435 tok/s, ttft 51.313978416998 s, peak 11.757788751274347 GiB, min free 26.0%, safety_stop False, exit 0; ctx 8192: decode 11.063473203837123, prefill 79.00501588960124 tok/s, ttft 103.98496220899688 s, peak 12.21053228341043 GiB, min free 26.0%, safety_stop False, exit 0; ctx 16384: decode 10.42840992613715, prefill 76.41118106330534 tok/s, ttft 214.76167816700035 s, peak 12.745703792199492 GiB, min free 22.0%, safety_stop False, exit 0; ctx 24576: decode 7.502752535413158, prefill 73.69910097962423 tok/s, ttft 335.605283375 s, peak 13.468054866418242 GiB, min free 22.0%, safety_stop False, exit 0; ctx 32768: decode 3.2660431750679884, prefill 69.98810882690786 tok/s, ttft 471.60246033300064 s, peak 14.174796199426055 GiB, min free 23.0%, safety_stop False, exit 0
+
+## 2026-10-16 20:52 E07 final summary and table
+cmd: `uv run python -m stage10.summary --exp E07 --recipe had3-gptq --status OK`
+commit: 55efa13
+result: OK
+wall: n/a, peak_mlx: n/a, swap before/after: n/a
+facts: summary.json and gen_check.json written; RESULTS.md regenerated from eight summaries; build, 48-sequence eval, 1024-token gen-check and five ladder lengths complete; no safety stops. E07 status OK.
