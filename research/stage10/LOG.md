@@ -580,3 +580,17 @@ commit: 55efa13
 result: OK
 wall: n/a, peak_mlx: n/a, swap before/after: n/a
 facts: summary.json and gen_check.json written; RESULTS.md regenerated from eight summaries; build, 48-sequence eval, 1024-token gen-check and five ladder lengths complete; no safety stops. E07 status OK.
+
+## 2026-10-16 20:52 E08 build start
+cmd: `uv run python -m stage10.run_exp --exp E08 --steps build`
+commit: efcb459
+result: OK (starting guarded process)
+wall: n/a, peak_mlx: n/a, swap before/after: n/a
+facts: Rotation + GPTQ; all mlp modules 2-bit, all other quantized modules 3-bit; group_size=128, block=1024, seed=0, runtime rotate_dtype=bfloat16. E07 guarded process exited before this run.
+
+## 2026-10-16 21:40 E08 build progress layers 0–15
+cmd: `tail benchmarks/results/stage10/E08/build_progress.log`
+commit: efcb459
+result: OK (build still running)
+wall: n/a, peak_mlx: n/a, swap before/after: n/a
+facts: Layers 0–15 completed; layer 15 wall 172.2 s; peak MLX so far 15.59 GiB. Watchdog attached; no SAFETY STOP or listed allocation/timeout errors in full log scans. Layer 16 in progress. No measurements run yet.

@@ -16,7 +16,7 @@ difference 0.0; argmax agreement 1.0). A3-sanitize PASS (layers 0 and 3,
 55/55 tensors byte-identical) after a user-authorized resume of the §7 STOP.
 
 Unit tests: 31 pass (`uv run python -m unittest discover -s tests`).
-Next: E08 rotation + GPTQ, mixA layout, runtime rotate_dtype=bfloat16; then E09–E15 in order. E14 must be SKIPPED_UNSAFE with existing wired-limit grep evidence.
+Next: E08 build RUNNING (layers 0–15 complete at 2026-10-16 21:39); rotation + GPTQ, mixA layout, runtime rotate_dtype=bfloat16; then E09–E15 in order. E14 must be SKIPPED_UNSAFE with existing wired-limit grep evidence.
 
 - [x] AM1 tools
 - [x] AM1 gen-check rerun
