@@ -20,7 +20,8 @@ git-ignored `benchmarks/results/stage10/` directory in the repository.
   (`--compare-production` counts tensors byte-identical to production g128)
 - A7 eval / A9 gen-check / A8 ladder for one model:
   `uv run python -m stage10.evaluate|gen_check --exp E01 --model <dir> --loader mlx_lm|candidate [--rotate-dtype bfloat16]`;
-  `uv run python -m stage10.ladder ... --weights-gib <GiB>`
+  `uv run python -m stage10.ladder ... --weights-gib <GiB> [--ctx N]`
+  (4096, 8192, 16384, 24576, 32768; --ctx appends or replaces one length)
 - Whole experiment (build, eval, gen-check, ladder; LOG.md entries appended):
   `uv run python -m stage10.run_exp --exp E03 [--steps build,eval,gen,ladder]`
 - Summary and table: `uv run python -m stage10.summary --exp E03 --recipe had3 --status OK`;
@@ -29,3 +30,6 @@ git-ignored `benchmarks/results/stage10/` directory in the repository.
 Every heavy step runs in a child process under `tools/memory_watchdog.sh`
 after `preflight()`. Per-run outputs go to `benchmarks/results/stage10/<EXP_ID>/`;
 candidates go to `/Users/artem/models-stage10/<EXP_ID>/`.
+
+Amendment 1: gen-check limit 1024 tokens. E07–E12 runtime rotation dtype
+is bfloat16 in build metadata and module config; weight folding remains float32.

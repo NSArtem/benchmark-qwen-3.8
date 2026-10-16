@@ -15,9 +15,9 @@ Recorded checks: A3-loop PASS (4094 positions; max absolute log-probability
 difference 0.0; argmax agreement 1.0). A3-sanitize PASS (layers 0 and 3,
 55/55 tensors byte-identical) after a user-authorized resume of the §7 STOP.
 
-Unit tests: 28 pass (`uv run python -m unittest discover -s tests`).
-Next: Amendment 1 step 3 tool changes; step 2 branch targets updated.
+Unit tests: 31 pass (`uv run python -m unittest discover -s tests`).
+Next: Amendment 1 step 4 gen-check reruns E01–E06 at 1024 tokens; preserve gen_check_384.json.
 
-- [ ] AM1 tools
+- [x] AM1 tools
 - [ ] AM1 gen-check rerun
 - [ ] AM1 ladder 24K/32K

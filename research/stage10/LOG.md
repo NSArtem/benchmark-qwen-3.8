@@ -374,3 +374,9 @@ cmd: inspect Stage 10 Python and shell scripts; replace finish_exp.sh git remote
 commit: e57b5b5
 result: OK
 facts: git-ignored finish_exp.sh now checks current branch stage-10, pulls origin stage-10 and pushes origin stage-10. Python main functions and Hugging Face dataset revision main retained.
+
+## 2026-10-16 15:31 AM1 step 3 tool changes
+cmd: `uv run python -m unittest discover -s tests -p test_amendment.py`; `uv run python -m unittest discover -s tests`; process inventory; `memory_pressure -Q`; `sysctl vm.swapusage`
+commit: 2d20c8d
+result: OK
+facts: three amendment tests failed against previous settings, then passed after implementation; all 31 tests pass in 0.342 s. Gen-check max_tokens=1024; all sizes receive contexts 4096,8192,16384,24576,32768; --ctx driver preserves existing ladder rows and skips larger contexts after a safety stop. Recipe metadata and candidate module records use bfloat16 for E07–E12; E03/E04 float32 retained; weight folding unchanged. Initial test-file write used an incorrect relative path and wrote no file; initial sandbox uv command could not acquire its cache lock; escalated commands succeeded. No heavy MLX processes found; host free 87%, swap used 191.25 MiB.

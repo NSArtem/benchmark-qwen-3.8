@@ -17,7 +17,6 @@ from .reference import RESULTS
 
 BASE_CONTEXTS = (4096, 8192, 16384)
 LONG_CONTEXTS = (24576, 32768)
-LONG_MAX_GIB = 9.0
 MAX_TOKENS = 128
 PREFILL_STEP = 512
 
@@ -33,7 +32,7 @@ def ladder_prompt(n: int) -> np.ndarray:
 
 
 def contexts_for(weights_gib: float) -> list[int]:
-    return list(BASE_CONTEXTS) + (list(LONG_CONTEXTS) if weights_gib <= LONG_MAX_GIB else [])
+    return list(BASE_CONTEXTS + LONG_CONTEXTS)
 
 
 def _child(args) -> None:
@@ -79,8 +78,11 @@ def _child(args) -> None:
 
 
 def run_ladder(args) -> list[dict]:
-    rows = []
-    for ctx in contexts_for(args.weights_gib):
+    path = RESULTS / args.exp / "ladder.json"
+    rows = json.loads(path.read_text()) if args.ctx and path.is_file() else []
+    if args.ctx and any(r.get("safety_stop") and r["ctx"] < args.ctx for r in rows):
+        return rows
+    for ctx in ([args.ctx] if args.ctx else contexts_for(args.weights_gib)):
         child_path = RESULTS / args.exp / f"ladder_{ctx}_child.json"
         child_path.unlink(missing_ok=True)
         run = guarded_module(
@@ -101,7 +103,7 @@ def run_ladder(args) -> list[dict]:
             exit_code=run["exit_code"],
             wall_s=run["wall_s"],
         )
-        rows.append(row)
+        rows = sorted([r for r in rows if r["ctx"] != ctx] + [row], key=lambda r: r["ctx"])
         write_json(RESULTS / args.exp / "ladder.json", rows)
         print(json.dumps(row))
         if run["safety_stop"] or run["exit_code"] != 0:
@@ -112,7 +114,7 @@ def run_ladder(args) -> list[dict]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     add_model_args(parser)
-    parser.add_argument("--ctx", type=int)
+    parser.add_argument("--ctx", type=int, choices=BASE_CONTEXTS + LONG_CONTEXTS)
     parser.add_argument("--weights-gib", type=float, default=None)
     parser.add_argument("--child", action="store_true")
     args = parser.parse_args()

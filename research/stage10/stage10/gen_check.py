@@ -12,7 +12,7 @@ from .common import guarded_module
 from .models import add_model_args, load_any, model_args, write_json
 from .reference import RESULTS
 
-MAX_TOKENS = 384
+MAX_TOKENS = 1024
 PROMPTS = {
     "P1": "Write a Python function merge_intervals(intervals) that merges overlapping intervals. Include a docstring and three doctest examples.",
     "P2": "A train leaves at 14:35 and arrives at 18:10 the same day. It stops for 7 minutes at each of 4 stations. How many minutes is it actually moving? Explain step by step.",

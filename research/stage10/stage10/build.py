@@ -25,6 +25,7 @@ class Recipe:
     rotate: bool
     method: str
     seed: int = 0
+    rotate_dtype: str = "float32"
 
 
 RECIPES = {
@@ -32,12 +33,12 @@ RECIPES = {
     "had3": Recipe("uniform3", True, "rtn"),
     "had3-seed1": Recipe("uniform3", True, "rtn", seed=1),
     "gptq3": Recipe("uniform3", False, "gptq"),
-    "had3-gptq": Recipe("uniform3", True, "gptq"),
-    "mixA-had-gptq": Recipe("mixA", True, "gptq"),
-    "mixA-had-rtn": Recipe("mixA", True, "rtn"),
-    "mixA-rtn": Recipe("mixA", False, "rtn"),
-    "mixB-had-gptq": Recipe("mixB", True, "gptq"),
-    "mixC-had-gptq": Recipe("mixC", True, "gptq"),
+    "had3-gptq": Recipe("uniform3", True, "gptq", rotate_dtype="bfloat16"),
+    "mixA-had-gptq": Recipe("mixA", True, "gptq", rotate_dtype="bfloat16"),
+    "mixA-had-rtn": Recipe("mixA", True, "rtn", rotate_dtype="bfloat16"),
+    "mixA-rtn": Recipe("mixA", False, "rtn", rotate_dtype="bfloat16"),
+    "mixB-had-gptq": Recipe("mixB", True, "gptq", rotate_dtype="bfloat16"),
+    "mixC-had-gptq": Recipe("mixC", True, "gptq", rotate_dtype="bfloat16"),
     "awq3": Recipe("uniform3", False, "awq"),
 }
 EXPERIMENTS = {
@@ -84,7 +85,7 @@ def module_records(model, recipe: Recipe) -> list[dict[str, Any]]:
     from .candidate import module_record
 
     return [
-        module_record(path, layout_bits(recipe.layout, path), BLOCK if recipe.rotate else 0, GROUP_SIZE)
+        module_record(path, layout_bits(recipe.layout, path), BLOCK if recipe.rotate else 0, GROUP_SIZE, recipe.rotate_dtype)
         for path in quantized_paths(model)
     ]
 
@@ -209,7 +210,7 @@ def _child(args) -> None:
             "seed": recipe.seed,
             "group_size": GROUP_SIZE,
             "block": BLOCK if recipe.rotate else 0,
-            "rotate_dtype": "float32",
+            "rotate_dtype": recipe.rotate_dtype,
             **params,
         },
     }
